@@ -1,0 +1,756 @@
+
+<?php $__env->startSection('title', 'Dashboard Admin'); ?>
+
+<?php $__env->startPush('scripts'); ?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<?php $__env->stopPush(); ?>
+
+<?php $__env->startPush('styles'); ?>
+<style>
+    @keyframes lampuBlink {
+        0%, 100% { background-color: #ffeb3b; }
+        50%      { background-color: #ffffff; }
+    }
+    @keyframes lampuBlinkMerah {
+        0%, 100% { background-color: #ffcdd2; }
+        50%      { background-color: #ffffff; }
+    }
+    @keyframes lampuPulse {
+        0%, 100% { transform: scale(1); opacity: 1; background: #dc3545; box-shadow: 0 0 10px #dc3545; }
+        50% { transform: scale(1.4); opacity: 0.6; background: #ffc107; box-shadow: 0 0 20px #ffc107; }
+    }
+
+    tr.row-lampu, tr.row-lampu td {
+        animation: lampuBlink 1s infinite ease-in-out !important;
+        font-weight: 600 !important;
+    }
+    tr.row-lampu { border-left: 5px solid #dc3545 !important; }
+
+    tr.row-lampu-merah, tr.row-lampu-merah td {
+        animation: lampuBlinkMerah 0.9s infinite ease-in-out !important;
+        font-weight: 700 !important;
+    }
+    tr.row-lampu-merah { border-left: 5px solid #b71c1c !important; }
+
+    tr.tugas-sudah-kerja { border-left: 5px solid #198754 !important; }
+
+    .lampu-indicator {
+        display: inline-block;
+        width: 12px; height: 12px;
+        border-radius: 50%;
+        background: #dc3545;
+        box-shadow: 0 0 10px #dc3545;
+        animation: lampuPulse 0.8s infinite;
+        margin-right: 6px;
+        vertical-align: middle;
+    }
+
+    .badge-belum-diambil { animation: lampuBlinkMerah 0.9s infinite ease-in-out !important; }
+
+    .chart-wrapper { position: relative; width: 100%; min-height: 280px; }
+    .chart-empty { text-align: center; padding: 50px 20px; color: #adb5bd; }
+    .chart-empty i { font-size: 3rem; opacity: 0.4; display: block; margin-bottom: 10px; }
+
+    /* Kolom section header */
+    .section-header {
+        padding: 10px 15px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: .9rem;
+    }
+    .section-header.komputer { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); }
+    .section-header.cctv { background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%); color: #000; }
+
+    .table-scroll { max-height: 300px; overflow-y: auto; }
+    .table-scroll::-webkit-scrollbar { width: 6px; }
+    .table-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+    .table-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+</style>
+<?php $__env->stopPush(); ?>
+
+<?php $__env->startSection('content'); ?>
+<h5 class="mb-3 fw-bold">
+    <i class="bi bi-speedometer2"></i> Monitoring Pekerjaan Teknisi
+</h5>
+
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4">
+        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small style="opacity: 0.9; font-size: .75rem;">📥 Total Tugas Hari Ini</small>
+                        <h2 class="mb-0 fw-bold mt-2"><?php echo e($hariIni['total']); ?></h2>
+                    </div>
+                    <i class="bi bi-calendar-day" style="font-size: 2.5rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4">
+        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small style="opacity: 0.9; font-size: .75rem;">✅ Sudah Dikerjakan</small>
+                        <h2 class="mb-0 fw-bold mt-2"><?php echo e($hariIni['selesai']); ?></h2>
+                    </div>
+                    <i class="bi bi-check-circle" style="font-size: 2.5rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4">
+        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small style="opacity: 0.9; font-size: .75rem;">⏳ Belum Dikerjakan</small>
+                        <h2 class="mb-0 fw-bold mt-2"><?php echo e($hariIni['belum']); ?></h2>
+                    </div>
+                    <i class="bi bi-hourglass-split" style="font-size: 2.5rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="row g-3 mb-4">
+
+    
+    <div class="col-md-6">
+        <div class="section-header komputer">
+            <span><i class="bi bi-pc-display"></i> PEKERJAAN KOMPUTER</span>
+            <span class="badge bg-light text-dark">
+                <?php echo e($kerjaanHariIniKomputer->count() + $kerjaanKemarinKomputer->count()); ?> total
+            </span>
+        </div>
+
+        
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-calendar-day"></i>
+                    Hari Ini — <?php echo e(now()->translatedFormat('d F Y')); ?>
+
+                </h6>
+                <span class="badge bg-primary"><?php echo e($kerjaanHariIniKomputer->count()); ?></span>
+            </div>
+            <div class="table-responsive table-scroll">
+                <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
+                    <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
+                        <tr>
+                            <th style="width: 22%;">Kode</th>
+                            <th style="width: 43%;">Pekerjaan</th>
+                            <th style="width: 18%;">Teknisi</th>
+                            <th style="width: 17%;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php $__empty_1 = true; $__currentLoopData = $kerjaanHariIniKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <?php
+                            $badgeClass = match($j->status) {
+                                'DITUGASKAN' => 'bg-secondary',
+                                'DIKERJAKAN' => 'bg-warning text-dark',
+                                'SELESAI'    => 'bg-success',
+                                default => 'bg-light text-dark',
+                            };
+                            $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                            $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                            if ($belumDiambil) {
+                                $rowClass = 'row-lampu-merah';
+                            } elseif ($belumDikerjakan) {
+                                $rowClass = 'row-lampu';
+                            } else {
+                                $rowClass = 'tugas-sudah-kerja';
+                            }
+                        ?>
+                        <tr class="<?php echo e($rowClass); ?>">
+                            <td>
+                                <?php if($belumDikerjakan || $belumDiambil): ?>
+                                    <span class="lampu-indicator"></span>
+                                <?php endif; ?>
+                                <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
+                            </td>
+                            <td>
+                                <div class="fw-semibold"><?php echo e($j->judul); ?></div>
+                                <small class="text-muted" style="font-size: .7rem;">
+                                    <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
+
+                                </small>
+                            </td>
+                            <td>
+                                <?php if($j->teknisi): ?>
+                                    <span class="badge bg-primary"><i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?></span>
+                                <?php else: ?>
+                                    <span class="badge bg-danger badge-belum-diambil"><i class="bi bi-exclamation-triangle"></i> Belum diambil</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e(str_replace('_', ' ', $j->status)); ?></span></td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan komputer hari ini</td></tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-calendar-check"></i>
+                    Kemarin — <?php echo e(now()->subDay()->translatedFormat('d F Y')); ?>
+
+                </h6>
+                <span class="badge bg-secondary"><?php echo e($kerjaanKemarinKomputer->count()); ?></span>
+            </div>
+            <div class="table-responsive table-scroll">
+                <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
+                    <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
+                        <tr>
+                            <th style="width: 22%;">Kode</th>
+                            <th style="width: 43%;">Pekerjaan</th>
+                            <th style="width: 18%;">Teknisi</th>
+                            <th style="width: 17%;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php $__empty_1 = true; $__currentLoopData = $kerjaanKemarinKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <?php
+                            $badgeClass = match($j->status) {
+                                'DITUGASKAN' => 'bg-secondary',
+                                'DIKERJAKAN' => 'bg-warning text-dark',
+                                'SELESAI'    => 'bg-success',
+                                default => 'bg-light text-dark',
+                            };
+                        ?>
+                        <tr>
+                            <td><code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code></td>
+                            <td>
+                                <div class="fw-semibold"><?php echo e($j->judul); ?></div>
+                                <small class="text-muted" style="font-size: .7rem;">
+                                    <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
+
+                                </small>
+                            </td>
+                            <td>
+                                <?php if($j->teknisi): ?>
+                                    <span class="badge bg-primary"><i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?></span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Belum diambil</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e(str_replace('_', ' ', $j->status)); ?></span></td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan komputer kemarin</td></tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="col-md-6">
+        <div class="section-header cctv">
+            <span><i class="bi bi-camera-video"></i> PEKERJAAN CCTV</span>
+            <span class="badge bg-dark text-white">
+                <?php echo e($kerjaanHariIniCctv->count() + $kerjaanKemarinCctv->count()); ?> total
+            </span>
+        </div>
+
+        
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-calendar-day"></i>
+                    Hari Ini — <?php echo e(now()->translatedFormat('d F Y')); ?>
+
+                </h6>
+                <span class="badge bg-info text-dark"><?php echo e($kerjaanHariIniCctv->count()); ?></span>
+            </div>
+            <div class="table-responsive table-scroll">
+                <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
+                    <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
+                        <tr>
+                            <th style="width: 22%;">Kode</th>
+                            <th style="width: 43%;">Pekerjaan</th>
+                            <th style="width: 18%;">Teknisi</th>
+                            <th style="width: 17%;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php $__empty_1 = true; $__currentLoopData = $kerjaanHariIniCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <?php
+                            $badgeClass = match($j->status) {
+                                'DITUGASKAN' => 'bg-secondary',
+                                'DIKERJAKAN' => 'bg-warning text-dark',
+                                'SELESAI'    => 'bg-success',
+                                default => 'bg-light text-dark',
+                            };
+                            $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                            $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                            if ($belumDiambil) {
+                                $rowClass = 'row-lampu-merah';
+                            } elseif ($belumDikerjakan) {
+                                $rowClass = 'row-lampu';
+                            } else {
+                                $rowClass = 'tugas-sudah-kerja';
+                            }
+                        ?>
+                        <tr class="<?php echo e($rowClass); ?>">
+                            <td>
+                                <?php if($belumDikerjakan || $belumDiambil): ?>
+                                    <span class="lampu-indicator"></span>
+                                <?php endif; ?>
+                                <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
+                            </td>
+                            <td>
+                                <div class="fw-semibold"><?php echo e($j->judul); ?></div>
+                                <small class="text-muted" style="font-size: .7rem;">
+                                    <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
+
+                                </small>
+                            </td>
+                            <td>
+                                <?php if($j->teknisi): ?>
+                                    <span class="badge bg-info text-dark"><i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?></span>
+                                <?php else: ?>
+                                    <span class="badge bg-danger badge-belum-diambil"><i class="bi bi-exclamation-triangle"></i> Belum diambil</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e(str_replace('_', ' ', $j->status)); ?></span></td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan CCTV hari ini</td></tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-calendar-check"></i>
+                    Kemarin — <?php echo e(now()->subDay()->translatedFormat('d F Y')); ?>
+
+                </h6>
+                <span class="badge bg-secondary"><?php echo e($kerjaanKemarinCctv->count()); ?></span>
+            </div>
+            <div class="table-responsive table-scroll">
+                <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
+                    <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
+                        <tr>
+                            <th style="width: 22%;">Kode</th>
+                            <th style="width: 43%;">Pekerjaan</th>
+                            <th style="width: 18%;">Teknisi</th>
+                            <th style="width: 17%;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php $__empty_1 = true; $__currentLoopData = $kerjaanKemarinCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <?php
+                            $badgeClass = match($j->status) {
+                                'DITUGASKAN' => 'bg-secondary',
+                                'DIKERJAKAN' => 'bg-warning text-dark',
+                                'SELESAI'    => 'bg-success',
+                                default => 'bg-light text-dark',
+                            };
+                        ?>
+                        <tr>
+                            <td><code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code></td>
+                            <td>
+                                <div class="fw-semibold"><?php echo e($j->judul); ?></div>
+                                <small class="text-muted" style="font-size: .7rem;">
+                                    <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
+
+                                </small>
+                            </td>
+                            <td>
+                                <?php if($j->teknisi): ?>
+                                    <span class="badge bg-info text-dark"><i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?></span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Belum diambil</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e(str_replace('_', ' ', $j->status)); ?></span></td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan CCTV kemarin</td></tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+<div class="row g-3 mb-4">
+
+    
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header komputer text-white py-2">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-trophy-fill"></i>
+                    Top Teknisi Komputer — <?php echo e(now()->translatedFormat('d F Y')); ?>
+
+                </h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size: .85rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 8%;" class="text-center">#</th>
+                            <th style="width: 42%;">Teknisi</th>
+                            <th style="width: 16%;" class="text-center">✅</th>
+                            <th style="width: 16%;" class="text-center">⏳</th>
+                            <th style="width: 18%;" class="text-center">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php $__empty_1 = true; $__currentLoopData = $ratingHariIniKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <tr class="<?php echo e($i == 0 ? 'table-warning' : ''); ?>">
+                            <td class="text-center fw-bold" style="font-size: 1.1rem;">
+                                <?php if($i == 0): ?> 🥇
+                                <?php elseif($i == 1): ?> 🥈
+                                <?php elseif($i == 2): ?> 🥉
+                                <?php else: ?> <?php echo e($i + 1); ?>
+
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <i class="bi bi-person-circle text-primary"></i>
+                                <strong><?php echo e($t->display_name); ?></strong>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-success" style="font-size: .85rem; padding: 6px 12px;">
+                                    <?php echo e($t->hari_ini_selesai); ?>
+
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-warning text-dark" style="font-size: .85rem; padding: 6px 12px;">
+                                    <?php echo e($t->hari_ini_belum); ?>
+
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary" style="font-size: .85rem; padding: 6px 12px;">
+                                    <?php echo e($t->hari_ini_total); ?>
+
+                                </span>
+                            </td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox" style="font-size: 2rem; opacity: .3;"></i>
+                                <div class="mt-2 small">Belum ada teknisi komputer yang aktif hari ini</div>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header cctv text-dark py-2" style="background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-trophy-fill"></i>
+                    Top Teknisi CCTV — <?php echo e(now()->translatedFormat('d F Y')); ?>
+
+                </h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size: .85rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 8%;" class="text-center">#</th>
+                            <th style="width: 42%;">Teknisi</th>
+                            <th style="width: 16%;" class="text-center">✅</th>
+                            <th style="width: 16%;" class="text-center">⏳</th>
+                            <th style="width: 18%;" class="text-center">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php $__empty_1 = true; $__currentLoopData = $ratingHariIniCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <tr class="<?php echo e($i == 0 ? 'table-warning' : ''); ?>">
+                            <td class="text-center fw-bold" style="font-size: 1.1rem;">
+                                <?php if($i == 0): ?> 🥇
+                                <?php elseif($i == 1): ?> 🥈
+                                <?php elseif($i == 2): ?> 🥉
+                                <?php else: ?> <?php echo e($i + 1); ?>
+
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <i class="bi bi-person-circle text-info"></i>
+                                <strong><?php echo e($t->display_name); ?></strong>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-success" style="font-size: .85rem; padding: 6px 12px;">
+                                    <?php echo e($t->hari_ini_selesai); ?>
+
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-warning text-dark" style="font-size: .85rem; padding: 6px 12px;">
+                                    <?php echo e($t->hari_ini_belum); ?>
+
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary" style="font-size: .85rem; padding: 6px 12px;">
+                                    <?php echo e($t->hari_ini_total); ?>
+
+                                </span>
+                            </td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox" style="font-size: 2rem; opacity: .3;"></i>
+                                <div class="mt-2 small">Belum ada teknisi CCTV yang aktif hari ini</div>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+<div class="row g-3 mb-4">
+
+    
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-bottom py-2">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-pc-display text-primary"></i>
+                    Top Teknisi Komputer (Keseluruhan)
+                </h6>
+            </div>
+            <div class="card-body">
+                <?php if(count($rekapTeknisiKomputer) > 0): ?>
+                    <div class="chart-wrapper" style="height: <?php echo e(max(280, count($rekapTeknisiKomputer) * 70)); ?>px;">
+                        <canvas id="chartKomputer"></canvas>
+                    </div>
+                <?php else: ?>
+                    <div class="chart-empty">
+                        <i class="bi bi-bar-chart"></i>
+                        <h5>Belum Ada Data</h5>
+                        <p class="mb-0">Belum ada teknisi komputer yang menyelesaikan tugas</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-bottom py-2">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-camera-video text-info"></i>
+                    Top Teknisi CCTV (Keseluruhan)
+                </h6>
+            </div>
+            <div class="card-body">
+                <?php if(count($rekapTeknisiCctv) > 0): ?>
+                    <div class="chart-wrapper" style="height: <?php echo e(max(280, count($rekapTeknisiCctv) * 70)); ?>px;">
+                        <canvas id="chartCctv"></canvas>
+                    </div>
+                <?php else: ?>
+                    <div class="chart-empty">
+                        <i class="bi bi-bar-chart"></i>
+                        <h5>Belum Ada Data</h5>
+                        <p class="mb-0">Belum ada teknisi CCTV yang menyelesaikan tugas</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<?php $__env->startPush('scripts'); ?>
+<script>
+    // ============================================================
+    // HELPER: Render chart top teknisi
+    // ============================================================
+    function renderTopChart(canvasId, rekapData, colorTheme) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx || !rekapData || rekapData.length === 0) return;
+
+        // Warna bar berdasarkan peringkat
+        const warnaBar = rekapData.map((t, i) => {
+            if (i === 0) return 'rgba(255, 193, 7, 0.95)';
+            if (i === 1) return 'rgba(108, 117, 125, 0.9)';
+            if (i === 2) return 'rgba(205, 127, 50, 0.9)';
+            return colorTheme === 'cctv' ? 'rgba(13, 202, 240, 0.7)' : 'rgba(13, 110, 253, 0.7)';
+        });
+
+        const borderBar = rekapData.map((t, i) => {
+            if (i === 0) return 'rgba(255, 193, 7, 1)';
+            if (i === 1) return 'rgba(108, 117, 125, 1)';
+            if (i === 2) return 'rgba(205, 127, 50, 1)';
+            return colorTheme === 'cctv' ? 'rgba(13, 202, 240, 1)' : 'rgba(13, 110, 253, 1)';
+        });
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: rekapData.map(t => t.display_name),
+                datasets: [{
+                    label: 'Tugas Selesai',
+                    data: rekapData.map(t => t.selesai),
+                    backgroundColor: warnaBar,
+                    borderColor: borderBar,
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    barPercentage: 0.7,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: { top: 15, right: 60, left: 5, bottom: 5 } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.9)',
+                        padding: 14,
+                        displayColors: false,
+                        cornerRadius: 8,
+                        callbacks: {
+                            title: function(context) {
+                                const t = rekapData[context[0].dataIndex];
+                                const rank = context[0].dataIndex + 1;
+                                let medal = '';
+                                if (rank === 1) medal = '🥇 ';
+                                else if (rank === 2) medal = '🥈 ';
+                                else if (rank === 3) medal = '🥉 ';
+                                return medal + t.display_name;
+                            },
+                            label: function(context) {
+                                const t = rekapData[context.dataIndex];
+                                return [
+                                    '✅ Sudah selesai  : ' + t.selesai + ' tugas',
+                                    '⏳ Belum selesai  : ' + t.belum + ' tugas',
+                                    '📊 Total tugas    : ' + t.total + ' tugas',
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, precision: 0 },
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        title: {
+                            display: true,
+                            text: '📊 Jumlah Tugas Selesai',
+                            font: { size: 11, weight: 'bold' }
+                        }
+                    },
+                    y: { grid: { display: false } }
+                },
+                animation: {
+                    duration: 800,
+                    onComplete: function() {
+                        const chart = this;
+                        const c = chart.ctx;
+
+                        c.save();
+                        c.textAlign = 'left';
+                        c.textBaseline = 'middle';
+
+                        chart.data.datasets.forEach(function(dataset, i) {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach(function(bar, index) {
+                                const t = rekapData[index];
+
+                                c.font = 'bold 15px Arial';
+                                c.fillStyle = '#212529';
+                                c.fillText(t.selesai, bar.x + 10, bar.y - 6);
+
+                                c.font = '10px Arial';
+                                c.fillStyle = '#6c757d';
+                                c.fillText('dari ' + t.total + ' tugas', bar.x + 10, bar.y + 9);
+                            });
+                        });
+                        c.restore();
+                    }
+                }
+            }
+        });
+    }
+
+    // ============================================================
+    // RENDER 2 CHART TERPISAH
+    // ============================================================
+    const rekapKomputer = <?php echo json_encode($rekapTeknisiKomputer, 15, 512) ?>;
+    const rekapCctv     = <?php echo json_encode($rekapTeknisiCctv, 15, 512) ?>;
+
+    renderTopChart('chartKomputer', rekapKomputer, 'komputer');
+    renderTopChart('chartCctv', rekapCctv, 'cctv');
+
+    // ============================================================
+    // FALLBACK KELAP-KELIP
+    // ============================================================
+    (function() {
+        let state = false;
+        setInterval(function() {
+            state = !state;
+
+            document.querySelectorAll('tr.row-lampu-merah').forEach(function(row) {
+                row.querySelectorAll('td').forEach(function(td) {
+                    td.style.transition = 'background-color 0.3s ease';
+                    td.style.backgroundColor = state ? '#ffcdd2' : '#ffffff';
+                });
+            });
+
+            document.querySelectorAll('tr.row-lampu').forEach(function(row) {
+                row.querySelectorAll('td').forEach(function(td) {
+                    td.style.transition = 'background-color 0.3s ease';
+                    td.style.backgroundColor = state ? '#ffeb3b' : '#ffffff';
+                });
+            });
+        }, 500);
+    })();
+</script>
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\CHATBOT LARAVEL\monitoring-teknisi\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>

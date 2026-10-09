@@ -7,8 +7,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height:100vh; display:flex; align-items:center; }
-        .login-card { max-width:420px; width:100%; margin:auto; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .login-card {
+            max-width: 420px;
+            width: 100%;
+            margin: auto;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        }
     </style>
 </head>
 <body>
@@ -19,7 +30,9 @@
             <h4 class="mt-2">Monitoring Pekerjaan</h4>
             <p class="text-muted small mb-0">Silakan login untuk melanjutkan</p>
         </div>
-        @if($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
+        @if($errors->any())
+            <div class="alert alert-danger">{{ $errors->first() }}</div>
+        @endif
         <form method="POST" action="{{ route('login') }}">
             @csrf
             <div class="mb-3">
@@ -37,7 +50,8 @@
             <strong>Akun default:</strong><br>
             superadmin / super123<br>
             admin / admin123<br>
-            teknisi / teknisi123
+            teknisi / teknisi123<br>
+            teknisi_cctv / cctv123
         </div>
     </div>
 </div>

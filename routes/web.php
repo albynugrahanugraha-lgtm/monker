@@ -5,18 +5,20 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\JobController;
 use App\Http\Controllers\Teknisi\TugasController;
+use App\Http\Controllers\Teknisi\TugasCctvController;
 use App\Http\Controllers\SuperAdmin\UserController;
 use App\Http\Controllers\PublikMonitorController;
 
 // ============================================================
-// TAMPILAN UTAMA → MONITOR (TANPA LOGIN)
+// TAMPILAN UTAMA → MONITOR
 // ============================================================
 Route::get('/', fn() => redirect()->route('monitor'));
 
 // ============================================================
-// PUBLIK MONITOR (TANPA LOGIN)
+// PUBLIK MONITOR
 // ============================================================
 Route::get('/monitor', [PublikMonitorController::class, 'index'])->name('monitor');
 Route::get('/monitor/data', [PublikMonitorController::class, 'data'])->name('monitor.data');
@@ -53,16 +55,20 @@ Route::post('/logout', function (Request $request) {
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware('auth')->name('dashboard');
 
+// ===== PROFILE (ganti password sendiri) =====
+Route::middleware('auth')->prefix('profile')->name('profile.')->group(function () {
+    Route::get('/', [ProfileController::class, 'edit'])->name('edit');
+    Route::post('/password', [ProfileController::class, 'updatePassword'])->name('password');
+});
+
 // ===== NOTIFIKASI CHECK =====
-// TEKNISI: bunyi saat ada tugas BARU (DITUGASKAN)
-// ADMIN & SUPERADMIN: TIDAK BUNYI (beep = 0)
 Route::middleware('auth')->get('/notif-check', function () {
     $user = auth()->user();
 
     $badgeCount = 0;
     $beepCount  = 0;
 
-    if ($user->isTeknisi()) {
+    if ($user->isAnyTeknisi()) {
         $badgeCount = \App\Models\Job::where('teknisi_id', $user->id)
             ->where('status', 'DITUGASKAN')
             ->count();
@@ -95,7 +101,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/job/{job}', [JobController::class, 'destroy'])->name('destroy');
 });
 
-// ===== TEKNISI =====
+// ===== TEKNISI KOMPUTER =====
 Route::middleware(['auth', 'role:teknisi'])->prefix('teknisi')->name('teknisi.')->group(function () {
     Route::get('/dashboard', [TugasController::class, 'dashboard'])->name('dashboard');
     Route::get('/buat-tugas', [TugasController::class, 'create'])->name('buat');
@@ -105,10 +111,21 @@ Route::middleware(['auth', 'role:teknisi'])->prefix('teknisi')->name('teknisi.')
     Route::get('/job/{job}/cetak', [TugasController::class, 'cetak'])->name('cetak');
 });
 
+// ===== TEKNISI CCTV =====
+Route::middleware(['auth', 'role:teknisi_cctv'])->prefix('teknisi-cctv')->name('teknisi_cctv.')->group(function () {
+    Route::get('/dashboard', [TugasCctvController::class, 'dashboard'])->name('dashboard');
+    Route::get('/buat-tugas', [TugasCctvController::class, 'create'])->name('buat');
+    Route::post('/buat-tugas', [TugasCctvController::class, 'store'])->name('store');
+    Route::get('/job/{job}/kerjakan', [TugasCctvController::class, 'kerjakan'])->name('kerjakan');
+    Route::post('/job/{job}/selesai', [TugasCctvController::class, 'selesai'])->name('selesai');
+    Route::get('/job/{job}/cetak', [TugasCctvController::class, 'cetak'])->name('cetak');
+});
+
 // ===== SUPER ADMIN =====
 Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::post('/user/tambah', [UserController::class, 'store'])->name('user.store');
     Route::post('/user/{user}/toggle', [UserController::class, 'toggle'])->name('user.toggle');
+    Route::post('/user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
     Route::delete('/user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
 });

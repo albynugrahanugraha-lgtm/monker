@@ -62,6 +62,57 @@
             background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
             border-color: #38f9d7;
         }
+
+        /* ===== DROPDOWN MENU LAPORAN ===== */
+        .dropdown-menu {
+            min-width: 260px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border-radius: 10px;
+            padding: 6px;
+        }
+        .dropdown-menu .dropdown-header {
+            font-size: .7rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #6c757d;
+            font-weight: 700;
+            padding: 8px 12px 4px;
+        }
+        .dropdown-menu .dropdown-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all .15s;
+            font-size: .85rem;
+        }
+        .dropdown-menu .dropdown-item:hover {
+            background: #f0f7ff;
+            transform: translateX(3px);
+        }
+        .dropdown-menu .dropdown-item i {
+            font-size: 1.1rem;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .dropdown-menu .dropdown-item small {
+            display: block;
+            padding-left: 30px;
+            margin-top: -2px;
+        }
+
+        /* 🆕 User dropdown */
+        .user-dropdown .dropdown-toggle {
+            color: #fff !important;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        .user-dropdown .dropdown-toggle::after {
+            color: #fff;
+        }
+        .user-dropdown .dropdown-menu {
+            min-width: 240px;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -82,9 +133,12 @@
 
             if ($user->isTeknisi()) {
                 $notifCount = \App\Models\Job::where('teknisi_id', $user->id)
-                    ->where('status', 'DITUGASKAN')
-                    ->count();
+                    ->where('status', 'DITUGASKAN')->count();
                 $notifLink = route('teknisi.dashboard');
+            } elseif ($user->isTeknisiCctv()) {
+                $notifCount = \App\Models\Job::where('teknisi_id', $user->id)
+                    ->where('status', 'DITUGASKAN')->count();
+                $notifLink = route('teknisi_cctv.dashboard');
             } elseif ($user->isAdmin()) {
                 $notifCount = \App\Models\Job::whereDate('tanggal_selesai', today())->count();
                 $notifLink = route('admin.dashboard');
@@ -99,6 +153,7 @@
         </button>
 
         <div class="d-flex align-items-center text-white order-lg-3 ms-auto me-2">
+            {{-- Notifikasi Bell --}}
             <a href="{{ $notifLink }}" class="text-white me-2 position-relative" style="text-decoration:none;">
                 <i class="bi bi-bell-fill" style="font-size: 1.1rem;"></i>
                 @if($notifCount > 0)
@@ -107,33 +162,144 @@
                     </span>
                 @endif
             </a>
-            <span class="d-none d-lg-inline me-2 small">
-                <i class="bi bi-person-circle"></i>
-                {{ $user->display_name }}
-                <small class="badge bg-light text-dark ms-1">{{ $user->role }}</small>
-            </span>
+
+            {{-- 🆕 DROPDOWN USER (Profile + Logout) --}}
+            <div class="dropdown user-dropdown">
+                <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle me-1"></i>
+                    <span class="d-none d-lg-inline small">{{ $user->display_name }}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li>
+                        <h6 class="dropdown-header">
+                            <i class="bi bi-person-circle"></i>
+                            {{ $user->display_name }}
+                            <br>
+                            <span class="badge bg-primary mt-1">{{ $user->role }}</span>
+                        </h6>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                            <i class="bi bi-person-gear text-primary"></i>
+                            <strong>Profile Saya</strong>
+                            <small class="text-muted">Ganti password</small>
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form action="{{ route('logout') }}" method="POST" class="m-0">
+                            @csrf
+                            <button class="dropdown-item text-danger" type="submit">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <strong>Logout</strong>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
         </div>
 
         <div class="collapse navbar-collapse order-lg-2" id="navMenu">
             <ul class="navbar-nav me-auto">
+
+                {{-- ADMIN --}}
                 @if($user->isAdmin())
-                    <li class="nav-item"><a class="nav-link" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('admin.buat') }}"><i class="bi bi-plus-circle"></i> Buat Tugas</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.buat') }}">
+                            <i class="bi bi-plus-circle"></i> Buat Tugas
+                        </a>
+                    </li>
                 @endif
+
+                {{-- TEKNISI KOMPUTER --}}
                 @if($user->isTeknisi())
-                    <li class="nav-item"><a class="nav-link" href="{{ route('teknisi.dashboard') }}"><i class="bi bi-list-task"></i> Tugas Saya</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('teknisi.buat') }}"><i class="bi bi-plus-circle"></i> Buat Tugas</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('teknisi.dashboard') }}">
+                            <i class="bi bi-pc-display"></i> Tugas Komputer
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('teknisi.buat') }}">
+                            <i class="bi bi-plus-circle"></i> Buat Tugas
+                        </a>
+                    </li>
                 @endif
+
+                {{-- TEKNISI CCTV --}}
+                @if($user->isTeknisiCctv())
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('teknisi_cctv.dashboard') }}">
+                            <i class="bi bi-camera-video"></i> Tugas CCTV
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('teknisi_cctv.buat') }}">
+                            <i class="bi bi-plus-circle"></i> Buat Tugas
+                        </a>
+                    </li>
+                @endif
+
+                {{-- SUPER ADMIN --}}
                 @if($user->isSuperAdmin())
-                    <li class="nav-item"><a class="nav-link" href="{{ route('superadmin.dashboard') }}"><i class="bi bi-people"></i> Kelola User</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('superadmin.dashboard') }}">
+                            <i class="bi bi-people"></i> Kelola User
+                        </a>
+                    </li>
                 @endif
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('laporan.index') }}">
-                        <i class="bi bi-file-earmark-bar-graph"></i> Laporan
-                    </a>
-                </li>
+
+                {{-- LAPORAN --}}
+                @if($user->isAdmin() || $user->isSuperAdmin())
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-file-earmark-bar-graph"></i> Laporan
+                        </a>
+                        <ul class="dropdown-menu shadow-sm">
+                            <li>
+                                <h6 class="dropdown-header">📋 Pilih Bidang</h6>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('laporan.index', ['bidang' => 'komputer']) }}">
+                                    <i class="bi bi-pc-display text-primary"></i>
+                                    <strong>Laporan Komputer</strong>
+                                    <small class="text-muted">Pekerjaan PC / Jaringan</small>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('laporan.index', ['bidang' => 'cctv']) }}">
+                                    <i class="bi bi-camera-video text-info"></i>
+                                    <strong>Laporan CCTV</strong>
+                                    <small class="text-muted">Pekerjaan Kamera / DVR</small>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('laporan.index') }}">
+                                    <i class="bi bi-files text-secondary"></i>
+                                    <strong>Semua Laporan</strong>
+                                    <small class="text-muted">Komputer + CCTV digabung</small>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @else
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('laporan.index') }}">
+                            <i class="bi bi-file-earmark-bar-graph"></i> Laporan
+                        </a>
+                    </li>
+                @endif
+
             </ul>
 
+            {{-- Mobile user info --}}
             <div class="d-lg-none border-top border-light pt-2 mt-2 text-white">
                 <div class="d-flex justify-content-between align-items-center px-2">
                     <span class="small">
@@ -147,11 +313,6 @@
                     </form>
                 </div>
             </div>
-
-            <form action="{{ route('logout') }}" method="POST" class="m-0 d-none d-lg-block">
-                @csrf
-                <button class="btn btn-sm btn-light">Logout</button>
-            </form>
         </div>
         @endauth
     </div>
@@ -172,7 +333,7 @@
                 <i class="bi bi-bell-fill me-2" style="font-size: 1.2rem;"></i>
                 <div class="small">
                     <strong>Pemberitahuan:</strong>
-                    @if(auth()->user()->isTeknisi())
+                    @if(auth()->user()->isAnyTeknisi())
                         Anda memiliki <strong>{{ $notifCount }} tugas baru</strong>.
                     @else
                         Ada <strong>{{ $notifCount }} pekerjaan</strong> selesai hari ini.
@@ -212,7 +373,6 @@
     let audioReady = false;
     let audioUnlocked = false;
 
-    // Tampilkan banner kalau belum unlock
     const banner = document.getElementById('audioBanner');
     const isUnlockedInStorage = localStorage.getItem('audioUnlocked_' + userId) === 'true';
 
@@ -220,9 +380,6 @@
         banner.style.display = 'block';
     }
 
-    // ============================================================
-    // INISIALISASI AUDIO (TIDAK BUNYI OTOMATIS)
-    // ============================================================
     async function initAudio() {
         try {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -242,9 +399,6 @@
 
     initAudio();
 
-    // ============================================================
-    // UNLOCK AUDIO (TIDAK BUNYI OTOMATIS)
-    // ============================================================
     function unlockAudio() {
         if (!audioCtx) {
             console.log('⚠️ Audio Context belum dibuat, coba lagi...');
@@ -265,34 +419,23 @@
             }
 
             console.log('🔓 Audio unlocked!');
-            // ❌ TIDAK ADA playBeep() DI SINI
         }).catch(err => {
             console.log('❌ Gagal unlock:', err);
         });
     }
 
-    // Auto unlock saat user klik pertama kali (TANPA BUNYI)
     document.addEventListener('click', function() {
-        if (!audioUnlocked) {
-            unlockAudio();
-        }
+        if (!audioUnlocked) unlockAudio();
     }, { once: true });
 
     document.addEventListener('keydown', function() {
-        if (!audioUnlocked) {
-            unlockAudio();
-        }
+        if (!audioUnlocked) unlockAudio();
     }, { once: true });
 
     document.addEventListener('touchstart', function() {
-        if (!audioUnlocked) {
-            unlockAudio();
-        }
+        if (!audioUnlocked) unlockAudio();
     }, { once: true });
 
-    // ============================================================
-    // FUNGSI PLAY BEEP
-    // ============================================================
     function playBeep() {
         if (!audioReady || !audioCtx || !audioBuffer) {
             console.log('⚠️ Audio belum siap');
@@ -314,9 +457,6 @@
         }
     }
 
-    // ============================================================
-    // LOGIKA NOTIFIKASI
-    // ============================================================
     const savedCount = localStorage.getItem(userKey);
     let lastNotifCount;
 
@@ -328,28 +468,17 @@
 
     let isFirstCheck = true;
 
-    // ============================================================
-    // CEK NOTIFIKASI SETIAP 5 DETIK
-    // ============================================================
     setInterval(function() {
         fetch('{{ route("notif.check") }}')
             .then(res => res.json())
             .then(data => {
                 const badge = document.querySelector('.notif-badge');
-
-                // Ambil nilai beep (fallback ke count kalau tidak ada)
                 const beepValue = typeof data.beep !== 'undefined' ? data.beep : data.count;
 
-                // Update badge dari data.count
                 if (badge && data.count > 0) {
                     badge.textContent = data.count;
                 }
 
-                // ==================================================
-                // BUNYI HANYA KALAU beepValue NAIK
-                // - Teknisi: beepValue = jumlah tugas baru → bunyi
-                // - Admin: beepValue = 0 → TIDAK bunyi
-                // ==================================================
                 if (beepValue > lastNotifCount && !isFirstCheck) {
                     playBeep();
                     setTimeout(playBeep, 500);
@@ -369,7 +498,6 @@
             .catch(err => console.log('❌ Notif error:', err));
     }, 5000);
 
-    // Expose ke window untuk debug
     window.playBeep = playBeep;
     window.unlockAudio = unlockAudio;
 </script>

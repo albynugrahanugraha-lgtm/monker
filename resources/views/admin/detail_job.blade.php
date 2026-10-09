@@ -4,15 +4,20 @@
 <div class="row justify-content-center">
 <div class="col-md-10">
 <div class="card shadow-sm mb-3">
-    <div class="card-header bg-primary text-white d-flex justify-content-between">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Detail Pekerjaan #{{ $job->kode_job }}</h5>
-        @php $badge = match($job->status) {
-            'DITUGASKAN' => 'bg-secondary',
-            'DIKERJAKAN' => 'bg-warning text-dark',
-            'SELESAI' => 'bg-success',
-            default => 'bg-light text-dark',
-        }; @endphp
-        <span class="badge {{ $badge }}">{{ $job->status }}</span>
+        <div>
+            <span class="badge {{ $job->bidangBadgeClass() }} me-1">
+                <i class="bi {{ $job->bidangIcon() }}"></i> {{ $job->bidangLabel() }}
+            </span>
+            @php $badge = match($job->status) {
+                'DITUGASKAN' => 'bg-secondary',
+                'DIKERJAKAN' => 'bg-warning text-dark',
+                'SELESAI' => 'bg-success',
+                default => 'bg-light text-dark',
+            }; @endphp
+            <span class="badge {{ $badge }}">{{ $job->status }}</span>
+        </div>
     </div>
     <div class="card-body">
         <table class="table table-borderless">

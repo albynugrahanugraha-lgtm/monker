@@ -18,52 +18,73 @@ class UserController extends Controller
             'belum'   => Job::whereDate('tanggal_tugas', today())->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])->count(),
         ];
 
-        // ===== GRAFIK RATING TEKNISI (berdasarkan JUMLAH) =====
-        $rekapTeknisi = User::where('role', 'teknisi')
+        $rekapTeknisiKomputer = $this->getRekapPerBidang('komputer');
+        $rekapTeknisiCctv     = $this->getRekapPerBidang('cctv');
+
+        $users = User::orderBy('role')->orderBy('nama')->get();
+
+        return view('superadmin.dashboard', compact(
+            'hariIni',
+            'rekapTeknisiKomputer',
+            'rekapTeknisiCctv',
+            'users'
+        ));
+    }
+
+    private function getRekapPerBidang(string $bidang): array
+    {
+        $role = $bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
+
+        $data = User::where('role', $role)
             ->where('status', 'aktif')
             ->get()
             ->map(function ($teknisi) {
-                $teknisi->selesai = Job::where('teknisi_id', $teknisi->id)
-                    ->where('status', 'SELESAI')
-                    ->count();
+                $selesai = Job::where('teknisi_id', $teknisi->id)
+                    ->where('status', 'SELESAI')->count();
 
-                $teknisi->belum = Job::where('teknisi_id', $teknisi->id)
-                    ->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])
-                    ->count();
+                $belum = Job::where('teknisi_id', $teknisi->id)
+                    ->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])->count();
 
-                $teknisi->total = $teknisi->selesai + $teknisi->belum;
-                $teknisi->rating = $teknisi->selesai;
-
-                return $teknisi;
+                return [
+                    'display_name' => $teknisi->display_name,
+                    'selesai'      => $selesai,
+                    'belum'        => $belum,
+                    'total'        => $selesai + $belum,
+                ];
             })
             ->sortByDesc('selesai')
             ->values();
 
-        $maxSelesai = $rekapTeknisi->max('selesai') ?: 1;
+        $maxSelesai = $data->max('selesai') ?: 1;
 
-        $rekapTeknisi = $rekapTeknisi->map(function ($t) use ($maxSelesai) {
-            $t->persen = $maxSelesai > 0 ? round(($t->selesai / $maxSelesai) * 100) : 0;
+        return $data->map(function ($t) use ($maxSelesai) {
+            $persen = $maxSelesai > 0 ? round(($t['selesai'] / $maxSelesai) * 100) : 0;
 
-            if ($t->selesai >= ($maxSelesai * 0.8)) {
-                $t->warna = 'rgba(25, 135, 84, 0.9)';
-                $t->warna_border = 'rgba(25, 135, 84, 1)';
-                $t->predikat = '🥇 Top';
-            } elseif ($t->selesai >= ($maxSelesai * 0.4)) {
-                $t->warna = 'rgba(255, 193, 7, 0.9)';
-                $t->warna_border = 'rgba(255, 193, 7, 1)';
-                $t->predikat = '🥈 Sedang';
+            if ($t['selesai'] >= ($maxSelesai * 0.8)) {
+                $warna    = 'rgba(25, 135, 84, 0.9)';
+                $border   = 'rgba(25, 135, 84, 1)';
+                $predikat = '🥇 Top';
+            } elseif ($t['selesai'] >= ($maxSelesai * 0.4)) {
+                $warna    = 'rgba(255, 193, 7, 0.9)';
+                $border   = 'rgba(255, 193, 7, 1)';
+                $predikat = '🥈 Sedang';
             } else {
-                $t->warna = 'rgba(220, 53, 69, 0.9)';
-                $t->warna_border = 'rgba(220, 53, 69, 1)';
-                $t->predikat = '🥉 Rendah';
+                $warna    = 'rgba(220, 53, 69, 0.9)';
+                $border   = 'rgba(220, 53, 69, 1)';
+                $predikat = '🥉 Rendah';
             }
 
-            return $t;
-        });
-
-        $users = User::orderBy('role')->orderBy('nama')->get();
-
-        return view('superadmin.dashboard', compact('hariIni', 'rekapTeknisi', 'users'));
+            return [
+                'display_name' => $t['display_name'],
+                'selesai'      => $t['selesai'],
+                'belum'        => $t['belum'],
+                'total'        => $t['total'],
+                'persen'       => $persen,
+                'warna'        => $warna,
+                'warna_border' => $border,
+                'predikat'     => $predikat,
+            ];
+        })->toArray();
     }
 
     public function store(Request $request)
@@ -73,7 +94,7 @@ class UserController extends Controller
             'username' => 'required|string|max:50|unique:users,username',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'role'     => 'required|in:admin,teknisi,superadmin',
+            'role'     => 'required|in:admin,teknisi,teknisi_cctv,superadmin',
             'no_hp'    => 'nullable|string|max:20',
         ]);
 
@@ -83,7 +104,7 @@ class UserController extends Controller
 
             $user = User::create($data);
 
-            if ($user->role === 'teknisi') {
+            if (in_array($user->role, ['teknisi', 'teknisi_cctv'])) {
                 Technician::create([
                     'user_id' => $user->id,
                     'no_hp'   => $user->no_hp,
@@ -93,6 +114,26 @@ class UserController extends Controller
         });
 
         return back()->with('success', 'User berhasil ditambahkan.');
+    }
+
+    /**
+     * Reset password user (dari SuperAdmin)
+     */
+    public function resetPassword(Request $request, User $user)
+    {
+        $request->validate([
+            'new_password' => 'required|string|min:6|confirmed',
+        ], [
+            'new_password.required'  => 'Password baru wajib diisi.',
+            'new_password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'new_password.min'       => 'Password minimal 6 karakter.',
+        ]);
+
+        $user->update([
+            'password' => Hash::make($request->new_password),
+        ]);
+
+        return back()->with('success', 'Password user "' . $user->display_name . '" berhasil direset.');
     }
 
     public function toggle(User $user)

@@ -17,17 +17,30 @@
         .ttd div { width: 40%; text-align: center; }
         .ttd p { margin: 60px 0 0 0; border-top: 1px solid #000; padding-top: 5px; }
         .no-print { text-align: center; margin: 20px 0; }
+
+        /* 🆕 Badge bidang */
+        .badge-cctv { background: #0dcaf0; color: #000; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: bold; }
+        .badge-komputer { background: #0d6efd; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: bold; }
+
         @media print { .no-print { display: none; } }
     </style>
 </head>
 <body>
 
-<h1>LAPORAN PEKERJAAN TEKNISI</h1>
+<h1>LAPORAN PEKERJAAN TEKNISI {{ strtoupper($job->bidangLabel()) }}</h1>
 <h2>Kode: {{ $job->kode_job }}</h2>
 
 <table>
     <tr><th>Judul Pekerjaan</th><td>{{ $job->judul }}</td></tr>
     <tr><th>Deskripsi</th><td>{{ $job->deskripsi ?? '-' }}</td></tr>
+    <tr>
+        <th>Bidang</th>
+        <td>
+            <span class="{{ $job->bidang === 'cctv' ? 'badge-cctv' : 'badge-komputer' }}">
+                {{ $job->bidangLabel() }}
+            </span>
+        </td>
+    </tr>
     <tr><th>Kategori</th><td>{{ $job->kategori ?? '-' }}</td></tr>
     <tr><th>Prioritas</th><td>{{ $job->prioritas }}</td></tr>
     <tr><th>Status</th><td>{{ $job->status }}</td></tr>
@@ -62,7 +75,7 @@
 </div>
 
 <div class="ttd">
-    <div><p>Teknisi</p></div>
+    <div><p>Teknisi {{ $job->bidangLabel() }}</p></div>
     <div><p>Admin</p></div>
 </div>
 
