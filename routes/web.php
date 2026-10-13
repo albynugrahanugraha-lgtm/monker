@@ -15,12 +15,12 @@ use App\Http\Controllers\Teknisi\TugasCctvController;
 use App\Http\Controllers\PublikMonitorController;
 
 // ============================================================
-// TAMPILAN UTAMA → MONITOR
+// TAMPILAN UTAMA → LOGIN
 // ============================================================
-Route::get('/', fn() => redirect()->route('monitor'));
+Route::get('/', fn() => redirect()->route('login'));
 
 // ============================================================
-// PUBLIK MONITOR
+// PUBLIK MONITOR (tetap bisa diakses via /monitor)
 // ============================================================
 Route::get('/monitor', [PublikMonitorController::class, 'index'])->name('monitor');
 Route::get('/monitor/data', [PublikMonitorController::class, 'data'])->name('monitor.data');
@@ -50,7 +50,7 @@ Route::post('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
-    return redirect()->route('monitor');
+    return redirect()->route('login');   // ← ubah dari monitor → login
 })->middleware('auth')->name('logout');
 
 // ===== DASHBOARD =====
