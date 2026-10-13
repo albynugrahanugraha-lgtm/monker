@@ -1,11 +1,26 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <meta name="user-id" content="<?php echo e(auth()->id() ?? 0); ?>">
     <title><?php echo $__env->yieldContent('title', 'Monitoring Pekerjaan'); ?></title>
+
+    
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('app_theme') || 'light';
+            let theme = savedTheme;
+
+            if (savedTheme === 'auto') {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+
+            document.documentElement.setAttribute('data-bs-theme', theme);
+        })();
+    </script>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -63,7 +78,7 @@
             border-color: #38f9d7;
         }
 
-        /* ===== DROPDOWN MENU LAPORAN ===== */
+        /* ===== DROPDOWN MENU ===== */
         .dropdown-menu {
             min-width: 260px;
             border: none;
@@ -86,7 +101,7 @@
             font-size: .85rem;
         }
         .dropdown-menu .dropdown-item:hover {
-            background: #f0f7ff;
+            background: rgba(13, 110, 253, 0.1);
             transform: translateX(3px);
         }
         .dropdown-menu .dropdown-item i {
@@ -100,7 +115,7 @@
             margin-top: -2px;
         }
 
-        /* 🆕 User dropdown */
+        /* ===== USER DROPDOWN ===== */
         .user-dropdown .dropdown-toggle {
             color: #fff !important;
             text-decoration: none;
@@ -110,8 +125,178 @@
         .user-dropdown .dropdown-toggle::after {
             color: #fff;
         }
-        .user-dropdown .dropdown-menu {
-            min-width: 240px;
+
+        /* ===== THEME TOGGLE ===== */
+        .theme-toggle {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .95rem;
+            line-height: 1;
+        }
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.08);
+            color: #fff;
+        }
+        .theme-toggle .icon-sun,
+        .theme-toggle .icon-moon {
+            display: none;
+        }
+        html[data-bs-theme="light"] .theme-toggle .icon-moon { display: inline-block; }
+        html[data-bs-theme="dark"] .theme-toggle .icon-sun { display: inline-block; }
+
+        /* ============================================================ */
+        /* DARK MODE CUSTOM STYLES                                       */
+        /* ============================================================ */
+        html[data-bs-theme="dark"] body {
+            background: #0d1117 !important;
+            color: #e6edf3;
+        }
+
+        html[data-bs-theme="dark"] .navbar.bg-primary {
+            background: linear-gradient(135deg, #0a58ca 0%, #0d3a8f 100%) !important;
+        }
+
+        html[data-bs-theme="dark"] .card {
+            background-color: #161b22;
+            border-color: #30363d;
+            color: #e6edf3;
+        }
+        html[data-bs-theme="dark"] .card-header {
+            background-color: #21262d;
+            border-color: #30363d;
+            color: #e6edf3;
+        }
+        html[data-bs-theme="dark"] .card-footer {
+            background-color: #21262d;
+            border-color: #30363d;
+        }
+
+        html[data-bs-theme="dark"] .table {
+            color: #e6edf3;
+            border-color: #30363d;
+        }
+        html[data-bs-theme="dark"] .table > :not(caption) > * > * {
+            background-color: #161b22;
+            color: #e6edf3;
+            border-color: #30363d;
+        }
+        html[data-bs-theme="dark"] .table-hover > tbody > tr:hover > * {
+            background-color: #21262d;
+            color: #e6edf3;
+        }
+        html[data-bs-theme="dark"] .table thead th,
+        html[data-bs-theme="dark"] .table-light th {
+            background-color: #21262d !important;
+            color: #e6edf3 !important;
+            border-color: #30363d !important;
+        }
+        html[data-bs-theme="dark"] code {
+            background: #21262d;
+            color: #79c0ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        html[data-bs-theme="dark"] .form-control,
+        html[data-bs-theme="dark"] .form-select,
+        html[data-bs-theme="dark"] .input-group-text {
+            background-color: #0d1117;
+            border-color: #30363d;
+            color: #e6edf3;
+        }
+        html[data-bs-theme="dark"] .form-control:focus,
+        html[data-bs-theme="dark"] .form-select:focus {
+            background-color: #0d1117;
+            border-color: #1f6feb;
+            color: #e6edf3;
+            box-shadow: 0 0 0 0.25rem rgba(31, 111, 235, 0.25);
+        }
+        html[data-bs-theme="dark"] .form-control::placeholder {
+            color: #6e7681;
+        }
+
+        html[data-bs-theme="dark"] .alert {
+            border-color: #30363d;
+        }
+
+        html[data-bs-theme="dark"] .modal-content {
+            background-color: #161b22;
+            border-color: #30363d;
+            color: #e6edf3;
+        }
+        html[data-bs-theme="dark"] .modal-header,
+        html[data-bs-theme="dark"] .modal-footer {
+            border-color: #30363d;
+        }
+
+        html[data-bs-theme="dark"] .text-muted {
+            color: #8b949e !important;
+        }
+
+        html[data-bs-theme="dark"] .bg-light {
+            background-color: #161b22 !important;
+        }
+        html[data-bs-theme="dark"] .bg-white {
+            background-color: #161b22 !important;
+        }
+
+        html[data-bs-theme="dark"] .border,
+        html[data-bs-theme="dark"] .border-top,
+        html[data-bs-theme="dark"] .border-bottom,
+        html[data-bs-theme="dark"] .border-start,
+        html[data-bs-theme="dark"] .border-end {
+            border-color: #30363d !important;
+        }
+
+        html[data-bs-theme="dark"] .nav-tabs {
+            border-bottom-color: #30363d;
+        }
+        html[data-bs-theme="dark"] .nav-tabs .nav-link {
+            color: #8b949e;
+        }
+        html[data-bs-theme="dark"] .nav-tabs .nav-link.active {
+            background-color: #161b22;
+            color: #e6edf3;
+            border-color: #30363d #30363d #161b22;
+        }
+
+        html[data-bs-theme="dark"] .list-group-item {
+            background-color: #161b22;
+            border-color: #30363d;
+            color: #e6edf3;
+        }
+
+        html[data-bs-theme="dark"] .dropdown-menu {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        }
+        html[data-bs-theme="dark"] .dropdown-menu .dropdown-header {
+            color: #8b949e;
+        }
+        html[data-bs-theme="dark"] .dropdown-item {
+            color: #e6edf3;
+        }
+        html[data-bs-theme="dark"] .dropdown-item:hover {
+            background: rgba(31, 111, 235, 0.15);
+            color: #fff;
+        }
+        html[data-bs-theme="dark"] .dropdown-divider {
+            border-color: #30363d;
+        }
+
+        html[data-bs-theme="dark"] .badge.bg-light {
+            background-color: #30363d !important;
+            color: #e6edf3 !important;
         }
     </style>
 </head>
@@ -146,6 +331,9 @@
                 $notifCount = \App\Models\Job::whereDate('tanggal_selesai', today())->count();
                 $notifLink = route('superadmin.dashboard');
             }
+
+            // 🆕 Hitung pending untuk badge menu
+            $pendingCount = \App\Models\Job::whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])->count();
         ?>
 
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
@@ -153,6 +341,13 @@
         </button>
 
         <div class="d-flex align-items-center text-white order-lg-3 ms-auto me-2">
+
+            
+            <button type="button" class="theme-toggle me-2" onclick="toggleTheme()" title="Ganti Tema (Light/Dark)">
+                <i class="bi bi-sun-fill icon-sun"></i>
+                <i class="bi bi-moon-stars-fill icon-moon"></i>
+            </button>
+
             
             <a href="<?php echo e($notifLink); ?>" class="text-white me-2 position-relative" style="text-decoration:none;">
                 <i class="bi bi-bell-fill" style="font-size: 1.1rem;"></i>
@@ -206,6 +401,8 @@
             <ul class="navbar-nav me-auto">
 
                 
+                
+                
                 <?php if($user->isAdmin()): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo e(route('admin.dashboard')); ?>">
@@ -217,8 +414,20 @@
                             <i class="bi bi-plus-circle"></i> Buat Tugas
                         </a>
                     </li>
+
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo e(route('admin.belum-dikerjakan')); ?>">
+                            <i class="bi bi-hourglass-split"></i> Belum Dikerjakan
+                            <?php if($pendingCount > 0): ?>
+                                <span class="badge bg-warning text-dark"><?php echo e($pendingCount); ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
                 <?php endif; ?>
 
+                
+                
                 
                 <?php if($user->isTeknisi()): ?>
                     <li class="nav-item">
@@ -234,6 +443,8 @@
                 <?php endif; ?>
 
                 
+                
+                
                 <?php if($user->isTeknisiCctv()): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo e(route('teknisi_cctv.dashboard')); ?>">
@@ -248,14 +459,28 @@
                 <?php endif; ?>
 
                 
+                
+                
                 <?php if($user->isSuperAdmin()): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo e(route('superadmin.dashboard')); ?>">
                             <i class="bi bi-people"></i> Kelola User
                         </a>
                     </li>
+
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo e(route('superadmin.belum-dikerjakan')); ?>">
+                            <i class="bi bi-hourglass-split"></i> Belum Dikerjakan
+                            <?php if($pendingCount > 0): ?>
+                                <span class="badge bg-warning text-dark"><?php echo e($pendingCount); ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
                 <?php endif; ?>
 
+                
+                
                 
                 <?php if($user->isAdmin() || $user->isSuperAdmin()): ?>
                     <li class="nav-item dropdown">
@@ -292,6 +517,7 @@
                         </ul>
                     </li>
                 <?php else: ?>
+                    
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo e(route('laporan.index')); ?>">
                             <i class="bi bi-file-earmark-bar-graph"></i> Laporan
@@ -360,6 +586,32 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+    function applyTheme(theme) {
+        let finalTheme = theme;
+
+        if (theme === 'auto') {
+            finalTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        document.documentElement.setAttribute('data-bs-theme', finalTheme);
+        localStorage.setItem('app_theme', theme);
+    }
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-bs-theme');
+        const newTheme = current === 'dark' ? 'light' : 'dark';
+        applyTheme(newTheme);
+    }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+        if (localStorage.getItem('app_theme') === 'auto') {
+            applyTheme('auto');
+        }
+    });
+</script>
 
 <?php if(auth()->guard()->check()): ?>
 <script>

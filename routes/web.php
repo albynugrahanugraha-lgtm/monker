@@ -7,9 +7,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\JobController;
+use App\Http\Controllers\Admin\ImportJobController;
+use App\Http\Controllers\SuperAdmin\UserController;
+use App\Http\Controllers\SuperAdmin\BelumDikerjakanController;
 use App\Http\Controllers\Teknisi\TugasController;
 use App\Http\Controllers\Teknisi\TugasCctvController;
-use App\Http\Controllers\SuperAdmin\UserController;
 use App\Http\Controllers\PublikMonitorController;
 
 // ============================================================
@@ -55,7 +57,7 @@ Route::post('/logout', function (Request $request) {
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware('auth')->name('dashboard');
 
-// ===== PROFILE (ganti password sendiri) =====
+// ===== PROFILE =====
 Route::middleware('auth')->prefix('profile')->name('profile.')->group(function () {
     Route::get('/', [ProfileController::class, 'edit'])->name('edit');
     Route::post('/password', [ProfileController::class, 'updatePassword'])->name('password');
@@ -99,6 +101,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/job/{job}', [JobController::class, 'show'])->name('show');
     Route::get('/job/{job}/cetak', [JobController::class, 'cetak'])->name('cetak');
     Route::delete('/job/{job}', [JobController::class, 'destroy'])->name('destroy');
+
+    // Import Excel
+    Route::get('/import-job', [ImportJobController::class, 'index'])->name('import.index');
+    Route::get('/import-job/template', [ImportJobController::class, 'downloadTemplate'])->name('import.template');
+    Route::post('/import-job', [ImportJobController::class, 'store'])->name('import.store');
+
+    // Pekerjaan Belum Dikerjakan
+    Route::get('/belum-dikerjakan', [JobController::class, 'belumDikerjakan'])->name('belum-dikerjakan');
+    Route::post('/job/{job}/assign', [JobController::class, 'assignTeknisi'])->name('assign');
 });
 
 // ===== TEKNISI KOMPUTER =====
@@ -128,4 +139,8 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/user/{user}/toggle', [UserController::class, 'toggle'])->name('user.toggle');
     Route::post('/user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
     Route::delete('/user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
+
+    // Pekerjaan Belum Dikerjakan
+    Route::get('/belum-dikerjakan', [BelumDikerjakanController::class, 'index'])->name('belum-dikerjakan');
+    Route::post('/job/{job}/assign', [BelumDikerjakanController::class, 'assignTeknisi'])->name('job.assign');
 });

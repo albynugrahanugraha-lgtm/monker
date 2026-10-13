@@ -44,9 +44,16 @@ abstract class BaseTugasController extends Controller
                 ->where('status', 'DITUGASKAN')->count(),
         ];
 
-        // Pekerjaan yang harus dikerjakan (belum selesai) — filter bidang
+        // ============================================================
+        // DAFTAR PEKERJAAN — FILTER BY TANGGAL
+        // Muncul kalau:
+        //   1. Tanggal tugas = HARI INI, atau
+        //   2. Tanggal tugas < HARI INI & status masih aktif (tugas tertinggal)
+        // Tugas untuk tanggal BESOK/LUSA tidak muncul sekarang.
+        // ============================================================
         $jobs = Job::with(['photos', 'fotoSebelum', 'fotoSesudah'])
             ->where('bidang', $this->bidang)
+            ->whereDate('tanggal_tugas', '<=', today())   // 🆕 FILTER TANGGAL
             ->where(function ($q) use ($user) {
                 $q->where(function ($sub) use ($user) {
                     $sub->where('teknisi_id', $user->id)
@@ -57,10 +64,11 @@ abstract class BaseTugasController extends Controller
                         ->where('status', 'DITUGASKAN');
                 });
             })
-            ->latest()
+            ->orderBy('tanggal_tugas', 'asc')   // urut dari yang paling lama
+            ->latest('created_at')
             ->get();
 
-        // Riwayat selesai — filter bidang
+        // Riwayat selesai — filter bidang (10 terakhir)
         $jobsSelesai = Job::with(['fotoSebelum', 'fotoSesudah'])
             ->where('teknisi_id', $user->id)
             ->where('bidang', $this->bidang)

@@ -51,7 +51,6 @@
     .chart-empty { text-align: center; padding: 50px 20px; color: #adb5bd; }
     .chart-empty i { font-size: 3rem; opacity: 0.4; display: block; margin-bottom: 10px; }
 
-    /* Kolom section header */
     .section-header {
         padding: 10px 15px;
         border-radius: 8px;
@@ -66,17 +65,111 @@
     .section-header.komputer { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); }
     .section-header.cctv { background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%); color: #000; }
 
+    .card-header.header-komputer {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+        color: white !important;
+    }
+    .card-header.header-cctv {
+        background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%) !important;
+        color: #000 !important;
+    }
+
     .table-scroll { max-height: 300px; overflow-y: auto; }
     .table-scroll::-webkit-scrollbar { width: 6px; }
     .table-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
     .table-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+    /* 🆕 FILTER TANGGAL */
+    .date-filter-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+    }
+    .date-filter-card input[type="date"] {
+        background: rgba(255,255,255,.95);
+        border: 2px solid rgba(255,255,255,.5);
+        color: #212529;
+        font-weight: 600;
+    }
+    .date-filter-card input[type="date"]:focus {
+        background: white;
+        border-color: white;
+        box-shadow: 0 0 0 3px rgba(255,255,255,.3);
+    }
 </style>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
-<h5 class="mb-3 fw-bold">
-    <i class="bi bi-speedometer2"></i> Monitoring Pekerjaan Teknisi
-</h5>
+
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h5 class="mb-0 fw-bold">
+        <i class="bi bi-speedometer2"></i> Monitoring Pekerjaan Teknisi
+    </h5>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="<?php echo e(route('admin.buat')); ?>" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> Buat Tugas
+        </a>
+        <a href="<?php echo e(route('admin.import.index')); ?>" class="btn btn-success btn-sm">
+            <i class="bi bi-file-earmark-excel"></i> Import Excel
+        </a>
+    </div>
+</div>
+
+
+
+
+<div class="date-filter-card p-3 mb-4">
+    <form method="GET" action="<?php echo e(route('admin.dashboard')); ?>" class="row g-2 align-items-end">
+        <div class="col-md-4 col-12">
+            <label class="form-label mb-1 small fw-bold">
+                <i class="bi bi-calendar-event"></i> Pilih Tanggal Monitoring
+            </label>
+            <input type="date"
+                   name="tanggal"
+                   class="form-control"
+                   value="<?php echo e($tanggalObj->format('Y-m-d')); ?>"
+                   max="<?php echo e(now()->addYear()->format('Y-m-d')); ?>">
+        </div>
+
+        <div class="col-md-8 col-12 d-flex gap-2 flex-wrap align-items-end">
+            <button type="submit" class="btn btn-light fw-bold">
+                <i class="bi bi-search"></i> Tampilkan
+            </button>
+
+            
+            <a href="<?php echo e(route('admin.dashboard', ['tanggal' => now()->format('Y-m-d')])); ?>"
+               class="btn btn-outline-light btn-sm">
+                📅 Hari Ini
+            </a>
+            <a href="<?php echo e(route('admin.dashboard', ['tanggal' => now()->subDay()->format('Y-m-d')])); ?>"
+               class="btn btn-outline-light btn-sm">
+                ⏮️ Kemarin
+            </a>
+            <a href="<?php echo e(route('admin.dashboard', ['tanggal' => now()->addDay()->format('Y-m-d')])); ?>"
+               class="btn btn-outline-light btn-sm">
+                ⏭️ Besok
+            </a>
+        </div>
+    </form>
+
+    <div class="mt-2 small">
+        <i class="bi bi-info-circle"></i>
+        Menampilkan data untuk tanggal:
+        <strong><?php echo e($tanggalObj->translatedFormat('l, d F Y')); ?></strong>
+        <?php if($tanggalObj->isToday()): ?>
+            <span class="badge bg-success ms-1">Hari Ini</span>
+        <?php elseif($tanggalObj->isYesterday()): ?>
+            <span class="badge bg-secondary ms-1">Kemarin</span>
+        <?php elseif($tanggalObj->isTomorrow()): ?>
+            <span class="badge bg-info text-dark ms-1">Besok</span>
+        <?php elseif($tanggalObj->isFuture()): ?>
+            <span class="badge bg-warning text-dark ms-1">Masa Depan</span>
+        <?php else: ?>
+            <span class="badge bg-dark ms-1">Masa Lalu</span>
+        <?php endif; ?>
+    </div>
+</div>
 
 
 <div class="row g-3 mb-4">
@@ -85,7 +178,7 @@
             <div class="card-body p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <small style="opacity: 0.9; font-size: .75rem;">📥 Total Tugas Hari Ini</small>
+                        <small style="opacity: 0.9; font-size: .75rem;">📥 Total Tugas</small>
                         <h2 class="mb-0 fw-bold mt-2"><?php echo e($hariIni['total']); ?></h2>
                     </div>
                     <i class="bi bi-calendar-day" style="font-size: 2.5rem; opacity: 0.3;"></i>
@@ -140,7 +233,7 @@
             <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
                 <h6 class="mb-0">
                     <i class="bi bi-calendar-day"></i>
-                    Hari Ini — <?php echo e(now()->translatedFormat('d F Y')); ?>
+                    <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
 
                 </h6>
                 <span class="badge bg-primary"><?php echo e($kerjaanHariIniKomputer->count()); ?></span>
@@ -198,7 +291,10 @@
                             <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e(str_replace('_', ' ', $j->status)); ?></span></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan komputer hari ini</td></tr>
+                        <tr><td colspan="4" class="text-center text-muted py-3">
+                            Tidak ada pekerjaan komputer pada <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
+
+                        </td></tr>
                     <?php endif; ?>
                     </tbody>
                 </table>
@@ -210,7 +306,7 @@
             <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
                 <h6 class="mb-0">
                     <i class="bi bi-calendar-check"></i>
-                    Kemarin — <?php echo e(now()->subDay()->translatedFormat('d F Y')); ?>
+                    <?php echo e($tanggalObj->copy()->subDay()->translatedFormat('d F Y')); ?>
 
                 </h6>
                 <span class="badge bg-secondary"><?php echo e($kerjaanKemarinKomputer->count()); ?></span>
@@ -254,7 +350,7 @@
                             <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e(str_replace('_', ' ', $j->status)); ?></span></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan komputer kemarin</td></tr>
+                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan komputer</td></tr>
                     <?php endif; ?>
                     </tbody>
                 </table>
@@ -276,7 +372,7 @@
             <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
                 <h6 class="mb-0">
                     <i class="bi bi-calendar-day"></i>
-                    Hari Ini — <?php echo e(now()->translatedFormat('d F Y')); ?>
+                    <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
 
                 </h6>
                 <span class="badge bg-info text-dark"><?php echo e($kerjaanHariIniCctv->count()); ?></span>
@@ -334,7 +430,10 @@
                             <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e(str_replace('_', ' ', $j->status)); ?></span></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan CCTV hari ini</td></tr>
+                        <tr><td colspan="4" class="text-center text-muted py-3">
+                            Tidak ada pekerjaan CCTV pada <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
+
+                        </td></tr>
                     <?php endif; ?>
                     </tbody>
                 </table>
@@ -346,7 +445,7 @@
             <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
                 <h6 class="mb-0">
                     <i class="bi bi-calendar-check"></i>
-                    Kemarin — <?php echo e(now()->subDay()->translatedFormat('d F Y')); ?>
+                    <?php echo e($tanggalObj->copy()->subDay()->translatedFormat('d F Y')); ?>
 
                 </h6>
                 <span class="badge bg-secondary"><?php echo e($kerjaanKemarinCctv->count()); ?></span>
@@ -390,7 +489,7 @@
                             <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e(str_replace('_', ' ', $j->status)); ?></span></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan CCTV kemarin</td></tr>
+                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan CCTV</td></tr>
                     <?php endif; ?>
                     </tbody>
                 </table>
@@ -401,17 +500,14 @@
 </div>
 
 
-
-
 <div class="row g-3 mb-4">
 
-    
     <div class="col-md-6">
         <div class="card shadow-sm border-0 h-100">
-            <div class="card-header komputer text-white py-2">
+            <div class="card-header header-komputer py-2">
                 <h6 class="mb-0 fw-bold">
                     <i class="bi bi-trophy-fill"></i>
-                    Top Teknisi Komputer — <?php echo e(now()->translatedFormat('d F Y')); ?>
+                    Top Teknisi Komputer — <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
 
                 </h6>
             </div>
@@ -464,7 +560,7 @@
                         <tr>
                             <td colspan="5" class="text-center text-muted py-4">
                                 <i class="bi bi-inbox" style="font-size: 2rem; opacity: .3;"></i>
-                                <div class="mt-2 small">Belum ada teknisi komputer yang aktif hari ini</div>
+                                <div class="mt-2 small">Belum ada teknisi komputer yang aktif</div>
                             </td>
                         </tr>
                     <?php endif; ?>
@@ -474,13 +570,12 @@
         </div>
     </div>
 
-    
     <div class="col-md-6">
         <div class="card shadow-sm border-0 h-100">
-            <div class="card-header cctv text-dark py-2" style="background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);">
+            <div class="card-header header-cctv py-2">
                 <h6 class="mb-0 fw-bold">
                     <i class="bi bi-trophy-fill"></i>
-                    Top Teknisi CCTV — <?php echo e(now()->translatedFormat('d F Y')); ?>
+                    Top Teknisi CCTV — <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
 
                 </h6>
             </div>
@@ -533,7 +628,7 @@
                         <tr>
                             <td colspan="5" class="text-center text-muted py-4">
                                 <i class="bi bi-inbox" style="font-size: 2rem; opacity: .3;"></i>
-                                <div class="mt-2 small">Belum ada teknisi CCTV yang aktif hari ini</div>
+                                <div class="mt-2 small">Belum ada teknisi CCTV yang aktif</div>
                             </td>
                         </tr>
                     <?php endif; ?>
@@ -546,11 +641,8 @@
 </div>
 
 
-
-
 <div class="row g-3 mb-4">
 
-    
     <div class="col-md-6">
         <div class="card shadow-sm border-0 h-100">
             <div class="card-header bg-white border-bottom py-2">
@@ -575,7 +667,6 @@
         </div>
     </div>
 
-    
     <div class="col-md-6">
         <div class="card shadow-sm border-0 h-100">
             <div class="card-header bg-white border-bottom py-2">
@@ -604,14 +695,10 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
-    // ============================================================
-    // HELPER: Render chart top teknisi
-    // ============================================================
     function renderTopChart(canvasId, rekapData, colorTheme) {
         const ctx = document.getElementById(canvasId);
         if (!ctx || !rekapData || rekapData.length === 0) return;
 
-        // Warna bar berdasarkan peringkat
         const warnaBar = rekapData.map((t, i) => {
             if (i === 0) return 'rgba(255, 193, 7, 0.95)';
             if (i === 1) return 'rgba(108, 117, 125, 0.9)';
@@ -718,18 +805,12 @@
         });
     }
 
-    // ============================================================
-    // RENDER 2 CHART TERPISAH
-    // ============================================================
     const rekapKomputer = <?php echo json_encode($rekapTeknisiKomputer, 15, 512) ?>;
     const rekapCctv     = <?php echo json_encode($rekapTeknisiCctv, 15, 512) ?>;
 
     renderTopChart('chartKomputer', rekapKomputer, 'komputer');
     renderTopChart('chartCctv', rekapCctv, 'cctv');
 
-    // ============================================================
-    // FALLBACK KELAP-KELIP
-    // ============================================================
     (function() {
         let state = false;
         setInterval(function() {

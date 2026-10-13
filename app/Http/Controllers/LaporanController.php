@@ -17,44 +17,37 @@ class LaporanController extends Controller
         ];
     }
 
-    // ============================================================
-    // GET JOBS — dengan filter bidang
-    // ============================================================
+    /**
+     * Ambil data jobs dengan filter lengkap
+     */
     private function getJobs(Request $request, $user)
     {
-        $bulan  = $request->input('bulan', now()->month);
         $tahun  = $request->input('tahun', now()->year);
-        $bidang = $request->input('bidang');   // untuk admin/superadmin
+        $bulan  = $request->input('bulan'); // null = semua bulan
+        $bidang = $request->input('bidang');
 
         $query = Job::query()
-            ->whereMonth('tanggal_tugas', $bulan)
             ->whereYear('tanggal_tugas', $tahun);
 
-        // Teknisi KOMPUTER → auto filter bidang + teknisi_id
+        if ($bulan && $bulan !== 'semua') {
+            $query->whereMonth('tanggal_tugas', $bulan);
+        }
+
         if ($user->isTeknisi()) {
-            $query->where('bidang', 'komputer')
-                  ->where('teknisi_id', $user->id);
-        }
-        // Teknisi CCTV → auto filter bidang + teknisi_id
-        elseif ($user->isTeknisiCctv()) {
-            $query->where('bidang', 'cctv')
-                  ->where('teknisi_id', $user->id);
-        }
-        // Admin/Superadmin → kalau pilih bidang, filter
-        elseif ($bidang && in_array($bidang, ['komputer', 'cctv'])) {
+            $query->where('bidang', 'komputer')->where('teknisi_id', $user->id);
+        } elseif ($user->isTeknisiCctv()) {
+            $query->where('bidang', 'cctv')->where('teknisi_id', $user->id);
+        } elseif ($bidang && in_array($bidang, ['komputer', 'cctv'])) {
             $query->where('bidang', $bidang);
         }
 
-        $jobs = $query->with(['teknisi', 'fotoSebelum', 'fotoSesudah'])
-            ->orderBy('tanggal_tugas')
+        $jobs = $query->with(['teknisi', 'admin', 'fotoSebelum', 'fotoSesudah'])
+            ->orderBy('tanggal_tugas', 'asc')
             ->get();
 
         return [$jobs, $bulan, $tahun];
     }
 
-    // ============================================================
-    // STATISTIK
-    // ============================================================
     private function getStats($jobs)
     {
         return [
@@ -65,12 +58,11 @@ class LaporanController extends Controller
         ];
     }
 
-    // ============================================================
-    // REKAP PER TEKNISI — untuk admin/superadmin saja
-    // ============================================================
-    private function getRekapTeknisi($user, $bulan, $tahun, $bidangFilter = null)
+    /**
+     * Rekap per teknisi — filter bidang + tahun
+     */
+    private function getRekapTeknisi($user, $tahun, $bulan = null, $bidangFilter = null)
     {
-        // Teknisi tidak perlu rekap (cuma lihat tugas sendiri)
         if ($user->isAnyTeknisi()) {
             return collect();
         }
@@ -78,44 +70,58 @@ class LaporanController extends Controller
         $query = Job::select(
                 'teknisi_id',
                 DB::raw('COUNT(*) as total'),
-                DB::raw('SUM(CASE WHEN status = "SELESAI" THEN 1 ELSE 0 END) as selesai')
+                DB::raw('SUM(CASE WHEN status = "SELESAI" THEN 1 ELSE 0 END) as selesai'),
+                DB::raw('SUM(CASE WHEN status = "DITUGASKAN" THEN 1 ELSE 0 END) as pending')
             )
-            ->whereMonth('tanggal_tugas', $bulan)
             ->whereYear('tanggal_tugas', $tahun);
 
-        // Filter bidang kalau admin pilih bidang tertentu
+        if ($bulan && $bulan !== 'semua') {
+            $query->whereMonth('tanggal_tugas', $bulan);
+        }
+
         if ($bidangFilter && in_array($bidangFilter, ['komputer', 'cctv'])) {
             $query->where('bidang', $bidangFilter);
+            // Filter teknisi sesuai bidang
+            if ($bidangFilter === 'komputer') {
+                $validIds = User::where('role', 'teknisi')->pluck('id')->toArray();
+                $query->whereIn('teknisi_id', $validIds);
+            } elseif ($bidangFilter === 'cctv') {
+                $validIds = User::where('role', 'teknisi_cctv')->pluck('id')->toArray();
+                $query->whereIn('teknisi_id', $validIds);
+            }
         }
 
         return $query->groupBy('teknisi_id')
             ->with('teknisi')
+            ->orderByDesc('selesai')
             ->get();
     }
 
-    // ============================================================
-    // GRAFIK PER HARI
-    // ============================================================
-    private function getChartHarian($jobs, $bulan, $tahun)
+    /**
+     * Grafik per bulan (12 bulan dalam setahun)
+     */
+    private function getChartTahunan($user, $tahun, $bidangFilter = null)
     {
-        $jumlahHari = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
-
         $labels  = [];
         $data    = [];
         $selesai = [];
 
-        for ($d = 1; $d <= $jumlahHari; $d++) {
-            $labels[] = $d;
+        for ($m = 1; $m <= 12; $m++) {
+            $labels[] = substr($this->getDaftarBulan()[$m], 0, 3); // Jan, Feb, Mar...
 
-            $data[] = $jobs->filter(function ($j) use ($d) {
-                return $j->tanggal_tugas && $j->tanggal_tugas->day == $d;
-            })->count();
+            $q1 = Job::whereMonth('tanggal_tugas', $m)->whereYear('tanggal_tugas', $tahun);
+            $q2 = Job::whereMonth('tanggal_tugas', $m)->whereYear('tanggal_tugas', $tahun)->where('status', 'SELESAI');
 
-            $selesai[] = $jobs->filter(function ($j) use ($d) {
-                return $j->tanggal_tugas
-                    && $j->tanggal_tugas->day == $d
-                    && $j->status == 'SELESAI';
-            })->count();
+            if ($user->isAnyTeknisi()) {
+                $q1->where('teknisi_id', $user->id)->where('bidang', $user->bidang());
+                $q2->where('teknisi_id', $user->id)->where('bidang', $user->bidang());
+            } elseif ($bidangFilter && in_array($bidangFilter, ['komputer', 'cctv'])) {
+                $q1->where('bidang', $bidangFilter);
+                $q2->where('bidang', $bidangFilter);
+            }
+
+            $data[]    = $q1->count();
+            $selesai[] = $q2->count();
         }
 
         return [
@@ -125,101 +131,101 @@ class LaporanController extends Controller
         ];
     }
 
-    // ============================================================
-    // GRAFIK 12 BULAN TERAKHIR
-    // ============================================================
-    private function getChartBulanan($user, $bidangFilter = null)
+    /**
+     * Grafik per hari dalam bulan terpilih
+     */
+    private function getChartHarian($jobs, $bulan, $tahun)
     {
-        $chartData = ['labels' => [], 'data' => [], 'selesai' => []];
-
-        for ($i = 11; $i >= 0; $i--) {
-            $date  = now()->subMonths($i);
-            $bulan = $date->month;
-            $tahun = $date->year;
-
-            $chartData['labels'][] = $date->format('M Y');
-
-            $q1 = Job::whereMonth('tanggal_tugas', $bulan)->whereYear('tanggal_tugas', $tahun);
-            $q2 = Job::whereMonth('tanggal_tugas', $bulan)->whereYear('tanggal_tugas', $tahun)->where('status', 'SELESAI');
-
-            // Teknisi → filter teknisi_id + bidang
-            if ($user->isAnyTeknisi()) {
-                $q1->where('teknisi_id', $user->id)->where('bidang', $user->bidang());
-                $q2->where('teknisi_id', $user->id)->where('bidang', $user->bidang());
-            }
-            // Admin pilih bidang
-            elseif ($bidangFilter && in_array($bidangFilter, ['komputer', 'cctv'])) {
-                $q1->where('bidang', $bidangFilter);
-                $q2->where('bidang', $bidangFilter);
-            }
-
-            $chartData['data'][]    = $q1->count();
-            $chartData['selesai'][] = $q2->count();
+        // Kalau bulan tidak dipilih (semua), pakai bulan sekarang
+        if (!$bulan || $bulan === 'semua') {
+            $bulan = now()->month;
         }
 
-        return $chartData;
+        $jumlahHari = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
+        $labels = []; $data = []; $selesai = [];
+
+        for ($d = 1; $d <= $jumlahHari; $d++) {
+            $labels[] = $d;
+
+            $data[] = $jobs->filter(fn($j) => $j->tanggal_tugas && $j->tanggal_tugas->day == $d)->count();
+            $selesai[] = $jobs->filter(fn($j) => $j->tanggal_tugas && $j->tanggal_tugas->day == $d && $j->status == 'SELESAI')->count();
+        }
+
+        return ['labels' => $labels, 'data' => $data, 'selesai' => $selesai];
     }
 
-    // ============================================================
-    // INDEX — halaman laporan
-    // ============================================================
     public function index(Request $request)
     {
-        $user         = auth()->user();
-        $bidangFilter = $request->input('bidang');
+        $user = auth()->user();
 
         [$jobs, $bulan, $tahun] = $this->getJobs($request, $user);
         $stats        = $this->getStats($jobs);
-        $rekapTeknisi = $this->getRekapTeknisi($user, $bulan, $tahun, $bidangFilter);
+        $rekapTeknisi = $this->getRekapTeknisi($user, $tahun, $bulan, $request->input('bidang'));
         $daftarBulan  = $this->getDaftarBulan();
-        $chartData    = $this->getChartBulanan($user, $bidangFilter);
+        $chartTahunan = $this->getChartTahunan($user, $tahun, $request->input('bidang'));
         $chartHarian  = $this->getChartHarian($jobs, $bulan, $tahun);
+
+        // Daftar tahun tersedia (untuk dropdown)
+        $tahunList = Job::selectRaw('YEAR(tanggal_tugas) as tahun')
+            ->distinct()
+            ->whereNotNull('tanggal_tugas')
+            ->orderByDesc('tahun')
+            ->pluck('tahun')
+            ->toArray();
+
+        if (empty($tahunList)) {
+            $tahunList = [now()->year];
+        }
 
         return view('laporan.index', compact(
             'jobs', 'stats', 'rekapTeknisi', 'bulan', 'tahun',
-            'daftarBulan', 'chartData', 'chartHarian', 'bidangFilter'
+            'daftarBulan', 'chartTahunan', 'chartHarian', 'tahunList'
         ));
     }
 
-    // ============================================================
-    // CETAK PDF
-    // ============================================================
+    /**
+     * CETAK PDF
+     */
     public function cetak(Request $request)
     {
         $user = auth()->user();
 
         [$jobs, $bulan, $tahun] = $this->getJobs($request, $user);
         $stats        = $this->getStats($jobs);
-        $rekapTeknisi = $this->getRekapTeknisi($user, $bulan, $tahun);
+        $rekapTeknisi = $this->getRekapTeknisi($user, $tahun, $bulan, $request->input('bidang'));
         $daftarBulan  = $this->getDaftarBulan();
+        $chartTahunan = $this->getChartTahunan($user, $tahun, $request->input('bidang'));
         $chartHarian  = $this->getChartHarian($jobs, $bulan, $tahun);
 
         return view('laporan.cetak', compact(
             'jobs', 'stats', 'rekapTeknisi', 'bulan', 'tahun',
-            'daftarBulan', 'user', 'chartHarian'
+            'daftarBulan', 'user', 'chartTahunan', 'chartHarian'
         ));
     }
 
-    // ============================================================
-    // EXPORT EXCEL
-    // ============================================================
+    /**
+     * EXPORT EXCEL
+     */
     public function exportExcel(Request $request)
     {
         $user = auth()->user();
 
         [$jobs, $bulan, $tahun] = $this->getJobs($request, $user);
         $stats        = $this->getStats($jobs);
-        $rekapTeknisi = $this->getRekapTeknisi($user, $bulan, $tahun);
+        $rekapTeknisi = $this->getRekapTeknisi($user, $tahun, $bulan, $request->input('bidang'));
         $daftarBulan  = $this->getDaftarBulan();
-        $chartHarian  = $this->getChartHarian($jobs, $bulan, $tahun);
+        $chartTahunan = $this->getChartTahunan($user, $tahun, $request->input('bidang'));
 
-        $namaBulan = $daftarBulan[$bulan];
-        $filename  = "Laporan-Pekerjaan-{$namaBulan}-{$tahun}.xls";
+        $namaFile = "Laporan-Pekerjaan-{$tahun}";
+        if ($bulan && $bulan !== 'semua') {
+            $namaFile .= '-' . $daftarBulan[$bulan];
+        }
+        $filename = $namaFile . '.xls';
 
         return response()
             ->view('laporan.excel', compact(
                 'jobs', 'stats', 'rekapTeknisi', 'bulan', 'tahun',
-                'daftarBulan', 'user', 'chartHarian'
+                'daftarBulan', 'user', 'chartTahunan'
             ))
             ->header('Content-Type', 'application/vnd.ms-excel')
             ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");

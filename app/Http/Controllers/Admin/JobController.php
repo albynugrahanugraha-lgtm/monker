@@ -5,51 +5,63 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\{Job, JobHistory, User};
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class JobController extends Controller
 {
-    public function dashboard()
+    /**
+     * Dashboard admin dengan filter tanggal
+     */
+    public function dashboard(Request $request)
     {
-        // ===== 3 KOTAK DASHBOARD =====
+        $tanggal = $request->input('tanggal');
+
+        try {
+            $tanggalObj = $tanggal ? Carbon::parse($tanggal) : today();
+        } catch (\Exception $e) {
+            $tanggalObj = today();
+        }
+
+        $tanggalStr = $tanggalObj->format('Y-m-d');
+        $tanggalSebelumnya = $tanggalObj->copy()->subDay();
+
+        // ===== 3 KOTAK STATISTIK =====
         $hariIni = [
-            'total'   => Job::whereDate('tanggal_tugas', today())->count(),
-            'selesai' => Job::whereDate('tanggal_tugas', today())->where('status', 'SELESAI')->count(),
-            'belum'   => Job::whereDate('tanggal_tugas', today())->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])->count(),
+            'total'   => Job::whereDate('tanggal_tugas', $tanggalStr)->count(),
+            'selesai' => Job::whereDate('tanggal_tugas', $tanggalStr)->where('status', 'SELESAI')->count(),
+            'belum'   => Job::whereDate('tanggal_tugas', $tanggalStr)->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])->count(),
         ];
 
-        // ===== TABEL HARI INI (split per bidang) =====
+        // ===== TABEL PEKERJAAN =====
         $kerjaanHariIniKomputer = Job::with('teknisi')
             ->where('bidang', 'komputer')
-            ->whereDate('tanggal_tugas', today())
+            ->whereDate('tanggal_tugas', $tanggalStr)
             ->orderBy('created_at', 'desc')
             ->get();
 
         $kerjaanHariIniCctv = Job::with('teknisi')
             ->where('bidang', 'cctv')
-            ->whereDate('tanggal_tugas', today())
+            ->whereDate('tanggal_tugas', $tanggalStr)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // ===== TABEL KEMARIN (split per bidang) =====
         $kerjaanKemarinKomputer = Job::with('teknisi')
             ->where('bidang', 'komputer')
-            ->whereDate('tanggal_tugas', today()->subDay())
+            ->whereDate('tanggal_tugas', $tanggalSebelumnya)
             ->orderBy('created_at', 'desc')
             ->get();
 
         $kerjaanKemarinCctv = Job::with('teknisi')
             ->where('bidang', 'cctv')
-            ->whereDate('tanggal_tugas', today()->subDay())
+            ->whereDate('tanggal_tugas', $tanggalSebelumnya)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // ===== TOP TEKNISI HARI INI (split per bidang) =====
-        // Return COLLECTION (bukan array) supaya view bisa pakai $t->display_name
-        $ratingHariIniKomputer = $this->getRatingPerBidang('komputer');
-        $ratingHariIniCctv     = $this->getRatingPerBidang('cctv');
+        // ===== TOP TEKNISI =====
+        $ratingHariIniKomputer = $this->getRatingPerBidang('komputer', $tanggalStr);
+        $ratingHariIniCctv     = $this->getRatingPerBidang('cctv', $tanggalStr);
 
-        // ===== REKAP TEKNISI OVERALL (split per bidang) =====
-        // Return ARRAY (untuk @json() di chart JS)
+        // ===== REKAP TEKNISI =====
         $rekapTeknisiKomputer = $this->getRekapPerBidang('komputer');
         $rekapTeknisiCctv     = $this->getRekapPerBidang('cctv');
 
@@ -58,28 +70,131 @@ class JobController extends Controller
             'kerjaanHariIniKomputer', 'kerjaanHariIniCctv',
             'kerjaanKemarinKomputer', 'kerjaanKemarinCctv',
             'ratingHariIniKomputer', 'ratingHariIniCctv',
-            'rekapTeknisiKomputer', 'rekapTeknisiCctv'
+            'rekapTeknisiKomputer', 'rekapTeknisiCctv',
+            'tanggalObj'
         ));
     }
 
     /**
-     * Rating Top Teknisi Hari Ini — Return COLLECTION of User models
-     * supaya view bisa akses $t->display_name, $t->hari_ini_selesai, dll
+     * 🆕 Halaman daftar pekerjaan belum dikerjakan
      */
-    private function getRatingPerBidang(string $bidang)
+    public function belumDikerjakan(Request $request)
+    {
+        $bidang        = $request->input('bidang');
+        $status        = $request->input('status');
+        $tanggalFilter = $request->input('tanggal_filter');
+
+        $query = Job::with('teknisi')
+            ->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN']);
+
+        if ($bidang && in_array($bidang, ['komputer', 'cctv'])) {
+            $query->where('bidang', $bidang);
+        }
+
+        if ($status && in_array($status, ['DITUGASKAN', 'DIKERJAKAN'])) {
+            $query->where('status', $status);
+        }
+
+        if ($tanggalFilter === 'terlambat') {
+            $query->whereDate('tanggal_tugas', '<', today());
+        } elseif ($tanggalFilter === 'hari_ini') {
+            $query->whereDate('tanggal_tugas', today());
+        } elseif ($tanggalFilter === 'minggu_ini') {
+            $query->whereBetween('tanggal_tugas', [
+                now()->startOfWeek(),
+                now()->endOfWeek(),
+            ]);
+        } elseif ($tanggalFilter === 'bulan_ini') {
+            $query->whereMonth('tanggal_tugas', now()->month)
+                  ->whereYear('tanggal_tugas', now()->year);
+        }
+
+        $jobs = $query
+            ->orderByRaw("CASE
+                WHEN tanggal_tugas < CURDATE() THEN 0
+                WHEN tanggal_tugas = CURDATE() THEN 1
+                ELSE 2
+            END")
+            ->orderBy('tanggal_tugas', 'asc')
+            ->orderByRaw("CASE WHEN teknisi_id IS NULL THEN 0 ELSE 1 END")
+            ->orderBy('created_at', 'asc')
+            ->paginate(50);
+
+        $stats = [
+            'total'         => Job::whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])->count(),
+            'komputer'      => Job::whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])->where('bidang', 'komputer')->count(),
+            'cctv'          => Job::whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])->where('bidang', 'cctv')->count(),
+            'terlambat'     => Job::whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])
+                ->whereDate('tanggal_tugas', '<', today())->count(),
+            'belum_diambil' => Job::where('status', 'DITUGASKAN')
+                ->whereNull('teknisi_id')->count(),
+        ];
+
+        $teknisiList = User::whereIn('role', ['teknisi', 'teknisi_cctv'])
+            ->where('status', 'aktif')
+            ->orderBy('role')
+            ->orderBy('nama')
+            ->get();
+
+        return view('admin.belum_dikerjakan', compact(
+            'jobs', 'stats', 'teknisiList',
+            'bidang', 'status', 'tanggalFilter'
+        ));
+    }
+
+    /**
+     * 🆕 Assign teknisi cepat
+     */
+    public function assignTeknisi(Request $request, Job $job)
+    {
+        $request->validate([
+            'teknisi_id' => 'nullable|exists:users,id',
+        ]);
+
+        $teknisiId = $request->input('teknisi_id') ?: null;
+
+        if ($teknisiId) {
+            $teknisi = User::find($teknisiId);
+            $expectedRole = $job->bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
+
+            if ($teknisi->role !== $expectedRole) {
+                return back()->with('error', 'Teknisi tidak sesuai dengan bidang tugas ini.');
+            }
+        }
+
+        $oldTeknisi = $job->teknisi_id;
+        $job->teknisi_id = $teknisiId;
+        $job->save();
+
+        if ($oldTeknisi != $teknisiId) {
+            JobHistory::create([
+                'job_id'      => $job->id,
+                'user_id'     => auth()->id(),
+                'status_lama' => $job->status,
+                'status_baru' => $job->status,
+                'keterangan'  => $teknisiId
+                    ? 'Teknisi di-assign: ' . ($job->teknisi->display_name ?? '-')
+                    : 'Assign teknisi dibatalkan (bebas diambil)',
+            ]);
+        }
+
+        return back()->with('success', 'Assign teknisi berhasil diupdate.');
+    }
+
+    private function getRatingPerBidang(string $bidang, string $tanggal)
     {
         $role = $bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
 
         return User::where('role', $role)
             ->where('status', 'aktif')
             ->get()
-            ->map(function ($teknisi) {
+            ->map(function ($teknisi) use ($tanggal) {
                 $total = Job::where('teknisi_id', $teknisi->id)
-                    ->whereDate('tanggal_tugas', today())
+                    ->whereDate('tanggal_tugas', $tanggal)
                     ->count();
 
                 $selesai = Job::where('teknisi_id', $teknisi->id)
-                    ->whereDate('tanggal_tugas', today())
+                    ->whereDate('tanggal_tugas', $tanggal)
                     ->where('status', 'SELESAI')
                     ->count();
 
@@ -93,13 +208,8 @@ class JobController extends Controller
             ->filter(fn($t) => $t->hari_ini_total > 0)
             ->sortByDesc('hari_ini_selesai')
             ->values();
-        // ⚠️ JANGAN pakai ->toArray() — biar tetep Collection of User objects
     }
 
-    /**
-     * Rekap Overall per bidang — Return ARRAY eksplisit
-     * supaya @json() di view include semua field (termasuk dynamic property)
-     */
     private function getRekapPerBidang(string $bidang): array
     {
         $role = $bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
@@ -124,7 +234,6 @@ class JobController extends Controller
             ->sortByDesc('selesai')
             ->values()
             ->toArray();
-        // ✅ Array eksplisit — aman untuk @json() di JS
     }
 
     public function create()
