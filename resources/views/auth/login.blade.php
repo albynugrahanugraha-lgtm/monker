@@ -47,11 +47,7 @@
         </form>
         <hr class="my-3">
         <div class="small text-muted">
-            <strong>Akun default:</strong><br>
-            superadmin / super123<br>
-            admin / admin123<br>
-            teknisi / teknisi123<br>
-            teknisi_cctv / cctv123
+          
         </div>
     </div>
 </div>
