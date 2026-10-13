@@ -1,12 +1,13 @@
 <table border="1" cellpadding="4" cellspacing="0">
     <thead>
+        {{-- HEADER UTAMA --}}
         <tr>
-            <th colspan="14" style="text-align: center; font-size: 18px; font-weight: bold; background: #4a90e2; color: white;">
+            <th colspan="20" style="text-align: center; font-size: 18px; font-weight: bold; background: #4a90e2; color: white;">
                 LAPORAN PEKERJAAN TEKNISI
             </th>
         </tr>
         <tr>
-            <th colspan="14" style="text-align: center; font-size: 13px; background: #e8f0fe;">
+            <th colspan="20" style="text-align: center; font-size: 13px; background: #e8f0fe;">
                 Periode:
                 @if($bulan && $bulan !== 'semua')
                     {{ $daftarBulan[$bulan] }} {{ $tahun }}
@@ -18,93 +19,149 @@
                 @endif
             </th>
         </tr>
-        <tr><td colspan="14"></td></tr>
+        <tr><td colspan="20"></td></tr>
 
-        {{-- A. STATISTIK --}}
+        {{-- ============================================ --}}
+        {{-- A. REKAP PER BULAN — MENDATAR                 --}}
+        {{-- ============================================ --}}
         <tr style="background: #4a90e2; color: white;">
-            <th colspan="14" style="text-align: left; font-weight: bold;">A. STATISTIK</th>
+            <th colspan="20" style="text-align: left; font-weight: bold;">A. REKAP PER BULAN — {{ $tahun }}</th>
         </tr>
         <tr>
-            <th style="background: #d0e0ff;">Total</th>
-            <th style="background: #d0e0ff;">Ditugaskan</th>
-            <th style="background: #d0e0ff;">Dikerjakan</th>
-            <th style="background: #d0e0ff;">Selesai</th>
+            <th style="background: #d0e0ff; width: 120px;">Keterangan</th>
+            @foreach($chartTahunan['labels'] as $label)
+                <th style="background: #d0e0ff; text-align: center; width: 60px;">{{ $label }}</th>
+            @endforeach
+            <th style="background: #b3d1ff; text-align: center; width: 80px; font-weight: bold;">TOTAL</th>
+            <th colspan="7" style="background: #d0e0ff;"></th>
         </tr>
         <tr>
-            <td style="text-align: center; font-weight: bold;">{{ $stats['total'] }}</td>
-            <td style="text-align: center; font-weight: bold;">{{ $stats['ditugaskan'] }}</td>
-            <td style="text-align: center; font-weight: bold;">{{ $stats['dikerjakan'] }}</td>
-            <td style="text-align: center; font-weight: bold;">{{ $stats['selesai'] }}</td>
+            <td style="background: #f0f7ff; font-weight: bold;">Total Pekerjaan</td>
+            @foreach($chartTahunan['data'] as $val)
+                <td style="text-align: center;">{{ $val }}</td>
+            @endforeach
+            <td style="text-align: center; font-weight: bold; background: #e8f0fe;">
+                {{ array_sum($chartTahunan['data']) }}
+            </td>
+            <td colspan="7"></td>
         </tr>
-        <tr><td colspan="14"></td></tr>
+        <tr>
+            <td style="background: #f0f7ff; font-weight: bold;">Selesai</td>
+            @foreach($chartTahunan['selesai'] as $val)
+                <td style="text-align: center;">{{ $val }}</td>
+            @endforeach
+            <td style="text-align: center; font-weight: bold; background: #e8f0fe;">
+                {{ array_sum($chartTahunan['selesai']) }}
+            </td>
+            <td colspan="7"></td>
+        </tr>
+        <tr>
+            <td style="background: #f0f7ff; font-weight: bold;">Pending</td>
+            @foreach($chartTahunan['data'] as $i => $val)
+                <td style="text-align: center;">
+                    {{ $val - ($chartTahunan['selesai'][$i] ?? 0) }}
+                </td>
+            @endforeach
+            <td style="text-align: center; font-weight: bold; background: #e8f0fe;">
+                {{ array_sum($chartTahunan['data']) - array_sum($chartTahunan['selesai']) }}
+            </td>
+            <td colspan="7"></td>
+        </tr>
+        <tr><td colspan="20"></td></tr>
 
-        {{-- B. REKAP PER BULAN --}}
-        <tr style="background: #4a90e2; color: white;">
-            <th colspan="14" style="text-align: left; font-weight: bold;">B. REKAP PER BULAN</th>
-        </tr>
-        <tr>
-            <th style="background: #d0e0ff; width: 150px;">Bulan</th>
-            <th style="background: #d0e0ff; width: 100px;">Total</th>
-            <th style="background: #d0e0ff; width: 100px;">Selesai</th>
-        </tr>
-        @foreach($chartTahunan['labels'] as $i => $label)
-        <tr>
-            <td>{{ $label }} {{ $tahun }}</td>
-            <td style="text-align: center;">{{ $chartTahunan['data'][$i] ?? 0 }}</td>
-            <td style="text-align: center;">{{ $chartTahunan['selesai'][$i] ?? 0 }}</td>
-        </tr>
-        @endforeach
-        <tr><td colspan="14"></td></tr>
-
-        {{-- C. REKAP PER TEKNISI --}}
+        {{-- ============================================ --}}
+        {{-- B. REKAP PER TEKNISI — MENDATAR               --}}
+        {{-- ============================================ --}}
         @if($rekapTeknisi->count() > 0)
         <tr style="background: #4a90e2; color: white;">
-            <th colspan="14" style="text-align: left; font-weight: bold;">C. REKAP PER TEKNISI</th>
+            <th colspan="20" style="text-align: left; font-weight: bold;">B. REKAP PER TEKNISI</th>
         </tr>
         <tr>
-            <th style="background: #d0e0ff;">No</th>
-            <th style="background: #d0e0ff;">Nama Teknisi</th>
-            <th style="background: #d0e0ff;">Total</th>
-            <th style="background: #d0e0ff;">Selesai</th>
-            <th style="background: #d0e0ff;">Pending</th>
-            <th style="background: #d0e0ff;">Rasio</th>
+            <th style="background: #d0e0ff; width: 40px; text-align: center;">No</th>
+            <th style="background: #d0e0ff; width: 200px;">Nama Teknisi</th>
+            <th style="background: #d0e0ff; width: 80px; text-align: center;">Total</th>
+            <th style="background: #d0e0ff; width: 80px; text-align: center;">Selesai</th>
+            <th style="background: #d0e0ff; width: 80px; text-align: center;">Pending</th>
+            <th style="background: #d0e0ff; width: 80px; text-align: center;">Rasio</th>
+            @foreach($chartTahunan['labels'] as $label)
+                <th style="background: #d0e0ff; text-align: center; width: 50px; font-size: 10px;">{{ $label }}</th>
+            @endforeach
+            <th colspan="6" style="background: #d0e0ff;"></th>
         </tr>
         @foreach($rekapTeknisi as $i => $r)
-        <tr>
-            <td style="text-align: center;">{{ $i + 1 }}</td>
-            <td>{{ $r->teknisi->display_name ?? '-' }}</td>
-            <td style="text-align: center;">{{ $r->total }}</td>
-            <td style="text-align: center;">{{ $r->selesai }}</td>
-            <td style="text-align: center;">{{ $r->pending }}</td>
-            <td style="text-align: center;">
-                {{ $r->total > 0 ? round(($r->selesai / $r->total) * 100) : 0 }}%
-            </td>
-        </tr>
+            @php
+                $rasio = $r->total > 0 ? round(($r->selesai / $r->total) * 100) : 0;
+                $bulanDetail = [];
+                for ($m = 1; $m <= 12; $m++) {
+                    $count = \App\Models\Job::where('teknisi_id', $r->teknisi_id)
+                        ->whereMonth('tanggal_tugas', $m)
+                        ->whereYear('tanggal_tugas', $tahun)
+                        ->where('status', 'SELESAI')
+                        ->count();
+                    $bulanDetail[] = $count;
+                }
+            @endphp
+            <tr>
+                <td style="text-align: center;">{{ $i + 1 }}</td>
+                <td>{{ $r->teknisi->display_name ?? '-' }}</td>
+                <td style="text-align: center;">{{ $r->total }}</td>
+                <td style="text-align: center;">{{ $r->selesai }}</td>
+                <td style="text-align: center;">{{ $r->pending }}</td>
+                <td style="text-align: center;">{{ $rasio }}%</td>
+                @foreach($bulanDetail as $val)
+                    <td style="text-align: center;">
+                        @if($val > 0) {{ $val }} @else - @endif
+                    </td>
+                @endforeach
+                <td colspan="6"></td>
+            </tr>
         @endforeach
-        <tr><td colspan="14"></td></tr>
+        <tr style="background: #e8f0fe; font-weight: bold;">
+            <td colspan="2" style="text-align: right;">TOTAL</td>
+            <td style="text-align: center;">{{ $rekapTeknisi->sum('total') }}</td>
+            <td style="text-align: center;">{{ $rekapTeknisi->sum('selesai') }}</td>
+            <td style="text-align: center;">{{ $rekapTeknisi->sum('pending') }}</td>
+            <td style="text-align: center;">
+                @php
+                    $totalAll = $rekapTeknisi->sum('total');
+                    $selesaiAll = $rekapTeknisi->sum('selesai');
+                @endphp
+                {{ $totalAll > 0 ? round(($selesaiAll / $totalAll) * 100) : 0 }}%
+            </td>
+            @foreach($chartTahunan['labels'] as $i => $label)
+                <td style="text-align: center;">{{ $chartTahunan['selesai'][$i] ?? 0 }}</td>
+            @endforeach
+            <td colspan="6"></td>
+        </tr>
+        <tr><td colspan="20"></td></tr>
         @endif
 
-        {{-- D. DETAIL PEKERJAAN --}}
+        {{-- ============================================ --}}
+        {{-- C. DETAIL PEKERJAAN                           --}}
+        {{-- ============================================ --}}
         <tr style="background: #4a90e2; color: white;">
-            <th colspan="14" style="text-align: left; font-weight: bold;">
-                D. DETAIL PEKERJAAN ({{ $jobs->count() }} pekerjaan)
+            <th colspan="20" style="text-align: left; font-weight: bold;">
+                C. DETAIL PEKERJAAN ({{ $jobs->count() }} pekerjaan)
             </th>
         </tr>
         <tr>
-            <th style="background: #d0e0ff;">No</th>
-            <th style="background: #d0e0ff;">Kode</th>
-            <th style="background: #d0e0ff;">Bidang</th>
-            <th style="background: #d0e0ff;">Tanggal</th>
+            <th style="background: #d0e0ff; width: 40px; text-align: center;">No</th>
+            <th style="background: #d0e0ff; width: 100px;">Kode</th>
+            <th style="background: #d0e0ff; width: 70px;">Bidang</th>
+            <th style="background: #d0e0ff; width: 80px;">Tanggal</th>
             <th style="background: #d0e0ff;">Judul</th>
-            <th style="background: #d0e0ff;">Teknisi</th>
-            <th style="background: #d0e0ff;">Gedung</th>
-            <th style="background: #d0e0ff;">Ruang</th>
-            <th style="background: #d0e0ff;">Perangkat</th>
-            <th style="background: #d0e0ff;">Kategori</th>
-            <th style="background: #d0e0ff;">Prioritas</th>
-            <th style="background: #d0e0ff;">Status</th>
+            <th style="background: #d0e0ff; width: 130px;">Teknisi</th>
+            <th style="background: #d0e0ff; width: 100px;">Gedung</th>
+            <th style="background: #d0e0ff; width: 100px;">Ruang</th>
+            <th style="background: #d0e0ff; width: 120px;">Perangkat</th>
+            <th style="background: #d0e0ff; width: 80px;">Kategori</th>
+            <th style="background: #d0e0ff; width: 70px;">Prioritas</th>
+            <th style="background: #d0e0ff; width: 70px;">Status</th>
             <th style="background: #d0e0ff;">Hasil</th>
             <th style="background: #d0e0ff;">Catatan</th>
+            <th style="background: #d0e0ff; width: 200px;">📷 Foto Sebelum</th>
+            <th style="background: #d0e0ff; width: 200px;">📷 Foto Sesudah</th>
+            <th colspan="4" style="background: #d0e0ff;"></th>
         </tr>
         @forelse($jobs as $i => $j)
         <tr>
@@ -122,49 +179,39 @@
             <td>{{ $j->status }}</td>
             <td>{{ $j->hasil_pekerjaan ?? '-' }}</td>
             <td>{{ $j->catatan ?? '-' }}</td>
+            {{-- 🆕 FOTO SEBELUM --}}
+            <td style="font-size: 9px;">
+                @forelse($j->fotoSebelum as $f)
+                    <a href="{{ asset($f->nama_file) }}" target="_blank"
+                       style="color: #0d6efd; text-decoration: underline;">
+                        📷 Foto {{ $loop->iteration }}
+                    </a>
+                    @if(!$loop->last) <br> @endif
+                @empty
+                    -
+                @endforelse
+            </td>
+            {{-- 🆕 FOTO SESUDAH --}}
+            <td style="font-size: 9px;">
+                @forelse($j->fotoSesudah as $f)
+                    <a href="{{ asset($f->nama_file) }}" target="_blank"
+                       style="color: #0d6efd; text-decoration: underline;">
+                        📷 Foto {{ $loop->iteration }}
+                    </a>
+                    @if(!$loop->last) <br> @endif
+                @empty
+                    -
+                @endforelse
+            </td>
+            <td colspan="4"></td>
         </tr>
         @empty
-        <tr><td colspan="14" style="text-align: center;">Tidak ada data</td></tr>
+        <tr><td colspan="20" style="text-align: center;">Tidak ada data</td></tr>
         @endforelse
 
-        <tr><td colspan="14"></td></tr>
-
-        {{-- E. LINK FOTO --}}
-        <tr style="background: #4a90e2; color: white;">
-            <th colspan="14" style="text-align: left; font-weight: bold;">E. LINK FOTO PER PEKERJAAN</th>
-        </tr>
+        <tr><td colspan="20"></td></tr>
         <tr>
-            <th style="background: #d0e0ff;">No</th>
-            <th style="background: #d0e0ff;">Kode</th>
-            <th style="background: #d0e0ff;" colspan="5">Foto Sebelum</th>
-            <th style="background: #d0e0ff;" colspan="5">Foto Sesudah</th>
-        </tr>
-        @foreach($jobs as $i => $j)
-        <tr>
-            <td style="text-align: center;">{{ $i + 1 }}</td>
-            <td>{{ $j->kode_job }}</td>
-            <td colspan="5" style="font-size: 9px;">
-                @forelse($j->fotoSebelum as $f)
-                    {{ asset($f->nama_file) }}
-                    @if(!$loop->last) &nbsp;|&nbsp; @endif
-                @empty
-                    -
-                @endforelse
-            </td>
-            <td colspan="5" style="font-size: 9px;">
-                @forelse($j->fotoSesudah as $f)
-                    {{ asset($f->nama_file) }}
-                    @if(!$loop->last) &nbsp;|&nbsp; @endif
-                @empty
-                    -
-                @endforelse
-            </td>
-        </tr>
-        @endforeach
-
-        <tr><td colspan="14"></td></tr>
-        <tr>
-            <td colspan="14" style="text-align: center; font-style: italic; font-size: 11px;">
+            <td colspan="20" style="text-align: center; font-style: italic; font-size: 11px;">
                 Dicetak pada: {{ now()->format('d-m-Y H:i') }}
             </td>
         </tr>

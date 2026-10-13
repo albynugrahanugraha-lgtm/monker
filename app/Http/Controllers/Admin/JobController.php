@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Job, JobHistory, User};
+use App\Models\{Job, JobHistory, User, JobPhoto, JobReport};
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\File;
 
 class JobController extends Controller
 {
@@ -76,7 +77,7 @@ class JobController extends Controller
     }
 
     /**
-     * 🆕 Halaman daftar pekerjaan belum dikerjakan
+     * Halaman daftar pekerjaan belum dikerjakan
      */
     public function belumDikerjakan(Request $request)
     {
@@ -143,7 +144,7 @@ class JobController extends Controller
     }
 
     /**
-     * 🆕 Assign teknisi cepat
+     * Assign teknisi cepat
      */
     public function assignTeknisi(Request $request, Job $job)
     {
@@ -313,5 +314,157 @@ class JobController extends Controller
 
         return redirect()->route('admin.dashboard')
             ->with('success', 'Pekerjaan berhasil dihapus.');
+    }
+
+    // ============================================================
+    // ADMIN MENYELESAIKAN TUGAS
+    // ============================================================
+
+    /**
+     * Form admin menyelesaikan tugas
+     */
+    public function formSelesai(Job $job)
+    {
+        if (!$job->bisaDiselesaikan()) {
+            return redirect()->route('admin.show', $job)
+                ->with('error', 'Pekerjaan ini sudah selesai atau tidak bisa diselesaikan lagi.');
+        }
+
+        $job->load('teknisi', 'admin', 'fotoSebelum', 'fotoSesudah', 'report');
+
+        $role = $job->bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
+        $teknisiList = User::where('role', $role)
+            ->where('status', 'aktif')
+            ->orderBy('nama')
+            ->get();
+
+        return view('admin.selesaikan_tugas', compact('job', 'teknisiList'));
+    }
+
+    /**
+     * Proses admin menyelesaikan tugas
+     */
+    public function selesaikan(Request $request, Job $job)
+    {
+        if (!$job->bisaDiselesaikan()) {
+            return redirect()->route('admin.show', $job)
+                ->with('error', 'Pekerjaan ini sudah selesai atau tidak bisa diselesaikan lagi.');
+        }
+
+        $data = $request->validate([
+            'hasil_pekerjaan' => 'required|string',
+            'catatan'         => 'nullable|string',
+            'catatan_admin'   => 'nullable|string',
+            'tanggal_selesai' => 'nullable|date',
+            'teknisi_id'      => 'nullable|exists:users,id',
+
+            // 🆕 Validasi foto SEBELUM
+            'foto_sebelum'    => 'nullable|array',
+            'foto_sebelum.*'  => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+
+            // Validasi foto SESUDAH
+            'foto_sesudah'    => 'nullable|array',
+            'foto_sesudah.*'  => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+        ], [
+            'hasil_pekerjaan.required' => 'Hasil pekerjaan wajib diisi.',
+            'foto_sebelum.*.image'     => 'File foto sebelum harus berupa gambar.',
+            'foto_sebelum.*.mimes'     => 'Format foto sebelum harus JPG, JPEG, PNG, atau WEBP.',
+            'foto_sebelum.*.max'       => 'Ukuran foto sebelum maksimal 5MB.',
+            'foto_sesudah.*.image'     => 'File foto sesudah harus berupa gambar.',
+            'foto_sesudah.*.mimes'     => 'Format foto sesudah harus JPG, JPEG, PNG, atau WEBP.',
+            'foto_sesudah.*.max'       => 'Ukuran foto sesudah maksimal 5MB.',
+        ]);
+
+        $statusLama = $job->status;
+
+        // Update data job
+        $job->hasil_pekerjaan = $data['hasil_pekerjaan'];
+        $job->catatan         = $data['catatan'] ?? $job->catatan;
+        $job->catatan_admin   = $data['catatan_admin'] ?? $job->catatan_admin;
+        $job->tanggal_selesai = !empty($data['tanggal_selesai'])
+            ? Carbon::parse($data['tanggal_selesai'])
+            : now();
+        $job->status = 'SELESAI';
+
+        // Kalau admin pilih teknisi
+        if (!empty($data['teknisi_id'])) {
+            $teknisi = User::find($data['teknisi_id']);
+            $expectedRole = $job->bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
+            if ($teknisi && $teknisi->role === $expectedRole) {
+                $job->teknisi_id = $data['teknisi_id'];
+            }
+        }
+
+        // Kalau tetap belum ada teknisi, assign ke admin yang menyelesaikan
+        if (empty($job->teknisi_id)) {
+            $job->teknisi_id = auth()->id();
+        }
+
+        $job->save();
+
+        // =====================================================
+        // UPLOAD FOTO
+        // =====================================================
+        $uploadDir = public_path('uploads/jobs');
+        if (!File::isDirectory($uploadDir)) {
+            File::makeDirectory($uploadDir, 0755, true);
+        }
+
+        // 🆕 Upload FOTO SEBELUM
+        if ($request->hasFile('foto_sebelum')) {
+            foreach ($request->file('foto_sebelum') as $file) {
+                if (!$file->isValid()) continue;
+
+                $filename = 'job-' . $job->id . '-sebelum-' . time() . '-' . uniqid() . '.'
+                    . $file->getClientOriginalExtension();
+                $file->move($uploadDir, $filename);
+
+                JobPhoto::create([
+                    'job_id'     => $job->id,
+                    'nama_file'  => 'uploads/jobs/' . $filename,
+                    'jenis_foto' => 'sebelum',
+                ]);
+            }
+        }
+
+        // Upload FOTO SESUDAH
+        if ($request->hasFile('foto_sesudah')) {
+            foreach ($request->file('foto_sesudah') as $file) {
+                if (!$file->isValid()) continue;
+
+                $filename = 'job-' . $job->id . '-sesudah-' . time() . '-' . uniqid() . '.'
+                    . $file->getClientOriginalExtension();
+                $file->move($uploadDir, $filename);
+
+                JobPhoto::create([
+                    'job_id'     => $job->id,
+                    'nama_file'  => 'uploads/jobs/' . $filename,
+                    'jenis_foto' => 'sesudah',
+                ]);
+            }
+        }
+
+        // Update / buat report
+        JobReport::updateOrCreate(
+            ['job_id' => $job->id],
+            [
+                'hasil'         => $data['hasil_pekerjaan'],
+                'catatan'       => $data['catatan'] ?? null,
+                'catatan_admin' => $data['catatan_admin'] ?? null,
+                'dibuat_oleh'   => auth()->id(),
+            ]
+        );
+
+        // Catat history
+        JobHistory::create([
+            'job_id'      => $job->id,
+            'user_id'     => auth()->id(),
+            'status_lama' => $statusLama,
+            'status_baru' => 'SELESAI',
+            'keterangan'  => 'Diselesaikan oleh admin: ' . auth()->user()->display_name,
+        ]);
+
+        return redirect()->route('admin.show', $job)
+            ->with('success', '✅ Pekerjaan berhasil diselesaikan oleh admin.');
     }
 }

@@ -18,7 +18,6 @@
         .ttd p { margin: 60px 0 0 0; border-top: 1px solid #000; padding-top: 5px; }
         .no-print { text-align: center; margin: 20px 0; }
 
-        /* 🆕 Badge bidang */
         .badge-cctv { background: #0dcaf0; color: #000; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: bold; }
         .badge-komputer { background: #0d6efd; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: bold; }
 
@@ -56,7 +55,7 @@
     <tr><th>Catatan</th><td>{{ $job->catatan ?? '-' }}</td></tr>
 </table>
 
-<h3>Foto Sebelum Pekerjaan</h3>
+<h3>Foto Sebelum Pekerjaan ({{ $job->fotoSebelum->count() }} foto)</h3>
 <div>
     @forelse($job->fotoSebelum as $f)
         <div class="foto-box"><img src="{{ asset($f->nama_file) }}"></div>
@@ -65,7 +64,7 @@
     @endforelse
 </div>
 
-<h3>Foto Sesudah Pekerjaan</h3>
+<h3>Foto Sesudah Pekerjaan ({{ $job->fotoSesudah->count() }} foto)</h3>
 <div>
     @forelse($job->fotoSesudah as $f)
         <div class="foto-box"><img src="{{ asset($f->nama_file) }}"></div>

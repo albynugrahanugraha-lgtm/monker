@@ -79,7 +79,6 @@
     .table-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
     .table-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 
-    /* 🆕 FILTER TANGGAL */
     .date-filter-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -113,10 +112,11 @@
         <a href="<?php echo e(route('admin.import.index')); ?>" class="btn btn-success btn-sm">
             <i class="bi bi-file-earmark-excel"></i> Import Excel
         </a>
+        <a href="<?php echo e(route('admin.belum-dikerjakan')); ?>" class="btn btn-warning btn-sm">
+            <i class="bi bi-hourglass-split"></i> Belum Dikerjakan
+        </a>
     </div>
 </div>
-
-
 
 
 <div class="date-filter-card p-3 mb-4">
@@ -136,8 +136,6 @@
             <button type="submit" class="btn btn-light fw-bold">
                 <i class="bi bi-search"></i> Tampilkan
             </button>
-
-            
             <a href="<?php echo e(route('admin.dashboard', ['tanggal' => now()->format('Y-m-d')])); ?>"
                class="btn btn-outline-light btn-sm">
                 📅 Hari Ini
@@ -215,8 +213,6 @@
 </div>
 
 
-
-
 <div class="row g-3 mb-4">
 
     
@@ -251,12 +247,7 @@
                     <tbody>
                     <?php $__empty_1 = true; $__currentLoopData = $kerjaanHariIniKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <?php
-                            $badgeClass = match($j->status) {
-                                'DITUGASKAN' => 'bg-secondary',
-                                'DIKERJAKAN' => 'bg-warning text-dark',
-                                'SELESAI'    => 'bg-success',
-                                default => 'bg-light text-dark',
-                            };
+                            $badgeClass = $j->statusBadgeClass();
                             $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
                             $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
                             if ($belumDiambil) {
@@ -282,13 +273,34 @@
                                 </small>
                             </td>
                             <td>
-                                <?php if($j->teknisi): ?>
-                                    <span class="badge bg-primary"><i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?></span>
+                                <?php $penyelesai = $j->penyelesai(); ?>
+                                <?php if($j->status === 'SELESAI'): ?>
+                                    <?php if($penyelesai): ?>
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
+
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Selesai
+                                        </span>
+                                    <?php endif; ?>
+                                <?php elseif($j->teknisi): ?>
+                                    <span class="badge bg-primary">
+                                        <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
+
+                                    </span>
+                                <?php elseif($j->status === 'DIKERJAKAN'): ?>
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-tools"></i> Sedang dikerjakan
+                                    </span>
                                 <?php else: ?>
-                                    <span class="badge bg-danger badge-belum-diambil"><i class="bi bi-exclamation-triangle"></i> Belum diambil</span>
+                                    <span class="badge bg-danger badge-belum-diambil">
+                                        <i class="bi bi-exclamation-triangle"></i> Belum diambil
+                                    </span>
                                 <?php endif; ?>
                             </td>
-                            <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e(str_replace('_', ' ', $j->status)); ?></span></td>
+                            <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e($j->statusLabel()); ?></span></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr><td colspan="4" class="text-center text-muted py-3">
@@ -323,14 +335,6 @@
                     </thead>
                     <tbody>
                     <?php $__empty_1 = true; $__currentLoopData = $kerjaanKemarinKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <?php
-                            $badgeClass = match($j->status) {
-                                'DITUGASKAN' => 'bg-secondary',
-                                'DIKERJAKAN' => 'bg-warning text-dark',
-                                'SELESAI'    => 'bg-success',
-                                default => 'bg-light text-dark',
-                            };
-                        ?>
                         <tr>
                             <td><code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code></td>
                             <td>
@@ -341,13 +345,22 @@
                                 </small>
                             </td>
                             <td>
-                                <?php if($j->teknisi): ?>
-                                    <span class="badge bg-primary"><i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?></span>
+                                <?php $penyelesai = $j->penyelesai(); ?>
+                                <?php if($j->status === 'SELESAI' && $penyelesai): ?>
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
+
+                                    </span>
+                                <?php elseif($j->teknisi): ?>
+                                    <span class="badge bg-primary">
+                                        <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
+
+                                    </span>
                                 <?php else: ?>
                                     <span class="badge bg-secondary">Belum diambil</span>
                                 <?php endif; ?>
                             </td>
-                            <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e(str_replace('_', ' ', $j->status)); ?></span></td>
+                            <td><span class="badge <?php echo e($j->statusBadgeClass()); ?>"><?php echo e($j->statusLabel()); ?></span></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan komputer</td></tr>
@@ -390,12 +403,7 @@
                     <tbody>
                     <?php $__empty_1 = true; $__currentLoopData = $kerjaanHariIniCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <?php
-                            $badgeClass = match($j->status) {
-                                'DITUGASKAN' => 'bg-secondary',
-                                'DIKERJAKAN' => 'bg-warning text-dark',
-                                'SELESAI'    => 'bg-success',
-                                default => 'bg-light text-dark',
-                            };
+                            $badgeClass = $j->statusBadgeClass();
                             $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
                             $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
                             if ($belumDiambil) {
@@ -421,13 +429,34 @@
                                 </small>
                             </td>
                             <td>
-                                <?php if($j->teknisi): ?>
-                                    <span class="badge bg-info text-dark"><i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?></span>
+                                <?php $penyelesai = $j->penyelesai(); ?>
+                                <?php if($j->status === 'SELESAI'): ?>
+                                    <?php if($penyelesai): ?>
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
+
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Selesai
+                                        </span>
+                                    <?php endif; ?>
+                                <?php elseif($j->teknisi): ?>
+                                    <span class="badge bg-info text-dark">
+                                        <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
+
+                                    </span>
+                                <?php elseif($j->status === 'DIKERJAKAN'): ?>
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-tools"></i> Sedang dikerjakan
+                                    </span>
                                 <?php else: ?>
-                                    <span class="badge bg-danger badge-belum-diambil"><i class="bi bi-exclamation-triangle"></i> Belum diambil</span>
+                                    <span class="badge bg-danger badge-belum-diambil">
+                                        <i class="bi bi-exclamation-triangle"></i> Belum diambil
+                                    </span>
                                 <?php endif; ?>
                             </td>
-                            <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e(str_replace('_', ' ', $j->status)); ?></span></td>
+                            <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e($j->statusLabel()); ?></span></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr><td colspan="4" class="text-center text-muted py-3">
@@ -462,14 +491,6 @@
                     </thead>
                     <tbody>
                     <?php $__empty_1 = true; $__currentLoopData = $kerjaanKemarinCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <?php
-                            $badgeClass = match($j->status) {
-                                'DITUGASKAN' => 'bg-secondary',
-                                'DIKERJAKAN' => 'bg-warning text-dark',
-                                'SELESAI'    => 'bg-success',
-                                default => 'bg-light text-dark',
-                            };
-                        ?>
                         <tr>
                             <td><code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code></td>
                             <td>
@@ -480,13 +501,22 @@
                                 </small>
                             </td>
                             <td>
-                                <?php if($j->teknisi): ?>
-                                    <span class="badge bg-info text-dark"><i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?></span>
+                                <?php $penyelesai = $j->penyelesai(); ?>
+                                <?php if($j->status === 'SELESAI' && $penyelesai): ?>
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
+
+                                    </span>
+                                <?php elseif($j->teknisi): ?>
+                                    <span class="badge bg-info text-dark">
+                                        <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
+
+                                    </span>
                                 <?php else: ?>
                                     <span class="badge bg-secondary">Belum diambil</span>
                                 <?php endif; ?>
                             </td>
-                            <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e(str_replace('_', ' ', $j->status)); ?></span></td>
+                            <td><span class="badge <?php echo e($j->statusBadgeClass()); ?>"><?php echo e($j->statusLabel()); ?></span></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan CCTV</td></tr>

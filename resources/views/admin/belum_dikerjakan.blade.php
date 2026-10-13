@@ -50,26 +50,14 @@
         align-items: center;
         box-shadow: 0 3px 10px rgba(0,0,0,0.1);
     }
-    .stat-box .stat-label {
-        font-size: .75rem;
-        opacity: 0.9;
-    }
-    .stat-box .stat-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        line-height: 1;
-        margin-top: 5px;
-    }
-    .stat-box .stat-icon {
-        font-size: 2rem;
-        opacity: 0.3;
-    }
+    .stat-box .stat-label { font-size: .75rem; opacity: 0.9; }
+    .stat-box .stat-value { font-size: 1.8rem; font-weight: 700; line-height: 1; margin-top: 5px; }
+    .stat-box .stat-icon  { font-size: 2rem; opacity: 0.3; }
 
     .stat-total      { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
     .stat-komputer   { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); }
     .stat-cctv       { background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%); color: #000; }
     .stat-terlambat  { background: linear-gradient(135deg, #dc3545 0%, #b71c1c 100%); }
-    .stat-belum      { background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: #000; }
 
     .filter-card {
         background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -96,7 +84,7 @@
     </div>
 </div>
 
-{{-- 5 KOTAK STATISTIK --}}
+{{-- 4 KOTAK STATISTIK --}}
 <div class="row g-2 mb-3">
     <div class="col-6 col-md-3">
         <div class="stat-box stat-total">
@@ -293,6 +281,10 @@
                                 <i class="bi bi-person-circle"></i>
                                 {{ $j->teknisi->display_name }}
                             </span>
+                        @elseif($j->status === 'DIKERJAKAN')
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-tools"></i> Sedang dikerjakan
+                            </span>
                         @else
                             <span class="badge bg-danger">
                                 <i class="bi bi-exclamation-triangle"></i>
@@ -314,6 +306,12 @@
                                     data-teknisi-id="{{ $j->teknisi_id }}">
                                 <i class="bi bi-person-plus"></i>
                             </button>
+
+                            <a href="{{ route('admin.selesaikan.form', $j) }}"
+                               class="btn btn-outline-success"
+                               title="Selesaikan Pekerjaan">
+                                <i class="bi bi-check-circle"></i>
+                            </a>
 
                             <a href="{{ route('admin.show', $j) }}"
                                class="btn btn-outline-secondary"

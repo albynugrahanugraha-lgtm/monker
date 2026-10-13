@@ -20,7 +20,7 @@ use App\Http\Controllers\PublikMonitorController;
 Route::get('/', fn() => redirect()->route('login'));
 
 // ============================================================
-// PUBLIK MONITOR (tetap bisa diakses via /monitor)
+// PUBLIK MONITOR
 // ============================================================
 Route::get('/monitor', [PublikMonitorController::class, 'index'])->name('monitor');
 Route::get('/monitor/data', [PublikMonitorController::class, 'data'])->name('monitor.data');
@@ -50,7 +50,7 @@ Route::post('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
-    return redirect()->route('login');   // ← ubah dari monitor → login
+    return redirect()->route('login');
 })->middleware('auth')->name('logout');
 
 // ===== DASHBOARD =====
@@ -110,6 +110,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Pekerjaan Belum Dikerjakan
     Route::get('/belum-dikerjakan', [JobController::class, 'belumDikerjakan'])->name('belum-dikerjakan');
     Route::post('/job/{job}/assign', [JobController::class, 'assignTeknisi'])->name('assign');
+
+    // Admin menyelesaikan tugas
+    Route::get('/job/{job}/selesaikan', [JobController::class, 'formSelesai'])->name('selesaikan.form');
+    Route::post('/job/{job}/selesaikan', [JobController::class, 'selesaikan'])->name('selesaikan');
 });
 
 // ===== TEKNISI KOMPUTER =====

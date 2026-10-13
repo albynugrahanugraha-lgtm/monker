@@ -10,13 +10,7 @@
             <span class="badge {{ $job->bidangBadgeClass() }} me-1">
                 <i class="bi {{ $job->bidangIcon() }}"></i> {{ $job->bidangLabel() }}
             </span>
-            @php $badge = match($job->status) {
-                'DITUGASKAN' => 'bg-secondary',
-                'DIKERJAKAN' => 'bg-warning text-dark',
-                'SELESAI' => 'bg-success',
-                default => 'bg-light text-dark',
-            }; @endphp
-            <span class="badge {{ $badge }}">{{ $job->status }}</span>
+            <span class="badge {{ $job->statusBadgeClass() }}">{{ $job->statusLabel() }}</span>
         </div>
     </div>
     <div class="card-body">
@@ -32,27 +26,36 @@
             <tr><th>Tanggal Selesai</th><td>{{ $job->tanggal_selesai?->format('d-m-Y H:i') ?? '-' }}</td></tr>
             <tr><th>Hasil Pekerjaan</th><td>{{ $job->hasil_pekerjaan ?? '-' }}</td></tr>
             <tr><th>Catatan Teknisi</th><td>{{ $job->catatan ?? '-' }}</td></tr>
+            <tr><th>Catatan Admin</th><td>{{ $job->catatan_admin ?? '-' }}</td></tr>
         </table>
 
-        <h6 class="mt-4">Foto Sebelum:</h6>
+        <h6 class="mt-4">
+            <i class="bi bi-image text-warning"></i>
+            Foto Sebelum
+            <span class="badge bg-warning text-dark">{{ $job->fotoSebelum->count() }}</span>
+        </h6>
         <div class="d-flex flex-wrap gap-2 mb-3">
             @forelse($job->fotoSebelum as $f)
                 <a href="{{ asset($f->nama_file) }}" target="_blank">
                     <img src="{{ asset($f->nama_file) }}" class="rounded border" width="120">
                 </a>
             @empty
-                <span class="text-muted">Belum ada</span>
+                <span class="text-muted">Belum ada foto sebelum</span>
             @endforelse
         </div>
 
-        <h6>Foto Sesudah:</h6>
+        <h6>
+            <i class="bi bi-image text-success"></i>
+            Foto Sesudah
+            <span class="badge bg-success">{{ $job->fotoSesudah->count() }}</span>
+        </h6>
         <div class="d-flex flex-wrap gap-2">
             @forelse($job->fotoSesudah as $f)
                 <a href="{{ asset($f->nama_file) }}" target="_blank">
                     <img src="{{ asset($f->nama_file) }}" class="rounded border" width="120">
                 </a>
             @empty
-                <span class="text-muted">Belum ada</span>
+                <span class="text-muted">Belum ada foto sesudah</span>
             @endforelse
         </div>
 
@@ -62,7 +65,7 @@
             <div class="alert alert-success d-flex align-items-center">
                 <i class="bi bi-check-circle-fill me-2" style="font-size: 1.5rem;"></i>
                 <div>
-                    <strong>Pekerjaan sudah diselesaikan oleh teknisi.</strong>
+                    <strong>Pekerjaan sudah diselesaikan.</strong>
                     @if($job->tanggal_selesai)
                         <br><small>Selesai pada: {{ $job->tanggal_selesai->format('d-m-Y H:i') }}</small>
                     @endif
@@ -79,6 +82,12 @@
         @endif
 
         <div class="mt-3 d-flex gap-2 flex-wrap">
+            @if($job->bisaDiselesaikan())
+                <a href="{{ route('admin.selesaikan.form', $job) }}" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Selesaikan Pekerjaan
+                </a>
+            @endif
+
             <a href="{{ route('admin.cetak', $job) }}" target="_blank" class="btn btn-outline-secondary">
                 <i class="bi bi-printer"></i> Cetak Laporan
             </a>

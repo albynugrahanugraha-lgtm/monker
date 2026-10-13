@@ -76,6 +76,46 @@ class Job extends Model
     }
 
     // ============================================
+    // HELPERS STATUS
+    // ============================================
+    public function bisaDiselesaikan(): bool
+    {
+        return in_array($this->status, ['DITUGASKAN', 'DIKERJAKAN']);
+    }
+
+    public function statusBadgeClass(): string
+    {
+        return match($this->status) {
+            'DITUGASKAN' => 'bg-secondary',
+            'DIKERJAKAN' => 'bg-warning text-dark',
+            'SELESAI'    => 'bg-success',
+            default      => 'bg-light text-dark',
+        };
+    }
+
+    public function statusLabel(): string
+    {
+        return str_replace('_', ' ', $this->status);
+    }
+
+    // ============================================
+    // PENYELESAI — siapa yang menyelesaikan
+    // ============================================
+    public function penyelesai()
+    {
+        if ($this->teknisi_id && $this->teknisi) {
+            return $this->teknisi;
+        }
+
+        $history = $this->histories()
+            ->where('status_baru', 'SELESAI')
+            ->latest()
+            ->first();
+
+        return $history?->user;
+    }
+
+    // ============================================
     // SCOPES
     // ============================================
     public function scopeBidang($q, string $bidang)

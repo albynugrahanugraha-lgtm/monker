@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\LaporanExport;
 use App\Models\{Job, User};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LaporanController extends Controller
 {
@@ -204,7 +206,7 @@ class LaporanController extends Controller
     }
 
     /**
-     * EXPORT EXCEL
+     * EXPORT EXCEL — Menggunakan Maatwebsite Excel
      */
     public function exportExcel(Request $request)
     {
@@ -216,18 +218,32 @@ class LaporanController extends Controller
         $daftarBulan  = $this->getDaftarBulan();
         $chartTahunan = $this->getChartTahunan($user, $tahun, $request->input('bidang'));
 
+        // Buat nama file
         $namaFile = "Laporan-Pekerjaan-{$tahun}";
         if ($bulan && $bulan !== 'semua') {
-            $namaFile .= '-' . $daftarBulan[$bulan];
+            $namaFile .= '-' . ($daftarBulan[$bulan] ?? $bulan);
         }
-        $filename = $namaFile . '.xls';
+        if ($request->input('bidang')) {
+            $namaFile .= '-' . ucfirst($request->input('bidang'));
+        }
+        if ($user->isAnyTeknisi()) {
+            $namaFile .= '-' . $user->username;
+        }
+        $namaFile .= '-' . date('YmdHis') . '.xlsx';
 
-        return response()
-            ->view('laporan.excel', compact(
-                'jobs', 'stats', 'rekapTeknisi', 'bulan', 'tahun',
-                'daftarBulan', 'user', 'chartTahunan'
-            ))
-            ->header('Content-Type', 'application/vnd.ms-excel')
-            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
+        return Excel::download(
+            new LaporanExport(
+                $jobs,
+                $stats,
+                $rekapTeknisi,
+                $chartTahunan,
+                $tahun,
+                $bulan,
+                $request->input('bidang'),
+                $user,
+                $daftarBulan
+            ),
+            $namaFile
+        );
     }
 }
