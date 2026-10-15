@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Job extends Model
 {
     protected $table = 'jobs';
 
     protected $fillable = [
-        'kode_job',
+        'kode_job', 'group_id',
         'judul', 'deskripsi',
         'lok_gedung', 'lokasi_ruang', 'computer_name', 'merk',
         'kategori', 'bidang', 'prioritas',
@@ -38,8 +39,50 @@ class Job extends Model
     public function histories() { return $this->hasMany(JobHistory::class); }
 
     // ============================================
-    // GENERATE KODE (per bidang)
+    // GROUP (Multi-Teknisi Clone)
     // ============================================
+    /**
+     * Ambil semua job dalam grup yang sama (termasuk dirinya sendiri).
+     */
+    public function groupJobs()
+    {
+        if (!$this->group_id) {
+            return static::where('id', $this->id);
+        }
+        return static::where('group_id', $this->group_id);
+    }
+
+    /**
+     * Apakah job ini bagian dari grup multi-teknisi?
+     */
+    public function isGrouped(): bool
+    {
+        return !empty($this->group_id);
+    }
+
+    /**
+     * Label grup untuk tampilan.
+     */
+    public function groupLabel(): string
+    {
+        return $this->group_id ? '🔗 ' . $this->group_id : '';
+    }
+
+    /**
+     * Generate group_id unik.
+     * Format: GRP-XXXXXX (6 karakter random uppercase)
+     */
+    public static function generateGroupId(): string
+    {
+        return 'GRP-' . strtoupper(Str::random(6));
+    }
+
+    // ============================================
+    // GENERATE KODE JOB
+    // ============================================
+    /**
+     * Generate kode job biasa (single teknisi).
+     */
     public static function generateKode(string $bidang = 'komputer'): string
     {
         $prefix  = $bidang === 'cctv' ? 'CCTV' : 'PC';
@@ -50,6 +93,16 @@ class Job extends Model
             ->count() + 1;
 
         return sprintf('%s-%s-%03d', $prefix, $tanggal, $last);
+    }
+
+    /**
+     * Generate kode job dengan index (untuk multi-teknisi clone).
+     * Contoh: PC-20261014-001-01, PC-20261014-001-02
+     */
+    public static function generateKodeWithIndex(string $bidang, int $index): string
+    {
+        $base = static::generateKode($bidang);
+        return $base . '-' . str_pad($index, 2, '0', STR_PAD_LEFT);
     }
 
     // ============================================

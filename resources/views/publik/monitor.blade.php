@@ -24,11 +24,11 @@
         * { box-sizing: border-box; }
 
         /* ============================================================ */
-        /* 🆕 FIT TV SCREEN — NO SCROLL                                 */
+        /* FIT TV SCREEN — NO SCROLL                                    */
         /* ============================================================ */
         html, body {
             height: 100vh;
-            overflow: hidden;           /* ⛔ no scroll */
+            overflow: hidden;
             margin: 0;
             padding: 0;
         }
@@ -47,7 +47,7 @@
             overflow: hidden;
         }
 
-        /* ============ HEADER (compact) ============ */
+        /* ============ HEADER ============ */
         .monitor-header {
             background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
             color: white;
@@ -58,7 +58,7 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 6px;
-            flex-shrink: 0;             /* tidak mengecil */
+            flex-shrink: 0;
         }
         .monitor-header h4 {
             margin: 0;
@@ -152,7 +152,7 @@
         html[data-bs-theme="light"] .theme-toggle .icon-moon { display: inline-block; }
         html[data-bs-theme="dark"] .theme-toggle .icon-sun { display: inline-block; }
 
-        /* ============ CONTENT — FILL REMAINING ============ */
+        /* ============ CONTENT ============ */
         .monitor-content {
             flex: 1;
             padding: 6px 8px;
@@ -160,10 +160,10 @@
             grid-template-rows: auto 1fr;
             gap: 6px;
             overflow: hidden;
-            min-height: 0;              /* penting supaya grid bisa shrink */
+            min-height: 0;
         }
 
-        /* ============ STATS GABUNGAN (compact) ============ */
+        /* ============ STATS ============ */
         .stats-total {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -200,7 +200,7 @@
             line-height: 1;
         }
 
-        /* ============ 2 KOLOM — FILL HEIGHT ============ */
+        /* ============ 2 KOLOM ============ */
         .two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -245,7 +245,7 @@
         }
         .kolom-header.cctv .count-badge { background: rgba(0,0,0,.15); color: #000; }
 
-        /* Mini Stats (compact) */
+        /* Mini Stats */
         .mini-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -285,13 +285,13 @@
         .mini-stat.red { border-left: 3px solid #dc3545; }
         .mini-stat.red .val { color: #dc3545; }
 
-        /* Sub-section — split evenly */
+        /* Sub-section */
         .sub-section {
             border-bottom: 1px solid #e9ecef;
             display: flex;
             flex-direction: column;
             min-height: 0;
-            flex: 1;                    /* bagi rata */
+            flex: 1;
             transition: border-color 0.3s;
         }
         .sub-section:last-of-type {
@@ -318,7 +318,7 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Table scroll — fill remaining height */
+        /* Table scroll */
         .table-scroll {
             flex: 1;
             overflow-y: auto;
@@ -395,7 +395,7 @@
             box-shadow: 0 0 10px rgba(220, 53, 69, 0.7);
         }
 
-        /* Chart section — compact, fixed height */
+        /* Chart section */
         .chart-section {
             padding: 4px 8px;
             background: #fafbfc;
@@ -408,13 +408,32 @@
             margin-bottom: 3px;
             color: #495057;
             transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
-        .chart-container {
-            position: relative;
-            height: 130px;              /* fix tinggi chart */
+        /* 🆕 Label periode di chart */
+        .chart-section h6 .periode-label {
+            font-weight: 400;
+            font-size: .6rem;
+            color: #6c757d;
+            background: #e9ecef;
+            padding: 1px 6px;
+            border-radius: 8px;
+            margin-left: auto;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        html[data-bs-theme="dark"] .chart-section h6 .periode-label {
+            background: #30363d;
+            color: #8b949e;
         }
 
-        /* Footer — compact */
+        .chart-container {
+            position: relative;
+            height: 130px;
+        }
+
+        /* Footer */
         .monitor-footer {
             text-align: center;
             font-size: .62rem;
@@ -436,7 +455,7 @@
         }
 
         /* ============================================================ */
-        /* 🆕 DARK MODE STYLES                                           */
+        /* DARK MODE STYLES                                              */
         /* ============================================================ */
 
         html[data-bs-theme="dark"] body {
@@ -598,10 +617,10 @@
             </div>
         </div>
 
-        {{-- 2 KOLOM — FILL HEIGHT --}}
+        {{-- 2 KOLOM --}}
         <div class="two-columns">
 
-            {{-- ==================== KOMPUTER ==================== --}}
+            {{-- KOMPUTER --}}
             <div class="kolom-bidang">
                 <div class="kolom-header komputer">
                     <span><i class="bi bi-pc-display"></i> PEKERJAAN KOMPUTER</span>
@@ -674,14 +693,18 @@
                 </div>
 
                 <div class="chart-section">
-                    <h6><i class="bi bi-trophy-fill text-warning"></i> Top Teknisi Komputer</h6>
+                    <h6>
+                        <i class="bi bi-trophy-fill text-warning"></i>
+                        <span>Top Teknisi Komputer</span>
+                        <span class="periode-label" id="periodeKomputer">Bulan Ini</span>
+                    </h6>
                     <div class="chart-container">
                         <canvas id="chartKomputer"></canvas>
                     </div>
                 </div>
             </div>
 
-            {{-- ==================== CCTV ==================== --}}
+            {{-- CCTV --}}
             <div class="kolom-bidang">
                 <div class="kolom-header cctv">
                     <span><i class="bi bi-camera-video"></i> PEKERJAAN CCTV</span>
@@ -754,7 +777,11 @@
                 </div>
 
                 <div class="chart-section">
-                    <h6><i class="bi bi-trophy-fill text-warning"></i> Top Teknisi CCTV</h6>
+                    <h6>
+                        <i class="bi bi-trophy-fill text-warning"></i>
+                        <span>Top Teknisi CCTV</span>
+                        <span class="periode-label" id="periodeCctv">Bulan Ini</span>
+                    </h6>
                     <div class="chart-container">
                         <canvas id="chartCctv"></canvas>
                     </div>
@@ -1007,10 +1034,12 @@
             const response = await fetch(API_URL);
             const data = await response.json();
 
+            // Stats header
             document.getElementById('totalTugas').textContent = data.hariIni.total;
             document.getElementById('tugasSelesai').textContent = data.hariIni.selesai;
             document.getElementById('tugasBelum').textContent = data.hariIni.belum;
 
+            // Stats per bidang
             document.getElementById('kmptTotal').textContent = data.statsKomputer.total;
             document.getElementById('kmptSelesai').textContent = data.statsKomputer.selesai;
             document.getElementById('kmptBelum').textContent = data.statsKomputer.belum;
@@ -1019,6 +1048,7 @@
             document.getElementById('cctvSelesai').textContent = data.statsCctv.selesai;
             document.getElementById('cctvBelum').textContent = data.statsCctv.belum;
 
+            // Labels
             document.getElementById('labelHariIniKmpt').textContent = data.tanggalHariIni;
             document.getElementById('labelKemarinKmpt').textContent = data.tanggalKemarin;
             document.getElementById('labelHariIniCctv').textContent = data.tanggalHariIni;
@@ -1032,6 +1062,12 @@
             document.getElementById('countHariIniCctv').textContent = data.kerjaanHariIniCctv.length;
             document.getElementById('countKemarinCctv').textContent = data.kerjaanKemarinCctv.length;
 
+            // 🆕 Label periode di chart
+            const periodeText = data.periodeRekap || 'Bulan Ini';
+            document.getElementById('periodeKomputer').textContent = periodeText;
+            document.getElementById('periodeCctv').textContent = periodeText;
+
+            // Notif suara
             const currentJobCount = data.hariIni.total;
             if (!isFirstLoad && currentJobCount > lastJobCount && audioUnlocked) {
                 playBeep();
@@ -1042,16 +1078,19 @@
             localStorage.setItem('monitor_last_job_count', currentJobCount);
             isFirstLoad = false;
 
+            // Render tabel
             renderTable('tableHariIniKomputer', data.kerjaanHariIniKomputer);
             renderTable('tableKemarinKomputer', data.kerjaanKemarinKomputer);
             renderTable('tableHariIniCctv', data.kerjaanHariIniCctv);
             renderTable('tableKemarinCctv', data.kerjaanKemarinCctv);
 
+            // Render chart
             lastRekapKomputer = data.rekapTeknisiKomputer;
             lastRekapCctv = data.rekapTeknisiCctv;
             chartKomputer = renderChart('chartKomputer', chartKomputer, lastRekapKomputer, 'komputer');
             chartCctv = renderChart('chartCctv', chartCctv, lastRekapCctv, 'cctv');
 
+            // Update timestamp
             document.getElementById('lastUpdate').textContent = data.timestamp;
         } catch (err) {
             console.error('❌ Error:', err);

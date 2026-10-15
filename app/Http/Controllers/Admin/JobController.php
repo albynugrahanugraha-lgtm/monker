@@ -144,42 +144,157 @@ class JobController extends Controller
     }
 
     /**
-     * Assign teknisi cepat
+     * Assign teknisi cepat (MULTI-TEKNISI dengan CLONE)
      */
     public function assignTeknisi(Request $request, Job $job)
     {
         $request->validate([
-            'teknisi_id' => 'nullable|exists:users,id',
+            'teknisi_ids'   => 'nullable|array|max:10',
+            'teknisi_ids.*' => 'exists:users,id',
         ]);
 
-        $teknisiId = $request->input('teknisi_id') ?: null;
+        $teknisiIds = $request->input('teknisi_ids', []);
 
-        if ($teknisiId) {
-            $teknisi = User::find($teknisiId);
+        // Validasi role teknisi sesuai bidang
+        if (!empty($teknisiIds)) {
             $expectedRole = $job->bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
+            $validCount = User::whereIn('id', $teknisiIds)
+                ->where('role', $expectedRole)
+                ->where('status', 'aktif')
+                ->count();
 
-            if ($teknisi->role !== $expectedRole) {
-                return back()->with('error', 'Teknisi tidak sesuai dengan bidang tugas ini.');
+            if ($validCount !== count($teknisiIds)) {
+                return back()->with('error', 'Ada teknisi yang tidak sesuai bidang.');
             }
         }
 
-        $oldTeknisi = $job->teknisi_id;
-        $job->teknisi_id = $teknisiId;
-        $job->save();
+        // ============================================
+        // KASUS 1: Kosong → unassign (jadi bebas)
+        // ============================================
+        if (empty($teknisiIds)) {
+            // Hapus clone-clone-nya kalau ada
+            if ($job->isGrouped()) {
+                $groupJobs = $job->groupJobs()->get();
+                foreach ($groupJobs as $gj) {
+                    if ($gj->id !== $job->id) {
+                        $gj->photos()->delete();
+                        $gj->histories()->delete();
+                        if ($gj->report) $gj->report()->delete();
+                        $gj->delete();
+                    }
+                }
+                $job->group_id = null;
+            }
 
-        if ($oldTeknisi != $teknisiId) {
+            $job->teknisi_id = null;
+            $job->save();
+
             JobHistory::create([
                 'job_id'      => $job->id,
                 'user_id'     => auth()->id(),
                 'status_lama' => $job->status,
                 'status_baru' => $job->status,
-                'keterangan'  => $teknisiId
-                    ? 'Teknisi di-assign: ' . ($job->teknisi->display_name ?? '-')
-                    : 'Assign teknisi dibatalkan (bebas diambil)',
+                'keterangan'  => 'Assign dibatalkan (bebas diambil)',
             ]);
+
+            return back()->with('success', 'Assign dibatalkan.');
         }
 
-        return back()->with('success', 'Assign teknisi berhasil diupdate.');
+        // ============================================
+        // KASUS 2: 1 teknisi → update tiket ini saja
+        // ============================================
+        if (count($teknisiIds) === 1) {
+            if ($job->isGrouped()) {
+                $groupJobs = $job->groupJobs()->get();
+                foreach ($groupJobs as $gj) {
+                    if ($gj->id !== $job->id) {
+                        $gj->photos()->delete();
+                        $gj->histories()->delete();
+                        if ($gj->report) $gj->report()->delete();
+                        $gj->delete();
+                    }
+                }
+                $job->group_id = null;
+            }
+
+            $oldTeknisiId = $job->teknisi_id;
+            $job->teknisi_id = $teknisiIds[0];
+            $job->save();
+
+            if ($oldTeknisiId != $teknisiIds[0]) {
+                JobHistory::create([
+                    'job_id'      => $job->id,
+                    'user_id'     => auth()->id(),
+                    'status_lama' => $job->status,
+                    'status_baru' => $job->status,
+                    'keterangan'  => 'Teknisi di-assign: ' . ($job->teknisi->display_name ?? '-'),
+                ]);
+            }
+
+            return back()->with('success', 'Teknisi berhasil di-assign.');
+        }
+
+        // ============================================
+        // KASUS 3: 2+ teknisi → clone jadi N tiket
+        // ============================================
+        // Hapus clone lama kalau ada
+        if ($job->isGrouped()) {
+            $groupJobs = $job->groupJobs()->get();
+            foreach ($groupJobs as $gj) {
+                if ($gj->id !== $job->id) {
+                    $gj->photos()->delete();
+                    $gj->histories()->delete();
+                    if ($gj->report) $gj->report()->delete();
+                    $gj->delete();
+                }
+            }
+        }
+
+        $groupId = Job::generateGroupId();
+
+        foreach ($teknisiIds as $index => $teknisiId) {
+            if ($index === 0) {
+                // Update tiket asli (indeks 0)
+                $job->teknisi_id = $teknisiId;
+                $job->group_id   = $groupId;
+                $job->kode_job   = Job::generateKodeWithIndex($job->bidang, 1);
+                $job->save();
+
+                JobHistory::create([
+                    'job_id'      => $job->id,
+                    'user_id'     => auth()->id(),
+                    'status_lama' => $job->status,
+                    'status_baru' => $job->status,
+                    'keterangan'  => 'Clone grup dibuat: ' . $groupId,
+                ]);
+            } else {
+                // Buat tiket baru (clone)
+                $cloneData = $job->replicate(['kode_job', 'group_id', 'teknisi_id']);
+                $cloneData->kode_job        = Job::generateKodeWithIndex($job->bidang, $index + 1);
+                $cloneData->group_id        = $groupId;
+                $cloneData->teknisi_id      = $teknisiId;
+                $cloneData->status          = 'DITUGASKAN';
+                $cloneData->hasil_pekerjaan = null;
+                $cloneData->catatan         = null;
+                $cloneData->catatan_admin   = null;
+                $cloneData->tanggal_selesai = null;
+                $cloneData->save();
+
+                JobHistory::create([
+                    'job_id'      => $cloneData->id,
+                    'user_id'     => auth()->id(),
+                    'status_lama' => null,
+                    'status_baru' => 'DITUGASKAN',
+                    'keterangan'  => 'Clone grup ' . $groupId . ' untuk: ' . ($cloneData->teknisi->display_name ?? '-'),
+                ]);
+            }
+        }
+
+        return back()->with('success', sprintf(
+            '✅ Berhasil assign %d teknisi (grup: %s)',
+            count($teknisiIds),
+            $groupId
+        ));
     }
 
     private function getRatingPerBidang(string $bidang, string $tanggal)
@@ -248,6 +363,9 @@ class JobController extends Controller
         return view('admin.buat_tugas', compact('teknisiList'));
     }
 
+    /**
+     * Store tugas dengan multi-teknisi CLONE
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -260,29 +378,118 @@ class JobController extends Controller
             'kategori'      => 'nullable|string|max:50',
             'bidang'        => 'required|in:komputer,cctv',
             'prioritas'     => 'required|in:Rendah,Sedang,Tinggi',
-            'teknisi_id'    => 'nullable|exists:users,id',
             'tanggal_tugas' => 'required|date',
+
+            // Multi-teknisi
+            'teknisi_ids'   => 'nullable|array|max:10',
+            'teknisi_ids.*' => 'exists:users,id',
         ]);
 
-        $data['teknisi_id'] = $data['teknisi_id'] ?: null;
-        $data['kode_job']   = Job::generateKode($data['bidang']);
-        $data['admin_id']   = auth()->id();
-        $data['status']     = 'DITUGASKAN';
+        $teknisiIds = $data['teknisi_ids'] ?? [];
+        unset($data['teknisi_ids']);
 
-        $job = Job::create($data);
+        // Validasi role teknisi sesuai bidang
+        if (!empty($teknisiIds)) {
+            $expectedRole = $data['bidang'] === 'cctv' ? 'teknisi_cctv' : 'teknisi';
+            $validCount = User::whereIn('id', $teknisiIds)
+                ->where('role', $expectedRole)
+                ->where('status', 'aktif')
+                ->count();
 
-        JobHistory::create([
-            'job_id'      => $job->id,
-            'user_id'     => auth()->id(),
-            'status_lama' => null,
-            'status_baru' => 'DITUGASKAN',
-            'keterangan'  => $data['teknisi_id']
-                ? 'Tugas dibuat untuk teknisi tertentu'
-                : 'Tugas dibuat, bebas diambil teknisi',
-        ]);
+            if ($validCount !== count($teknisiIds)) {
+                return back()
+                    ->withErrors(['teknisi_ids' => 'Ada teknisi yang tidak sesuai bidang atau tidak aktif.'])
+                    ->withInput();
+            }
+        }
+
+        // ============================================
+        // KASUS 1: Tidak pilih teknisi → 1 tiket bebas
+        // ============================================
+        if (empty($teknisiIds)) {
+            $data['kode_job']   = Job::generateKode($data['bidang']);
+            $data['teknisi_id'] = null;
+            $data['admin_id']   = auth()->id();
+            $data['status']     = 'DITUGASKAN';
+            $data['group_id']   = null;
+
+            $job = Job::create($data);
+
+            JobHistory::create([
+                'job_id'      => $job->id,
+                'user_id'     => auth()->id(),
+                'status_lama' => null,
+                'status_baru' => 'DITUGASKAN',
+                'keterangan'  => 'Tugas dibuat, bebas diambil teknisi',
+            ]);
+
+            return redirect()->route('admin.dashboard')
+                ->with('success', '✅ Tugas berhasil dibuat.');
+        }
+
+        // ============================================
+        // KASUS 2: 1 teknisi → 1 tiket biasa
+        // ============================================
+        if (count($teknisiIds) === 1) {
+            $data['kode_job']   = Job::generateKode($data['bidang']);
+            $data['teknisi_id'] = $teknisiIds[0];
+            $data['admin_id']   = auth()->id();
+            $data['status']     = 'DITUGASKAN';
+            $data['group_id']   = null;
+
+            $job = Job::create($data);
+
+            JobHistory::create([
+                'job_id'      => $job->id,
+                'user_id'     => auth()->id(),
+                'status_lama' => null,
+                'status_baru' => 'DITUGASKAN',
+                'keterangan'  => 'Tugas dibuat untuk 1 teknisi: ' . ($job->teknisi->display_name ?? '-'),
+            ]);
+
+            return redirect()->route('admin.dashboard')
+                ->with('success', '✅ Tugas berhasil dibuat untuk ' . ($job->teknisi->display_name ?? '1 teknisi'));
+        }
+
+        // ============================================
+        // KASUS 3: 2+ teknisi → Generate N tiket clone
+        // ============================================
+        $groupId     = Job::generateGroupId();
+        $createdJobs = [];
+
+        foreach ($teknisiIds as $index => $teknisiId) {
+            $jobData = $data;
+
+            $jobData['kode_job']   = Job::generateKodeWithIndex($data['bidang'], $index + 1);
+            $jobData['teknisi_id'] = $teknisiId;
+            $jobData['admin_id']   = auth()->id();
+            $jobData['status']     = 'DITUGASKAN';
+            $jobData['group_id']   = $groupId;
+
+            $job = Job::create($jobData);
+            $createdJobs[] = $job;
+
+            JobHistory::create([
+                'job_id'      => $job->id,
+                'user_id'     => auth()->id(),
+                'status_lama' => null,
+                'status_baru' => 'DITUGASKAN',
+                'keterangan'  => sprintf(
+                    'Tugas dibuat dalam grup %s (%d/%d) untuk: %s',
+                    $groupId,
+                    $index + 1,
+                    count($teknisiIds),
+                    $job->teknisi->display_name ?? '-'
+                ),
+            ]);
+        }
 
         return redirect()->route('admin.dashboard')
-            ->with('success', 'Tugas berhasil dibuat.');
+            ->with('success', sprintf(
+                '✅ Berhasil membuat %d tiket dalam grup %s',
+                count($createdJobs),
+                $groupId
+            ));
     }
 
     public function show(Job $job)
@@ -358,11 +565,9 @@ class JobController extends Controller
             'tanggal_selesai' => 'nullable|date',
             'teknisi_id'      => 'nullable|exists:users,id',
 
-            // 🆕 Validasi foto SEBELUM
+            // Foto sebelum & sesudah
             'foto_sebelum'    => 'nullable|array',
             'foto_sebelum.*'  => 'image|mimes:jpg,jpeg,png,webp|max:5120',
-
-            // Validasi foto SESUDAH
             'foto_sesudah'    => 'nullable|array',
             'foto_sesudah.*'  => 'image|mimes:jpg,jpeg,png,webp|max:5120',
         ], [
@@ -409,8 +614,15 @@ class JobController extends Controller
         if (!File::isDirectory($uploadDir)) {
             File::makeDirectory($uploadDir, 0755, true);
         }
+        @chmod($uploadDir, 0775);
 
-        // 🆕 Upload FOTO SEBELUM
+        // Cek writable
+        if (!is_writable($uploadDir)) {
+            return redirect()->route('admin.show', $job)
+                ->with('error', '❌ Folder uploads/jobs tidak bisa ditulis. Hubungi admin server.');
+        }
+
+        // Upload FOTO SEBELUM
         if ($request->hasFile('foto_sebelum')) {
             foreach ($request->file('foto_sebelum') as $file) {
                 if (!$file->isValid()) continue;

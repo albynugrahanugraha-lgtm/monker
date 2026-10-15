@@ -64,6 +64,14 @@
         color: white;
         border-radius: 10px;
     }
+
+    .badge-group {
+        font-size: .65rem;
+        background: #6c757d;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+    }
 </style>
 @endpush
 
@@ -76,7 +84,7 @@
     </h5>
     <div class="d-flex gap-2 flex-wrap">
         <a href="{{ route('admin.dashboard') }}" class="btn btn-sm btn-secondary">
-            <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+            <i class="bi bi-arrow-left"></i> Kembali
         </a>
         <a href="{{ route('admin.buat') }}" class="btn btn-sm btn-primary">
             <i class="bi bi-plus-circle"></i> Buat Tugas
@@ -172,9 +180,6 @@
     <div class="mt-2 small">
         <i class="bi bi-info-circle"></i>
         Menampilkan <strong>{{ $jobs->total() }}</strong> pekerjaan belum dikerjakan
-        @if($bidang) · Bidang: <strong>{{ ucfirst($bidang) }}</strong> @endif
-        @if($status) · Status: <strong>{{ $status }}</strong> @endif
-        @if($tanggalFilter) · Tanggal: <strong>{{ str_replace('_', ' ', ucfirst($tanggalFilter)) }}</strong> @endif
     </div>
 </div>
 
@@ -191,13 +196,13 @@
             <thead class="table-light">
                 <tr>
                     <th style="width: 5%;" class="text-center">#</th>
-                    <th style="width: 12%;">Kode</th>
+                    <th style="width: 14%;">Kode</th>
                     <th style="width: 8%;">Bidang</th>
-                    <th style="width: 25%;">Judul & Lokasi</th>
+                    <th style="width: 22%;">Judul & Lokasi</th>
                     <th style="width: 10%;">Tanggal</th>
-                    <th style="width: 12%;">Status</th>
-                    <th style="width: 18%;">Teknisi</th>
-                    <th style="width: 10%;" class="text-center">Aksi</th>
+                    <th style="width: 10%;">Status</th>
+                    <th style="width: 16%;">Teknisi</th>
+                    <th style="width: 15%;" class="text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -225,6 +230,10 @@
                     <td class="text-center">{{ $jobs->firstItem() + $i }}</td>
                     <td>
                         <code style="font-size: .75rem;">{{ $j->kode_job }}</code>
+                        @if($j->isGrouped())
+                            <br>
+                            <span class="badge-group">🔗 {{ $j->group_id }}</span>
+                        @endif
                     </td>
                     <td>
                         @if($j->bidang === 'cctv')
@@ -243,12 +252,6 @@
                             <i class="bi bi-geo-alt-fill"></i>
                             {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}
                         </small>
-                        @if($j->kategori)
-                            <br>
-                            <small class="text-muted" style="font-size: .68rem;">
-                                <i class="bi bi-tag-fill"></i> {{ $j->kategori }}
-                            </small>
-                        @endif
                     </td>
                     <td>
                         @if($j->tanggal_tugas)
@@ -328,8 +331,6 @@
                         <i class="bi bi-check-circle" style="font-size: 3rem; color: #198754; opacity: .5;"></i>
                         <div class="mt-2">
                             <strong>Semua pekerjaan sudah dikerjakan!</strong>
-                            <br>
-                            <small>Tidak ada pekerjaan yang pending saat ini.</small>
                         </div>
                     </td>
                 </tr>
@@ -345,14 +346,14 @@
     @endif
 </div>
 
-{{-- MODAL ASSIGN TEKNISI --}}
+{{-- MODAL ASSIGN TEKNISI (MULTI) --}}
 <div class="modal fade" id="assignModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <form method="POST" id="assignForm" class="modal-content">
             @csrf
             <div class="modal-header bg-primary text-white py-2">
                 <h6 class="modal-title">
-                    <i class="bi bi-person-plus"></i> Assign Teknisi
+                    <i class="bi bi-people-fill"></i> Assign Teknisi
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -368,14 +369,35 @@
 
                 <div class="mb-3">
                     <label class="form-label small fw-semibold">
-                        Pilih Teknisi <span class="text-danger">*</span>
+                        Pilih Teknisi <span class="text-muted">(bisa pilih lebih dari 1)</span>
                     </label>
-                    <select name="teknisi_id" id="assignTeknisiSelect" class="form-select form-select-sm" required>
-                        <option value="">— Biarkan Kosong (Bebas Diambil) —</option>
-                    </select>
-                    <small class="text-muted">
+
+                    <div class="border rounded p-2"
+                         style="max-height: 250px; overflow-y: auto; background: #f8f9fa;">
+                        <div id="assignTeknisiList"></div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="checkAllAssign(true)">
+                            <i class="bi bi-check-all"></i> Semua
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="checkAllAssign(false)">
+                            <i class="bi bi-x-circle"></i> Hapus
+                        </button>
+                        <span class="ms-auto small text-muted align-self-center">
+                            Terpilih: <strong id="assignCount">0</strong>
+                        </span>
+                    </div>
+
+                    <div class="alert alert-info mt-2 mb-0 small" id="assignInfoClone" style="display:none;">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <strong>Akan dibuat <span id="assignCloneCount">0</span> tiket terpisah.</strong>
+                        Setiap teknisi menerima tiket sendiri.
+                    </div>
+
+                    <small class="text-muted d-block mt-1">
                         <i class="bi bi-info-circle"></i>
-                        Hanya teknisi sesuai bidang yang akan muncul.
+                        Kosongkan semua kalau ingin tugas bebas diambil.
                     </small>
                 </div>
             </div>
@@ -401,11 +423,11 @@
         assignModal.addEventListener('show.bs.modal', function(event) {
             const button = event.relatedTarget;
 
-            const jobId     = button.getAttribute('data-job-id');
-            const jobKode   = button.getAttribute('data-job-kode');
-            const jobBidang = button.getAttribute('data-job-bidang');
-            const jobJudul  = button.getAttribute('data-job-judul');
-            const teknisiId = button.getAttribute('data-teknisi-id');
+            const jobId      = button.getAttribute('data-job-id');
+            const jobKode    = button.getAttribute('data-job-kode');
+            const jobBidang  = button.getAttribute('data-job-bidang');
+            const jobJudul   = button.getAttribute('data-job-judul');
+            const teknisiId  = parseInt(button.getAttribute('data-teknisi-id')) || null;
 
             const form = document.getElementById('assignForm');
             form.action = `/admin/job/${jobId}/assign`;
@@ -413,27 +435,59 @@
             document.getElementById('assignJobKode').textContent  = jobKode;
             document.getElementById('assignJobJudul').textContent = jobJudul;
 
-            const select = document.getElementById('assignTeknisiSelect');
-            select.innerHTML = '<option value="">— Biarkan Kosong (Bebas Diambil) —</option>';
+            const container = document.getElementById('assignTeknisiList');
+            container.innerHTML = '';
 
             const expectedRole = jobBidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
 
             teknisiList.forEach(function(t) {
-                if (t.role === expectedRole) {
-                    const opt = document.createElement('option');
-                    opt.value = t.id;
+                if (t.role !== expectedRole) return;
 
-                    let label = t.display_name || t.nama;
-                    if (t.role === 'teknisi_cctv') label += ' (CCTV)';
+                const isChecked = (teknisiId && t.id === teknisiId);
 
-                    opt.textContent = label;
-                    if (teknisiId && parseInt(teknisiId) === t.id) {
-                        opt.selected = true;
-                    }
-                    select.appendChild(opt);
-                }
+                const div = document.createElement('div');
+                div.className = 'form-check';
+                div.innerHTML = `
+                    <input class="form-check-input assign-checkbox" type="checkbox"
+                           name="teknisi_ids[]" value="${t.id}"
+                           id="assign_${t.id}"
+                           ${isChecked ? 'checked' : ''}>
+                    <label class="form-check-label" for="assign_${t.id}">
+                        <i class="bi bi-person-circle"></i>
+                        ${t.display_name || t.nama}
+                    </label>
+                `;
+                container.appendChild(div);
             });
+
+            updateAssignCount();
         });
+    });
+
+    function updateAssignCount() {
+        const checked = document.querySelectorAll('.assign-checkbox:checked').length;
+        document.getElementById('assignCount').textContent = checked;
+
+        const infoClone = document.getElementById('assignInfoClone');
+        const cloneCount = document.getElementById('assignCloneCount');
+
+        if (checked >= 2) {
+            infoClone.style.display = 'block';
+            cloneCount.textContent = checked;
+        } else {
+            infoClone.style.display = 'none';
+        }
+    }
+
+    function checkAllAssign(state) {
+        document.querySelectorAll('.assign-checkbox').forEach(cb => cb.checked = state);
+        updateAssignCount();
+    }
+
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('assign-checkbox')) {
+            updateAssignCount();
+        }
     });
 
     (function() {

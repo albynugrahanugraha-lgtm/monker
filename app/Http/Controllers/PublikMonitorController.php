@@ -24,7 +24,7 @@ class PublikMonitorController extends Controller
         ];
 
         // ============================================================
-        // STATISTIK PER BIDANG
+        // STATISTIK PER BIDANG (hari ini)
         // ============================================================
         $statsKomputer = [
             'total'   => Job::where('bidang', 'komputer')->whereDate('tanggal_tugas', today())->count(),
@@ -82,7 +82,7 @@ class PublikMonitorController extends Controller
         $ratingHariIniCctv     = $this->getRatingPerBidang('cctv');
 
         // ============================================================
-        // REKAP TEKNISI OVERALL (split per bidang)
+        // 🆕 REKAP TEKNISI BULAN INI (untuk chart top teknisi)
         // ============================================================
         $rekapTeknisiKomputer = $this->getRekapPerBidang('komputer');
         $rekapTeknisiCctv     = $this->getRekapPerBidang('cctv');
@@ -106,6 +106,9 @@ class PublikMonitorController extends Controller
             'timestamp'      => now()->format('d M Y, H:i:s'),
             'tanggalHariIni' => now()->translatedFormat('d F Y'),
             'tanggalKemarin' => now()->subDay()->translatedFormat('d F Y'),
+
+            // 🆕 Periode rekap untuk label chart
+            'periodeRekap'   => now()->translatedFormat('F Y'),
         ]);
     }
 
@@ -135,7 +138,7 @@ class PublikMonitorController extends Controller
     }
 
     /**
-     * Rating Top Teknisi Hari Ini berdasarkan bidang
+     * Rating Top Teknisi HARI INI berdasarkan bidang
      */
     private function getRatingPerBidang(string $bidang): array
     {
@@ -172,22 +175,30 @@ class PublikMonitorController extends Controller
     }
 
     /**
-     * Rekap Overall per bidang (untuk grafik)
+     * 🆕 Rekap BULAN INI per bidang (untuk chart top teknisi)
      */
     private function getRekapPerBidang(string $bidang): array
     {
-        $role = $bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
+        $role  = $bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
+        $bulan = now()->month;
+        $tahun = now()->year;
 
         return User::where('role', $role)
             ->where('status', 'aktif')
             ->get()
-            ->map(function ($teknisi) {
+            ->map(function ($teknisi) use ($bulan, $tahun) {
+                // Selesai bulan ini
                 $selesai = Job::where('teknisi_id', $teknisi->id)
                     ->where('status', 'SELESAI')
+                    ->whereMonth('tanggal_tugas', $bulan)
+                    ->whereYear('tanggal_tugas', $tahun)
                     ->count();
 
+                // Belum selesai (ditugaskan + dikerjakan) bulan ini
                 $belum = Job::where('teknisi_id', $teknisi->id)
                     ->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])
+                    ->whereMonth('tanggal_tugas', $bulan)
+                    ->whereYear('tanggal_tugas', $tahun)
                     ->count();
 
                 return [
@@ -197,6 +208,7 @@ class PublikMonitorController extends Controller
                     'total'   => $selesai + $belum,
                 ];
             })
+            ->filter(fn($t) => $t['total'] > 0)   // hanya yang ada tugas bulan ini
             ->sortByDesc('selesai')
             ->values()
             ->toArray();
