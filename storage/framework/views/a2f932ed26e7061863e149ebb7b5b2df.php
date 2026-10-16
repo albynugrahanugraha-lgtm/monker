@@ -637,9 +637,9 @@
     async function initAudio() {
         try {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const response = await fetch('<?php echo e(asset("audio/beep.wav")); ?>');
+            const response = await fetch('<?php echo e(asset("audio/beep1.mp3")); ?>');
             if (!response.ok) {
-                console.log('❌ File beep.wav tidak ditemukan. Status:', response.status);
+                console.log('❌ File beep1.mp3 tidak ditemukan. Status:', response.status);
                 return;
             }
             const arrayBuffer = await response.arrayBuffer();
