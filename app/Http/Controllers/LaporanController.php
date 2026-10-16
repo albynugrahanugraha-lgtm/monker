@@ -19,13 +19,10 @@ class LaporanController extends Controller
         ];
     }
 
-    /**
-     * Ambil data jobs dengan filter lengkap
-     */
     private function getJobs(Request $request, $user)
     {
         $tahun  = $request->input('tahun', now()->year);
-        $bulan  = $request->input('bulan'); // null = semua bulan
+        $bulan  = $request->input('bulan');
         $bidang = $request->input('bidang');
 
         $query = Job::query()
@@ -43,8 +40,10 @@ class LaporanController extends Controller
             $query->where('bidang', $bidang);
         }
 
+        // 🆕 URUT DESC (tanggal terbaru di atas)
         $jobs = $query->with(['teknisi', 'admin', 'fotoSebelum', 'fotoSesudah'])
-            ->orderBy('tanggal_tugas', 'asc')
+            ->orderBy('tanggal_tugas', 'desc')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return [$jobs, $bulan, $tahun];
@@ -60,9 +59,6 @@ class LaporanController extends Controller
         ];
     }
 
-    /**
-     * Rekap per teknisi — filter bidang + tahun
-     */
     private function getRekapTeknisi($user, $tahun, $bulan = null, $bidangFilter = null)
     {
         if ($user->isAnyTeknisi()) {
@@ -83,7 +79,6 @@ class LaporanController extends Controller
 
         if ($bidangFilter && in_array($bidangFilter, ['komputer', 'cctv'])) {
             $query->where('bidang', $bidangFilter);
-            // Filter teknisi sesuai bidang
             if ($bidangFilter === 'komputer') {
                 $validIds = User::where('role', 'teknisi')->pluck('id')->toArray();
                 $query->whereIn('teknisi_id', $validIds);
@@ -99,9 +94,6 @@ class LaporanController extends Controller
             ->get();
     }
 
-    /**
-     * Grafik per bulan (12 bulan dalam setahun)
-     */
     private function getChartTahunan($user, $tahun, $bidangFilter = null)
     {
         $labels  = [];
@@ -109,7 +101,7 @@ class LaporanController extends Controller
         $selesai = [];
 
         for ($m = 1; $m <= 12; $m++) {
-            $labels[] = substr($this->getDaftarBulan()[$m], 0, 3); // Jan, Feb, Mar...
+            $labels[] = substr($this->getDaftarBulan()[$m], 0, 3);
 
             $q1 = Job::whereMonth('tanggal_tugas', $m)->whereYear('tanggal_tugas', $tahun);
             $q2 = Job::whereMonth('tanggal_tugas', $m)->whereYear('tanggal_tugas', $tahun)->where('status', 'SELESAI');
@@ -133,12 +125,8 @@ class LaporanController extends Controller
         ];
     }
 
-    /**
-     * Grafik per hari dalam bulan terpilih
-     */
     private function getChartHarian($jobs, $bulan, $tahun)
     {
-        // Kalau bulan tidak dipilih (semua), pakai bulan sekarang
         if (!$bulan || $bulan === 'semua') {
             $bulan = now()->month;
         }
@@ -167,7 +155,6 @@ class LaporanController extends Controller
         $chartTahunan = $this->getChartTahunan($user, $tahun, $request->input('bidang'));
         $chartHarian  = $this->getChartHarian($jobs, $bulan, $tahun);
 
-        // Daftar tahun tersedia (untuk dropdown)
         $tahunList = Job::selectRaw('YEAR(tanggal_tugas) as tahun')
             ->distinct()
             ->whereNotNull('tanggal_tugas')
@@ -185,9 +172,6 @@ class LaporanController extends Controller
         ));
     }
 
-    /**
-     * CETAK PDF
-     */
     public function cetak(Request $request)
     {
         $user = auth()->user();
@@ -205,9 +189,6 @@ class LaporanController extends Controller
         ));
     }
 
-    /**
-     * EXPORT EXCEL — Menggunakan Maatwebsite Excel
-     */
     public function exportExcel(Request $request)
     {
         $user = auth()->user();
@@ -218,7 +199,6 @@ class LaporanController extends Controller
         $daftarBulan  = $this->getDaftarBulan();
         $chartTahunan = $this->getChartTahunan($user, $tahun, $request->input('bidang'));
 
-        // Buat nama file
         $namaFile = "Laporan-Pekerjaan-{$tahun}";
         if ($bulan && $bulan !== 'semua') {
             $namaFile .= '-' . ($daftarBulan[$bulan] ?? $bulan);
@@ -245,5 +225,45 @@ class LaporanController extends Controller
             ),
             $namaFile
         );
+    }
+
+    /**
+     * Hapus foto dari halaman laporan
+     */
+    public function hapusFoto(JobPhoto $photo)
+    {
+        $user = auth()->user();
+        $job  = $photo->job;
+
+        $bolehHapus = false;
+
+        if ($user->isAdmin() || $user->isSuperAdmin()) {
+            $bolehHapus = true;
+        } elseif ($user->isAnyTeknisi() && $job->teknisi_id === $user->id) {
+            $bolehHapus = true;
+        }
+
+        if (!$bolehHapus) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak berhak menghapus foto ini.',
+            ], 403);
+        }
+
+        $path = public_path($photo->nama_file);
+        if (file_exists($path)) {
+            @unlink($path);
+        }
+
+        $fotoId = $photo->id;
+        $jenis  = $photo->jenis_foto;
+        $photo->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Foto berhasil dihapus.',
+            'foto_id' => $fotoId,
+            'jenis'   => $jenis,
+        ]);
     }
 }

@@ -15,6 +15,21 @@ class PublikMonitorController extends Controller
     public function data(Request $request)
     {
         // ============================================================
+        // PERIODE untuk rekap top teknisi (dipisah komputer & cctv)
+        // ============================================================
+        $periodeKomputer = $request->input('periode_komputer', 'bulanan');
+        $periodeCctv     = $request->input('periode_cctv', 'bulanan');
+
+        $validPeriode = ['harian', 'mingguan', 'bulanan', 'semua'];
+
+        if (!in_array($periodeKomputer, $validPeriode)) {
+            $periodeKomputer = 'bulanan';
+        }
+        if (!in_array($periodeCctv, $validPeriode)) {
+            $periodeCctv = 'bulanan';
+        }
+
+        // ============================================================
         // STATISTIK GABUNGAN (header)
         // ============================================================
         $hariIni = [
@@ -39,7 +54,7 @@ class PublikMonitorController extends Controller
         ];
 
         // ============================================================
-        // TABEL HARI INI & KEMARIN (split per bidang)
+        // TABEL HARI INI & KEMARIN
         // ============================================================
         $kerjaanHariIniKomputer = $this->mapJobs(
             Job::with('teknisi')
@@ -76,16 +91,10 @@ class PublikMonitorController extends Controller
         );
 
         // ============================================================
-        // TOP TEKNISI HARI INI (split per bidang)
+        // TOP TEKNISI dengan FILTER PERIODE (dipisah per bidang)
         // ============================================================
-        $ratingHariIniKomputer = $this->getRatingPerBidang('komputer');
-        $ratingHariIniCctv     = $this->getRatingPerBidang('cctv');
-
-        // ============================================================
-        // 🆕 REKAP TEKNISI BULAN INI (untuk chart top teknisi)
-        // ============================================================
-        $rekapTeknisiKomputer = $this->getRekapPerBidang('komputer');
-        $rekapTeknisiCctv     = $this->getRekapPerBidang('cctv');
+        $rekapTeknisiKomputer = $this->getRekapPerBidangByPeriode('komputer', $periodeKomputer);
+        $rekapTeknisiCctv     = $this->getRekapPerBidangByPeriode('cctv', $periodeCctv);
 
         return response()->json([
             'hariIni'       => $hariIni,
@@ -97,19 +106,32 @@ class PublikMonitorController extends Controller
             'kerjaanKemarinKomputer' => $kerjaanKemarinKomputer,
             'kerjaanKemarinCctv'     => $kerjaanKemarinCctv,
 
-            'ratingHariIniKomputer' => $ratingHariIniKomputer,
-            'ratingHariIniCctv'     => $ratingHariIniCctv,
-
             'rekapTeknisiKomputer' => $rekapTeknisiKomputer,
             'rekapTeknisiCctv'     => $rekapTeknisiCctv,
+
+            'periodeKomputer' => $periodeKomputer,
+            'periodeCctv'     => $periodeCctv,
+            'labelKomputer'   => $this->getPeriodeLabel($periodeKomputer),
+            'labelCctv'       => $this->getPeriodeLabel($periodeCctv),
 
             'timestamp'      => now()->format('d M Y, H:i:s'),
             'tanggalHariIni' => now()->translatedFormat('d F Y'),
             'tanggalKemarin' => now()->subDay()->translatedFormat('d F Y'),
-
-            // 🆕 Periode rekap untuk label chart
-            'periodeRekap'   => now()->translatedFormat('F Y'),
         ]);
+    }
+
+    /**
+     * Label periode untuk ditampilkan di chart
+     */
+    private function getPeriodeLabel(string $periode): string
+    {
+        return match($periode) {
+            'harian'   => 'Hari Ini (' . now()->translatedFormat('d M Y') . ')',
+            'mingguan' => 'Minggu Ini (' . now()->startOfWeek()->translatedFormat('d M') . ' - ' . now()->endOfWeek()->translatedFormat('d M Y') . ')',
+            'bulanan'  => 'Bulan Ini (' . now()->translatedFormat('F Y') . ')',
+            'semua'    => 'Sepanjang Masa',
+            default    => 'Bulan Ini',
+        };
     }
 
     /**
@@ -138,68 +160,56 @@ class PublikMonitorController extends Controller
     }
 
     /**
-     * Rating Top Teknisi HARI INI berdasarkan bidang
+     * Rekap per bidang dengan filter periode
      */
-    private function getRatingPerBidang(string $bidang): array
+    private function getRekapPerBidangByPeriode(string $bidang, string $periode): array
     {
         $role = $bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
 
         return User::where('role', $role)
             ->where('status', 'aktif')
             ->get()
-            ->map(function ($teknisi) {
-                $total = Job::where('teknisi_id', $teknisi->id)
-                    ->whereDate('tanggal_tugas', today())
-                    ->count();
+            ->map(function ($teknisi) use ($periode) {
+                // Query dasar — filter per bidang teknisi
+                $querySelesai = Job::where('teknisi_id', $teknisi->id)
+                    ->where('status', 'SELESAI');
 
-                $selesai = Job::where('teknisi_id', $teknisi->id)
-                    ->whereDate('tanggal_tugas', today())
-                    ->where('status', 'SELESAI')
-                    ->count();
+                $queryBelum = Job::where('teknisi_id', $teknisi->id)
+                    ->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN']);
 
-                $belum  = $total - $selesai;
-                $rating = $total > 0 ? round(($selesai / $total) * 100) : 0;
+                // Apply filter periode
+                switch ($periode) {
+                    case 'harian':
+                        $querySelesai->whereDate('tanggal_tugas', today());
+                        $queryBelum->whereDate('tanggal_tugas', today());
+                        break;
 
-                return [
-                    'nama'    => $teknisi->display_name,
-                    'total'   => $total,
-                    'selesai' => $selesai,
-                    'belum'   => $belum,
-                    'rating'  => $rating,
-                ];
-            })
-            ->filter(fn($t) => $t['total'] > 0)
-            ->sortByDesc('selesai')
-            ->values()
-            ->toArray();
-    }
+                    case 'mingguan':
+                        $querySelesai->whereBetween('tanggal_tugas', [
+                            now()->startOfWeek(),
+                            now()->endOfWeek(),
+                        ]);
+                        $queryBelum->whereBetween('tanggal_tugas', [
+                            now()->startOfWeek(),
+                            now()->endOfWeek(),
+                        ]);
+                        break;
 
-    /**
-     * 🆕 Rekap BULAN INI per bidang (untuk chart top teknisi)
-     */
-    private function getRekapPerBidang(string $bidang): array
-    {
-        $role  = $bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
-        $bulan = now()->month;
-        $tahun = now()->year;
+                    case 'bulanan':
+                        $querySelesai->whereMonth('tanggal_tugas', now()->month)
+                                     ->whereYear('tanggal_tugas', now()->year);
+                        $queryBelum->whereMonth('tanggal_tugas', now()->month)
+                                   ->whereYear('tanggal_tugas', now()->year);
+                        break;
 
-        return User::where('role', $role)
-            ->where('status', 'aktif')
-            ->get()
-            ->map(function ($teknisi) use ($bulan, $tahun) {
-                // Selesai bulan ini
-                $selesai = Job::where('teknisi_id', $teknisi->id)
-                    ->where('status', 'SELESAI')
-                    ->whereMonth('tanggal_tugas', $bulan)
-                    ->whereYear('tanggal_tugas', $tahun)
-                    ->count();
+                    case 'semua':
+                    default:
+                        // Tidak ada filter → semua waktu
+                        break;
+                }
 
-                // Belum selesai (ditugaskan + dikerjakan) bulan ini
-                $belum = Job::where('teknisi_id', $teknisi->id)
-                    ->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])
-                    ->whereMonth('tanggal_tugas', $bulan)
-                    ->whereYear('tanggal_tugas', $tahun)
-                    ->count();
+                $selesai = $querySelesai->count();
+                $belum   = $queryBelum->count();
 
                 return [
                     'nama'    => $teknisi->display_name,
@@ -208,8 +218,9 @@ class PublikMonitorController extends Controller
                     'total'   => $selesai + $belum,
                 ];
             })
-            ->filter(fn($t) => $t['total'] > 0)   // hanya yang ada tugas bulan ini
+            ->filter(fn($t) => $t['total'] > 0)
             ->sortByDesc('selesai')
+            ->take(10)  // 🆕 Top 10 saja
             ->values()
             ->toArray();
     }

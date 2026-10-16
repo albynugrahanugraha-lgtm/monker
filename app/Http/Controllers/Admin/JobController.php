@@ -26,43 +26,44 @@ class JobController extends Controller
         $tanggalStr = $tanggalObj->format('Y-m-d');
         $tanggalSebelumnya = $tanggalObj->copy()->subDay();
 
-        // ===== 3 KOTAK STATISTIK =====
         $hariIni = [
             'total'   => Job::whereDate('tanggal_tugas', $tanggalStr)->count(),
             'selesai' => Job::whereDate('tanggal_tugas', $tanggalStr)->where('status', 'SELESAI')->count(),
             'belum'   => Job::whereDate('tanggal_tugas', $tanggalStr)->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])->count(),
         ];
 
-        // ===== TABEL PEKERJAAN =====
+        // 🆕 URUT DESC (tanggal terbaru di atas)
         $kerjaanHariIniKomputer = Job::with('teknisi')
             ->where('bidang', 'komputer')
             ->whereDate('tanggal_tugas', $tanggalStr)
+            ->orderBy('tanggal_tugas', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
 
         $kerjaanHariIniCctv = Job::with('teknisi')
             ->where('bidang', 'cctv')
             ->whereDate('tanggal_tugas', $tanggalStr)
+            ->orderBy('tanggal_tugas', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
 
         $kerjaanKemarinKomputer = Job::with('teknisi')
             ->where('bidang', 'komputer')
             ->whereDate('tanggal_tugas', $tanggalSebelumnya)
+            ->orderBy('tanggal_tugas', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
 
         $kerjaanKemarinCctv = Job::with('teknisi')
             ->where('bidang', 'cctv')
             ->whereDate('tanggal_tugas', $tanggalSebelumnya)
+            ->orderBy('tanggal_tugas', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // ===== TOP TEKNISI =====
         $ratingHariIniKomputer = $this->getRatingPerBidang('komputer', $tanggalStr);
         $ratingHariIniCctv     = $this->getRatingPerBidang('cctv', $tanggalStr);
 
-        // ===== REKAP TEKNISI =====
         $rekapTeknisiKomputer = $this->getRekapPerBidang('komputer');
         $rekapTeknisiCctv     = $this->getRekapPerBidang('cctv');
 
@@ -110,15 +111,10 @@ class JobController extends Controller
                   ->whereYear('tanggal_tugas', now()->year);
         }
 
+        // 🆕 URUT DESC (tanggal terbaru di atas)
         $jobs = $query
-            ->orderByRaw("CASE
-                WHEN tanggal_tugas < CURDATE() THEN 0
-                WHEN tanggal_tugas = CURDATE() THEN 1
-                ELSE 2
-            END")
-            ->orderBy('tanggal_tugas', 'asc')
-            ->orderByRaw("CASE WHEN teknisi_id IS NULL THEN 0 ELSE 1 END")
-            ->orderBy('created_at', 'asc')
+            ->orderBy('tanggal_tugas', 'desc')
+            ->orderBy('created_at', 'desc')
             ->paginate(50);
 
         $stats = [
@@ -144,7 +140,7 @@ class JobController extends Controller
     }
 
     /**
-     * Assign teknisi cepat (MULTI-TEKNISI dengan CLONE)
+     * Assign teknisi (multi-clone)
      */
     public function assignTeknisi(Request $request, Job $job)
     {
@@ -155,7 +151,6 @@ class JobController extends Controller
 
         $teknisiIds = $request->input('teknisi_ids', []);
 
-        // Validasi role teknisi sesuai bidang
         if (!empty($teknisiIds)) {
             $expectedRole = $job->bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
             $validCount = User::whereIn('id', $teknisiIds)
@@ -168,11 +163,7 @@ class JobController extends Controller
             }
         }
 
-        // ============================================
-        // KASUS 1: Kosong → unassign (jadi bebas)
-        // ============================================
         if (empty($teknisiIds)) {
-            // Hapus clone-clone-nya kalau ada
             if ($job->isGrouped()) {
                 $groupJobs = $job->groupJobs()->get();
                 foreach ($groupJobs as $gj) {
@@ -200,9 +191,6 @@ class JobController extends Controller
             return back()->with('success', 'Assign dibatalkan.');
         }
 
-        // ============================================
-        // KASUS 2: 1 teknisi → update tiket ini saja
-        // ============================================
         if (count($teknisiIds) === 1) {
             if ($job->isGrouped()) {
                 $groupJobs = $job->groupJobs()->get();
@@ -234,10 +222,6 @@ class JobController extends Controller
             return back()->with('success', 'Teknisi berhasil di-assign.');
         }
 
-        // ============================================
-        // KASUS 3: 2+ teknisi → clone jadi N tiket
-        // ============================================
-        // Hapus clone lama kalau ada
         if ($job->isGrouped()) {
             $groupJobs = $job->groupJobs()->get();
             foreach ($groupJobs as $gj) {
@@ -254,7 +238,6 @@ class JobController extends Controller
 
         foreach ($teknisiIds as $index => $teknisiId) {
             if ($index === 0) {
-                // Update tiket asli (indeks 0)
                 $job->teknisi_id = $teknisiId;
                 $job->group_id   = $groupId;
                 $job->kode_job   = Job::generateKodeWithIndex($job->bidang, 1);
@@ -268,7 +251,6 @@ class JobController extends Controller
                     'keterangan'  => 'Clone grup dibuat: ' . $groupId,
                 ]);
             } else {
-                // Buat tiket baru (clone)
                 $cloneData = $job->replicate(['kode_job', 'group_id', 'teknisi_id']);
                 $cloneData->kode_job        = Job::generateKodeWithIndex($job->bidang, $index + 1);
                 $cloneData->group_id        = $groupId;
@@ -363,9 +345,6 @@ class JobController extends Controller
         return view('admin.buat_tugas', compact('teknisiList'));
     }
 
-    /**
-     * Store tugas dengan multi-teknisi CLONE
-     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -380,7 +359,6 @@ class JobController extends Controller
             'prioritas'     => 'required|in:Rendah,Sedang,Tinggi',
             'tanggal_tugas' => 'required|date',
 
-            // Multi-teknisi
             'teknisi_ids'   => 'nullable|array|max:10',
             'teknisi_ids.*' => 'exists:users,id',
         ]);
@@ -388,7 +366,6 @@ class JobController extends Controller
         $teknisiIds = $data['teknisi_ids'] ?? [];
         unset($data['teknisi_ids']);
 
-        // Validasi role teknisi sesuai bidang
         if (!empty($teknisiIds)) {
             $expectedRole = $data['bidang'] === 'cctv' ? 'teknisi_cctv' : 'teknisi';
             $validCount = User::whereIn('id', $teknisiIds)
@@ -403,9 +380,6 @@ class JobController extends Controller
             }
         }
 
-        // ============================================
-        // KASUS 1: Tidak pilih teknisi → 1 tiket bebas
-        // ============================================
         if (empty($teknisiIds)) {
             $data['kode_job']   = Job::generateKode($data['bidang']);
             $data['teknisi_id'] = null;
@@ -427,9 +401,6 @@ class JobController extends Controller
                 ->with('success', '✅ Tugas berhasil dibuat.');
         }
 
-        // ============================================
-        // KASUS 2: 1 teknisi → 1 tiket biasa
-        // ============================================
         if (count($teknisiIds) === 1) {
             $data['kode_job']   = Job::generateKode($data['bidang']);
             $data['teknisi_id'] = $teknisiIds[0];
@@ -451,9 +422,6 @@ class JobController extends Controller
                 ->with('success', '✅ Tugas berhasil dibuat untuk ' . ($job->teknisi->display_name ?? '1 teknisi'));
         }
 
-        // ============================================
-        // KASUS 3: 2+ teknisi → Generate N tiket clone
-        // ============================================
         $groupId     = Job::generateGroupId();
         $createdJobs = [];
 
@@ -523,13 +491,6 @@ class JobController extends Controller
             ->with('success', 'Pekerjaan berhasil dihapus.');
     }
 
-    // ============================================================
-    // ADMIN MENYELESAIKAN TUGAS
-    // ============================================================
-
-    /**
-     * Form admin menyelesaikan tugas
-     */
     public function formSelesai(Job $job)
     {
         if (!$job->bisaDiselesaikan()) {
@@ -548,9 +509,6 @@ class JobController extends Controller
         return view('admin.selesaikan_tugas', compact('job', 'teknisiList'));
     }
 
-    /**
-     * Proses admin menyelesaikan tugas
-     */
     public function selesaikan(Request $request, Job $job)
     {
         if (!$job->bisaDiselesaikan()) {
@@ -565,7 +523,6 @@ class JobController extends Controller
             'tanggal_selesai' => 'nullable|date',
             'teknisi_id'      => 'nullable|exists:users,id',
 
-            // Foto sebelum & sesudah
             'foto_sebelum'    => 'nullable|array',
             'foto_sebelum.*'  => 'image|mimes:jpg,jpeg,png,webp|max:5120',
             'foto_sesudah'    => 'nullable|array',
@@ -582,7 +539,6 @@ class JobController extends Controller
 
         $statusLama = $job->status;
 
-        // Update data job
         $job->hasil_pekerjaan = $data['hasil_pekerjaan'];
         $job->catatan         = $data['catatan'] ?? $job->catatan;
         $job->catatan_admin   = $data['catatan_admin'] ?? $job->catatan_admin;
@@ -591,7 +547,6 @@ class JobController extends Controller
             : now();
         $job->status = 'SELESAI';
 
-        // Kalau admin pilih teknisi
         if (!empty($data['teknisi_id'])) {
             $teknisi = User::find($data['teknisi_id']);
             $expectedRole = $job->bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
@@ -600,29 +555,23 @@ class JobController extends Controller
             }
         }
 
-        // Kalau tetap belum ada teknisi, assign ke admin yang menyelesaikan
         if (empty($job->teknisi_id)) {
             $job->teknisi_id = auth()->id();
         }
 
         $job->save();
 
-        // =====================================================
-        // UPLOAD FOTO
-        // =====================================================
         $uploadDir = public_path('uploads/jobs');
         if (!File::isDirectory($uploadDir)) {
             File::makeDirectory($uploadDir, 0755, true);
         }
         @chmod($uploadDir, 0775);
 
-        // Cek writable
         if (!is_writable($uploadDir)) {
             return redirect()->route('admin.show', $job)
-                ->with('error', '❌ Folder uploads/jobs tidak bisa ditulis. Hubungi admin server.');
+                ->with('error', '❌ Folder uploads/jobs tidak bisa ditulis.');
         }
 
-        // Upload FOTO SEBELUM
         if ($request->hasFile('foto_sebelum')) {
             foreach ($request->file('foto_sebelum') as $file) {
                 if (!$file->isValid()) continue;
@@ -639,7 +588,6 @@ class JobController extends Controller
             }
         }
 
-        // Upload FOTO SESUDAH
         if ($request->hasFile('foto_sesudah')) {
             foreach ($request->file('foto_sesudah') as $file) {
                 if (!$file->isValid()) continue;
@@ -656,7 +604,6 @@ class JobController extends Controller
             }
         }
 
-        // Update / buat report
         JobReport::updateOrCreate(
             ['job_id' => $job->id],
             [
@@ -667,7 +614,6 @@ class JobController extends Controller
             ]
         );
 
-        // Catat history
         JobHistory::create([
             'job_id'      => $job->id,
             'user_id'     => auth()->id(),
@@ -678,5 +624,36 @@ class JobController extends Controller
 
         return redirect()->route('admin.show', $job)
             ->with('success', '✅ Pekerjaan berhasil diselesaikan oleh admin.');
+    }
+
+    /**
+     * Hapus foto (admin)
+     */
+    public function hapusFoto(JobPhoto $photo)
+    {
+        $user = auth()->user();
+
+        if (!$user->isAdmin() && !$user->isSuperAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak berhak menghapus foto ini.',
+            ], 403);
+        }
+
+        $path = public_path($photo->nama_file);
+        if (file_exists($path)) {
+            @unlink($path);
+        }
+
+        $fotoId = $photo->id;
+        $jenis  = $photo->jenis_foto;
+        $photo->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Foto berhasil dihapus.',
+            'foto_id' => $fotoId,
+            'jenis'   => $jenis,
+        ]);
     }
 }

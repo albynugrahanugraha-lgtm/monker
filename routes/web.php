@@ -91,6 +91,7 @@ Route::middleware('auth')->prefix('laporan')->name('laporan.')->group(function (
     Route::get('/', [LaporanController::class, 'index'])->name('index');
     Route::get('/cetak', [LaporanController::class, 'cetak'])->name('cetak');
     Route::get('/excel', [LaporanController::class, 'exportExcel'])->name('excel');
+    Route::delete('/photo/{photo}', [LaporanController::class, 'hapusFoto'])->name('photo.hapus');
 });
 
 // ===== ADMIN =====
@@ -102,18 +103,17 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/job/{job}/cetak', [JobController::class, 'cetak'])->name('cetak');
     Route::delete('/job/{job}', [JobController::class, 'destroy'])->name('destroy');
 
-    // Import Excel
     Route::get('/import-job', [ImportJobController::class, 'index'])->name('import.index');
     Route::get('/import-job/template', [ImportJobController::class, 'downloadTemplate'])->name('import.template');
     Route::post('/import-job', [ImportJobController::class, 'store'])->name('import.store');
 
-    // Pekerjaan Belum Dikerjakan
     Route::get('/belum-dikerjakan', [JobController::class, 'belumDikerjakan'])->name('belum-dikerjakan');
     Route::post('/job/{job}/assign', [JobController::class, 'assignTeknisi'])->name('assign');
 
-    // Admin menyelesaikan tugas
     Route::get('/job/{job}/selesaikan', [JobController::class, 'formSelesai'])->name('selesaikan.form');
     Route::post('/job/{job}/selesaikan', [JobController::class, 'selesaikan'])->name('selesaikan');
+
+    Route::delete('/photo/{photo}', [JobController::class, 'hapusFoto'])->name('photo.hapus');
 });
 
 // ===== TEKNISI KOMPUTER =====
@@ -121,9 +121,16 @@ Route::middleware(['auth', 'role:teknisi'])->prefix('teknisi')->name('teknisi.')
     Route::get('/dashboard', [TugasController::class, 'dashboard'])->name('dashboard');
     Route::get('/buat-tugas', [TugasController::class, 'create'])->name('buat');
     Route::post('/buat-tugas', [TugasController::class, 'store'])->name('store');
+
+    // 🆕 Detail pekerjaan
+    Route::get('/job/{job}', [TugasController::class, 'show'])->name('show');
+
     Route::get('/job/{job}/kerjakan', [TugasController::class, 'kerjakan'])->name('kerjakan');
     Route::post('/job/{job}/selesai', [TugasController::class, 'selesai'])->name('selesai');
     Route::get('/job/{job}/cetak', [TugasController::class, 'cetak'])->name('cetak');
+
+    // 🆕 Hapus foto
+    Route::delete('/photo/{photo}', [TugasController::class, 'hapusFoto'])->name('photo.hapus');
 });
 
 // ===== TEKNISI CCTV =====
@@ -131,9 +138,16 @@ Route::middleware(['auth', 'role:teknisi_cctv'])->prefix('teknisi-cctv')->name('
     Route::get('/dashboard', [TugasCctvController::class, 'dashboard'])->name('dashboard');
     Route::get('/buat-tugas', [TugasCctvController::class, 'create'])->name('buat');
     Route::post('/buat-tugas', [TugasCctvController::class, 'store'])->name('store');
+
+    // 🆕 Detail pekerjaan
+    Route::get('/job/{job}', [TugasCctvController::class, 'show'])->name('show');
+
     Route::get('/job/{job}/kerjakan', [TugasCctvController::class, 'kerjakan'])->name('kerjakan');
     Route::post('/job/{job}/selesai', [TugasCctvController::class, 'selesai'])->name('selesai');
     Route::get('/job/{job}/cetak', [TugasCctvController::class, 'cetak'])->name('cetak');
+
+    // 🆕 Hapus foto
+    Route::delete('/photo/{photo}', [TugasCctvController::class, 'hapusFoto'])->name('photo.hapus');
 });
 
 // ===== SUPER ADMIN =====
@@ -144,7 +158,6 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
     Route::delete('/user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
 
-    // Pekerjaan Belum Dikerjakan
     Route::get('/belum-dikerjakan', [BelumDikerjakanController::class, 'index'])->name('belum-dikerjakan');
     Route::post('/job/{job}/assign', [BelumDikerjakanController::class, 'assignTeknisi'])->name('job.assign');
 });

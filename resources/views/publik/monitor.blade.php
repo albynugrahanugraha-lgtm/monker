@@ -23,9 +23,7 @@
     <style>
         * { box-sizing: border-box; }
 
-        /* ============================================================ */
-        /* FIT TV SCREEN — NO SCROLL                                    */
-        /* ============================================================ */
+        /* FIT TV SCREEN — NO SCROLL */
         html, body {
             height: 100vh;
             overflow: hidden;
@@ -47,7 +45,7 @@
             overflow: hidden;
         }
 
-        /* ============ HEADER ============ */
+        /* HEADER */
         .monitor-header {
             background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
             color: white;
@@ -152,7 +150,7 @@
         html[data-bs-theme="light"] .theme-toggle .icon-moon { display: inline-block; }
         html[data-bs-theme="dark"] .theme-toggle .icon-sun { display: inline-block; }
 
-        /* ============ CONTENT ============ */
+        /* CONTENT */
         .monitor-content {
             flex: 1;
             padding: 6px 8px;
@@ -163,7 +161,7 @@
             min-height: 0;
         }
 
-        /* ============ STATS ============ */
+        /* STATS */
         .stats-total {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -200,7 +198,7 @@
             line-height: 1;
         }
 
-        /* ============ 2 KOLOM ============ */
+        /* 2 KOLOM */
         .two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -347,7 +345,7 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* ============ KELAP-KELIP ============ */
+        /* KELAP-KELIP */
         @keyframes blinkRowBg {
             0%   { background-color: #ffeb3b; }
             50%  { background-color: #ffffff; }
@@ -402,35 +400,71 @@
             flex-shrink: 0;
             transition: background-color 0.3s;
         }
-        .chart-section h6 {
+        .chart-section .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .chart-section .chart-title {
             font-size: .65rem;
             font-weight: 700;
-            margin-bottom: 3px;
             color: #495057;
-            transition: color 0.3s;
             display: flex;
             align-items: center;
             gap: 4px;
+            transition: color 0.3s;
         }
-        /* 🆕 Label periode di chart */
-        .chart-section h6 .periode-label {
-            font-weight: 400;
-            font-size: .6rem;
-            color: #6c757d;
+        /* 🆕 Tombol Filter Periode */
+        .periode-btn-group {
+            display: inline-flex;
+            gap: 2px;
             background: #e9ecef;
-            padding: 1px 6px;
-            border-radius: 8px;
-            margin-left: auto;
-            transition: background-color 0.3s, color 0.3s;
+            padding: 2px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
         }
-        html[data-bs-theme="dark"] .chart-section h6 .periode-label {
-            background: #30363d;
-            color: #8b949e;
+        .periode-btn {
+            border: none;
+            background: transparent;
+            color: #6c757d;
+            font-size: .58rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .periode-btn:hover {
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+        }
+        .periode-btn.active {
+            background: #0d6efd;
+            color: white;
+            box-shadow: 0 1px 3px rgba(13, 110, 253, 0.4);
+        }
+        .periode-btn.active.cctv-active {
+            background: #0dcaf0;
+            color: #000;
+        }
+        /* 🆕 Label periode aktif */
+        .periode-label-text {
+            font-size: .58rem;
+            color: #6c757d;
+            background: #f1f3f5;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .chart-container {
             position: relative;
-            height: 130px;
+            height: 120px;
         }
 
         /* Footer */
@@ -454,88 +488,91 @@
             .chart-container { height: 180px; }
         }
 
-        /* ============================================================ */
-        /* DARK MODE STYLES                                              */
-        /* ============================================================ */
-
+        /* DARK MODE */
         html[data-bs-theme="dark"] body {
             background: #0d1117 !important;
             color: #e6edf3;
         }
-
         html[data-bs-theme="dark"] .monitor-header {
             background: linear-gradient(135deg, #0a58ca 0%, #0d3a8f 100%);
         }
-
         html[data-bs-theme="dark"] .kolom-bidang {
             background: #161b22;
             border: 1px solid #30363d;
             box-shadow: 0 2px 10px rgba(0,0,0,0.4);
         }
-
         html[data-bs-theme="dark"] .mini-stats {
             background: #21262d;
             border-color: #30363d;
         }
-
         html[data-bs-theme="dark"] .mini-stat {
             background: #161b22;
             border-color: #30363d;
         }
-
         html[data-bs-theme="dark"] .mini-stat small {
             color: #8b949e;
         }
-
         html[data-bs-theme="dark"] .sub-section {
             border-color: #30363d;
         }
-
         html[data-bs-theme="dark"] .sub-header {
             background: #21262d;
             border-color: #30363d;
             color: #e6edf3;
         }
-
         html[data-bs-theme="dark"] .sub-header .sub-count {
             background: #30363d;
             color: #8b949e;
         }
-
         html[data-bs-theme="dark"] table thead th {
             background: #21262d !important;
             color: #e6edf3 !important;
             border-color: #30363d !important;
         }
-
         html[data-bs-theme="dark"] table tbody td {
             color: #e6edf3;
             border-color: #30363d;
         }
-
         html[data-bs-theme="dark"] .chart-section {
             background: #0d1117;
         }
-
-        html[data-bs-theme="dark"] .chart-section h6 {
+        html[data-bs-theme="dark"] .chart-section .chart-title {
             color: #e6edf3;
         }
-
+        html[data-bs-theme="dark"] .periode-btn-group {
+            background: #21262d;
+        }
+        html[data-bs-theme="dark"] .periode-btn {
+            color: #8b949e;
+        }
+        html[data-bs-theme="dark"] .periode-btn:hover {
+            background: rgba(13, 110, 253, 0.2);
+            color: #79c0ff;
+        }
+        html[data-bs-theme="dark"] .periode-btn.active {
+            background: #0d6efd;
+            color: white;
+        }
+        html[data-bs-theme="dark"] .periode-btn.active.cctv-active {
+            background: #0dcaf0;
+            color: #000;
+        }
+        html[data-bs-theme="dark"] .periode-label-text {
+            background: #21262d;
+            color: #8b949e;
+        }
         html[data-bs-theme="dark"] code {
             background: #21262d;
             color: #79c0ff;
             padding: 1px 4px;
             border-radius: 3px;
         }
-
         html[data-bs-theme="dark"] .text-muted {
             color: #8b949e !important;
         }
-
         html[data-bs-theme="dark"] .monitor-footer {
             color: #8b949e;
         }
-
         html[data-bs-theme="dark"] .badge.bg-light {
             background-color: #30363d !important;
             color: #e6edf3 !important;
@@ -574,7 +611,7 @@
         </div>
 
         <div class="d-flex align-items-center gap-2">
-            <button type="button" class="theme-toggle" onclick="toggleTheme()" title="Ganti Tema Light/Dark">
+            <button type="button" class="theme-toggle" onclick="toggleTheme()" title="Ganti Tema">
                 <i class="bi bi-sun-fill icon-sun"></i>
                 <i class="bi bi-moon-stars-fill icon-moon"></i>
             </button>
@@ -692,13 +729,22 @@
                     </div>
                 </div>
 
+                {{-- 🆕 CHART dengan FILTER PERIODE --}}
                 <div class="chart-section">
-                    <h6>
-                        <i class="bi bi-trophy-fill text-warning"></i>
-                        <span>Top Teknisi Komputer</span>
-                        <span class="periode-label" id="periodeKomputer">Bulan Ini</span>
-                    </h6>
-                    <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <i class="bi bi-trophy-fill text-warning"></i>
+                            <span>Top Teknisi</span>
+                        </div>
+                        <div class="periode-btn-group" data-target="komputer">
+                            <button class="periode-btn" data-periode="harian">Harian</button>
+                            <button class="periode-btn" data-periode="mingguan">Mingguan</button>
+                            <button class="periode-btn active" data-periode="bulanan">Bulanan</button>
+                            <button class="periode-btn" data-periode="semua">Semua</button>
+                        </div>
+                    </div>
+                    <div class="periode-label-text" id="periodeLabelKomputer">Bulan Ini</div>
+                    <div class="chart-container" style="margin-top: 4px;">
                         <canvas id="chartKomputer"></canvas>
                     </div>
                 </div>
@@ -776,13 +822,22 @@
                     </div>
                 </div>
 
+                {{-- 🆕 CHART dengan FILTER PERIODE --}}
                 <div class="chart-section">
-                    <h6>
-                        <i class="bi bi-trophy-fill text-warning"></i>
-                        <span>Top Teknisi CCTV</span>
-                        <span class="periode-label" id="periodeCctv">Bulan Ini</span>
-                    </h6>
-                    <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <i class="bi bi-trophy-fill text-warning"></i>
+                            <span>Top Teknisi</span>
+                        </div>
+                        <div class="periode-btn-group" data-target="cctv">
+                            <button class="periode-btn cctv-active" data-periode="harian">Harian</button>
+                            <button class="periode-btn cctv-active" data-periode="mingguan">Mingguan</button>
+                            <button class="periode-btn cctv-active active" data-periode="bulanan">Bulanan</button>
+                            <button class="periode-btn cctv-active" data-periode="semua">Semua</button>
+                        </div>
+                    </div>
+                    <div class="periode-label-text" id="periodeLabelCctv">Bulan Ini</div>
+                    <div class="chart-container" style="margin-top: 4px;">
                         <canvas id="chartCctv"></canvas>
                     </div>
                 </div>
@@ -802,7 +857,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     // ============================================================
-    // THEME TOGGLE
+    // THEME
     // ============================================================
     function applyTheme(theme) {
         let finalTheme = theme;
@@ -849,7 +904,7 @@
     async function initAudio() {
         try {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const response = await fetch('{{ asset("audio/beep.wav") }}');
+            const response = await fetch('{{ asset("audio/beep1.mp3") }}');
             if (!response.ok) return;
             const arrayBuffer = await response.arrayBuffer();
             audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
@@ -897,6 +952,58 @@
     updateClock();
 
     // ============================================================
+    // 🆕 PERIODE STATE — terpisah komputer & cctv
+    // ============================================================
+    let periodeKomputer = localStorage.getItem('monitor_periode_komputer') || 'bulanan';
+    let periodeCctv     = localStorage.getItem('monitor_periode_cctv') || 'bulanan';
+
+    // Validasi
+    const validPeriode = ['harian', 'mingguan', 'bulanan', 'semua'];
+    if (!validPeriode.includes(periodeKomputer)) periodeKomputer = 'bulanan';
+    if (!validPeriode.includes(periodeCctv)) periodeCctv = 'bulanan';
+
+    // Init tombol aktif saat halaman load
+    function initPeriodeButtons() {
+        document.querySelectorAll('.periode-btn-group').forEach(function(group) {
+            const target = group.dataset.target;
+            const activePeriode = (target === 'komputer') ? periodeKomputer : periodeCctv;
+
+            group.querySelectorAll('.periode-btn').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.periode === activePeriode);
+            });
+        });
+    }
+
+    // Handle klik tombol
+    document.querySelectorAll('.periode-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const group = this.closest('.periode-btn-group');
+            const target = group.dataset.target;
+            const periode = this.dataset.periode;
+
+            // Update state
+            if (target === 'komputer') {
+                periodeKomputer = periode;
+                localStorage.setItem('monitor_periode_komputer', periode);
+            } else {
+                periodeCctv = periode;
+                localStorage.setItem('monitor_periode_cctv', periode);
+            }
+
+            // Update active button
+            group.querySelectorAll('.periode-btn').forEach(function(b) {
+                b.classList.remove('active');
+            });
+            this.classList.add('active');
+
+            // Reload data
+            loadData();
+        });
+    });
+
+    initPeriodeButtons();
+
+    // ============================================================
     // CHARTS
     // ============================================================
     let chartKomputer = null;
@@ -917,8 +1024,13 @@
         const ctx = document.getElementById(canvasId);
         if (!ctx) return null;
 
+        // Kalau tidak ada data, tampilkan canvas kosong
         if (!ratings || ratings.length === 0) {
             if (chartRef) chartRef.destroy();
+
+            const ctx2d = ctx.getContext('2d');
+            ctx2d.clearRect(0, 0, ctx.width, ctx.height);
+
             return null;
         }
 
@@ -1024,14 +1136,19 @@
     // ============================================================
     // LOAD DATA
     // ============================================================
-    const API_URL = '{{ route("monitor.data") }}';
+    const API_BASE_URL = '{{ route("monitor.data") }}';
     let refreshCountdown = 10;
     let lastJobCount = parseInt(localStorage.getItem('monitor_last_job_count') || '0', 10);
     let isFirstLoad = true;
 
     async function loadData() {
         try {
-            const response = await fetch(API_URL);
+            // Build URL dengan periode
+            const url = API_BASE_URL
+                + '?periode_komputer=' + encodeURIComponent(periodeKomputer)
+                + '&periode_cctv=' + encodeURIComponent(periodeCctv);
+
+            const response = await fetch(url);
             const data = await response.json();
 
             // Stats header
@@ -1062,10 +1179,9 @@
             document.getElementById('countHariIniCctv').textContent = data.kerjaanHariIniCctv.length;
             document.getElementById('countKemarinCctv').textContent = data.kerjaanKemarinCctv.length;
 
-            // 🆕 Label periode di chart
-            const periodeText = data.periodeRekap || 'Bulan Ini';
-            document.getElementById('periodeKomputer').textContent = periodeText;
-            document.getElementById('periodeCctv').textContent = periodeText;
+            // 🆕 Update label periode
+            document.getElementById('periodeLabelKomputer').textContent = data.labelKomputer;
+            document.getElementById('periodeLabelCctv').textContent = data.labelCctv;
 
             // Notif suara
             const currentJobCount = data.hariIni.total;

@@ -29,7 +29,101 @@
     .exclaim { display: inline-block; animation: blinkExclaim 0.6s infinite !important; color: #dc3545; font-weight: bold; }
     @keyframes blinkExclaim { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-    .job-selesai-item { border-left: 4px solid #198754; background: #f8fff9; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; }
+    /* ============================================
+       RIWAYAT SELESAI — TABEL
+       ============================================ */
+    .table-riwayat {
+        font-size: .82rem;
+        margin-bottom: 0;
+    }
+
+    .table-riwayat thead th {
+        background: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        font-size: .72rem;
+        text-transform: uppercase;
+        letter-spacing: .3px;
+        padding: 8px 10px;
+        white-space: nowrap;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .table-riwayat tbody tr {
+        cursor: pointer;
+        transition: all 0.15s ease;
+        border-left: 3px solid transparent;
+    }
+
+    .table-riwayat tbody tr:hover {
+        background: #e8f5e9 !important;
+        border-left-color: #198754;
+    }
+
+    .table-riwayat tbody tr:hover .arrow-riwayat {
+        transform: translateX(4px);
+        color: #0d6efd;
+    }
+
+    .table-riwayat tbody td {
+        padding: 10px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .table-riwayat .judul-riwayat {
+        color: #212529;
+        font-weight: 600;
+        font-size: .85rem;
+        margin-bottom: 2px;
+        line-height: 1.3;
+    }
+
+    .table-riwayat .kode-riwayat {
+        color: #6c757d;
+        font-size: .7rem;
+        font-family: 'Courier New', monospace;
+        background: #f1f3f5;
+        padding: 2px 6px;
+        border-radius: 3px;
+        display: inline-block;
+    }
+
+    .table-riwayat .meta-riwayat {
+        color: #6c757d;
+        font-size: .72rem;
+        margin-top: 3px;
+    }
+
+    .table-riwayat .meta-riwayat i {
+        color: #6c757d;
+        margin-right: 2px;
+    }
+
+    .table-riwayat .badge-selesai-riwayat {
+        background: #198754;
+        color: white;
+        font-size: .62rem;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .table-riwayat .waktu-riwayat {
+        color: #6c757d;
+        font-size: .7rem;
+        font-family: 'Courier New', monospace;
+        white-space: nowrap;
+    }
+
+    .table-riwayat .arrow-riwayat {
+        color: #adb5bd;
+        font-size: 1.1rem;
+        transition: transform 0.15s, color 0.15s;
+    }
 
     .modal-content { border: none; border-radius: 12px; }
     .modal-header { border-radius: 12px 12px 0 0; padding: 12px 16px; }
@@ -92,6 +186,9 @@
         </div>
     </div>
 </div>
+
+
+
 
 <div class="card shadow-sm mb-3">
     <div class="card-header bg-danger text-white py-2 d-flex justify-content-between align-items-center">
@@ -189,6 +286,9 @@
     </div>
 </div>
 
+
+
+
 <?php $__currentLoopData = $jobs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
     <div class="modal fade" id="modalAksi<?php echo e($j->id); ?>" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
@@ -236,6 +336,10 @@
                 </div>
 
                 <div class="modal-footer flex-column flex-sm-row gap-2">
+                    <a href="<?php echo e(route($rp . '.show', $j)); ?>" class="btn btn-outline-primary w-100 w-sm-auto">
+                        <i class="bi bi-eye"></i> Detail
+                    </a>
+
                     <?php if($j->status === 'DITUGASKAN'): ?>
                         <a href="<?php echo e(route($rp . '.kerjakan', $j)); ?>" class="btn btn-primary w-100 w-sm-auto">
                             <i class="bi bi-play-circle"></i> Kerjakan Sekarang
@@ -256,31 +360,89 @@
     </div>
 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
+
+
+
 <?php if($jobsSelesai->count() > 0): ?>
 <div class="card shadow-sm">
-    <div class="card-header bg-success text-white py-2">
-        <h6 class="mb-0"><i class="bi bi-check-circle-fill"></i> Riwayat Selesai (10 Terakhir)</h6>
+    <div class="card-header bg-success text-white py-2 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-check-circle-fill"></i> Riwayat Selesai
+            <span class="badge bg-light text-success ms-1"><?php echo e($jobsSelesai->count()); ?></span>
+        </h6>
+        <small style="opacity: .85;">
+            <i class="bi bi-info-circle"></i> Klik baris untuk lihat detail
+        </small>
     </div>
-    <div class="card-body p-2">
-        <?php $__currentLoopData = $jobsSelesai; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <div class="job-selesai-item">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="fw-semibold" style="font-size: .9rem;"><?php echo e($j->judul); ?></div>
-                        <small class="text-muted">
-                            <i class="bi bi-hash"></i><?php echo e($j->kode_job); ?> ·
-                            <i class="bi bi-geo-alt"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
+    <div class="table-responsive">
+        <table class="table table-riwayat align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Pekerjaan</th>
+                    <th style="width: 22%;">Lokasi</th>
+                    <th style="width: 15%;" class="text-center">Status</th>
+                    <th style="width: 18%;">Waktu Selesai</th>
+                    <th style="width: 5%;" class="text-center"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php $__currentLoopData = $jobsSelesai; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <tr onclick="window.location='<?php echo e(route($rp . '.show', $j)); ?>'">
+                        
+                        <td>
+                            <div class="judul-riwayat">
+                                <?php echo e($j->judul); ?>
 
-                        </small>
-                    </div>
-                    <div class="text-end">
-                        <span class="badge bg-success">Selesai</span>
-                        <br>
-                        <small class="text-muted"><?php echo e($j->tanggal_selesai?->format('d/m H:i')); ?></small>
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                            <span class="kode-riwayat">
+                                <i class="bi bi-hash"></i><?php echo e($j->kode_job); ?>
+
+                            </span>
+                        </td>
+
+                        
+                        <td>
+                            <div class="meta-riwayat">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <?php echo e($j->lok_gedung ?? '-'); ?>
+
+                            </div>
+                            <div class="meta-riwayat">
+                                <i class="bi bi-door-open"></i>
+                                <?php echo e($j->lokasi_ruang ?? '-'); ?>
+
+                            </div>
+                        </td>
+
+                        
+                        <td class="text-center">
+                            <span class="badge-selesai-riwayat">
+                                <i class="bi bi-check-circle-fill"></i> Selesai
+                            </span>
+                        </td>
+
+                        
+                        <td>
+                            <div class="waktu-riwayat">
+                                <i class="bi bi-calendar-event"></i>
+                                <?php echo e($j->tanggal_selesai?->format('d/m/Y') ?? '-'); ?>
+
+                            </div>
+                            <div class="waktu-riwayat">
+                                <i class="bi bi-clock"></i>
+                                <?php echo e($j->tanggal_selesai?->format('H:i') ?? '-'); ?>
+
+                            </div>
+                        </td>
+
+                        
+                        <td class="text-center">
+                            <i class="bi bi-chevron-right arrow-riwayat"></i>
+                        </td>
+                    </tr>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </tbody>
+        </table>
     </div>
 </div>
 <?php endif; ?>
@@ -289,6 +451,7 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
+    // Klik baris pekerjaan → buka modal
     document.querySelectorAll('tr.row-clickable').forEach(function(row) {
         row.addEventListener('click', function(e) {
             if (e.target.closest('button') || e.target.closest('a')) return;
@@ -300,6 +463,7 @@
         });
     });
 
+    // Efek blinking untuk row belum dikerjakan
     setInterval(function() {
         document.querySelectorAll('tr.row-belum-dikerjakan').forEach(function(row, idx) {
             const offset = idx * 200;
