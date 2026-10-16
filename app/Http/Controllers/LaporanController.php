@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\LaporanExport;
-use App\Models\{Job, User};
+use App\Models\{Job, User, JobPhoto};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -40,7 +40,7 @@ class LaporanController extends Controller
             $query->where('bidang', $bidang);
         }
 
-        // 🆕 URUT DESC (tanggal terbaru di atas)
+        // URUT DESC (tanggal terbaru di atas)
         $jobs = $query->with(['teknisi', 'admin', 'fotoSebelum', 'fotoSesudah'])
             ->orderBy('tanggal_tugas', 'desc')
             ->orderBy('created_at', 'desc')
