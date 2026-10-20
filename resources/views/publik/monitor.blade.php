@@ -417,7 +417,7 @@
             gap: 4px;
             transition: color 0.3s;
         }
-        /* 🆕 Tombol Filter Periode */
+        /* Tombol Filter Periode */
         .periode-btn-group {
             display: inline-flex;
             gap: 2px;
@@ -451,7 +451,7 @@
             background: #0dcaf0;
             color: #000;
         }
-        /* 🆕 Label periode aktif */
+        /* Label periode aktif */
         .periode-label-text {
             font-size: .58rem;
             color: #6c757d;
@@ -729,7 +729,7 @@
                     </div>
                 </div>
 
-                {{-- 🆕 CHART dengan FILTER PERIODE --}}
+                {{-- CHART KOMPUTER --}}
                 <div class="chart-section">
                     <div class="chart-header">
                         <div class="chart-title">
@@ -822,7 +822,7 @@
                     </div>
                 </div>
 
-                {{-- 🆕 CHART dengan FILTER PERIODE --}}
+                {{-- CHART CCTV --}}
                 <div class="chart-section">
                     <div class="chart-header">
                         <div class="chart-title">
@@ -854,7 +854,10 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{{-- 🆕 Chart.js Lokal (tanpa CDN) --}}
+<script src="{{ asset('js/chart.umd.min.js') }}"></script>
+
+{{-- 🆕 Kode JavaScript Monitor (DIPISAH DARI CHART.JS) --}}
 <script>
     // ============================================================
     // THEME
@@ -952,17 +955,15 @@
     updateClock();
 
     // ============================================================
-    // 🆕 PERIODE STATE — terpisah komputer & cctv
+    // PERIODE STATE
     // ============================================================
     let periodeKomputer = localStorage.getItem('monitor_periode_komputer') || 'bulanan';
     let periodeCctv     = localStorage.getItem('monitor_periode_cctv') || 'bulanan';
 
-    // Validasi
     const validPeriode = ['harian', 'mingguan', 'bulanan', 'semua'];
     if (!validPeriode.includes(periodeKomputer)) periodeKomputer = 'bulanan';
     if (!validPeriode.includes(periodeCctv)) periodeCctv = 'bulanan';
 
-    // Init tombol aktif saat halaman load
     function initPeriodeButtons() {
         document.querySelectorAll('.periode-btn-group').forEach(function(group) {
             const target = group.dataset.target;
@@ -974,14 +975,12 @@
         });
     }
 
-    // Handle klik tombol
     document.querySelectorAll('.periode-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
             const group = this.closest('.periode-btn-group');
             const target = group.dataset.target;
             const periode = this.dataset.periode;
 
-            // Update state
             if (target === 'komputer') {
                 periodeKomputer = periode;
                 localStorage.setItem('monitor_periode_komputer', periode);
@@ -990,13 +989,11 @@
                 localStorage.setItem('monitor_periode_cctv', periode);
             }
 
-            // Update active button
             group.querySelectorAll('.periode-btn').forEach(function(b) {
                 b.classList.remove('active');
             });
             this.classList.add('active');
 
-            // Reload data
             loadData();
         });
     });
@@ -1024,13 +1021,10 @@
         const ctx = document.getElementById(canvasId);
         if (!ctx) return null;
 
-        // Kalau tidak ada data, tampilkan canvas kosong
         if (!ratings || ratings.length === 0) {
             if (chartRef) chartRef.destroy();
-
             const ctx2d = ctx.getContext('2d');
             ctx2d.clearRect(0, 0, ctx.width, ctx.height);
-
             return null;
         }
 
@@ -1143,7 +1137,6 @@
 
     async function loadData() {
         try {
-            // Build URL dengan periode
             const url = API_BASE_URL
                 + '?periode_komputer=' + encodeURIComponent(periodeKomputer)
                 + '&periode_cctv=' + encodeURIComponent(periodeCctv);
@@ -1151,12 +1144,10 @@
             const response = await fetch(url);
             const data = await response.json();
 
-            // Stats header
             document.getElementById('totalTugas').textContent = data.hariIni.total;
             document.getElementById('tugasSelesai').textContent = data.hariIni.selesai;
             document.getElementById('tugasBelum').textContent = data.hariIni.belum;
 
-            // Stats per bidang
             document.getElementById('kmptTotal').textContent = data.statsKomputer.total;
             document.getElementById('kmptSelesai').textContent = data.statsKomputer.selesai;
             document.getElementById('kmptBelum').textContent = data.statsKomputer.belum;
@@ -1165,7 +1156,6 @@
             document.getElementById('cctvSelesai').textContent = data.statsCctv.selesai;
             document.getElementById('cctvBelum').textContent = data.statsCctv.belum;
 
-            // Labels
             document.getElementById('labelHariIniKmpt').textContent = data.tanggalHariIni;
             document.getElementById('labelKemarinKmpt').textContent = data.tanggalKemarin;
             document.getElementById('labelHariIniCctv').textContent = data.tanggalHariIni;
@@ -1179,11 +1169,9 @@
             document.getElementById('countHariIniCctv').textContent = data.kerjaanHariIniCctv.length;
             document.getElementById('countKemarinCctv').textContent = data.kerjaanKemarinCctv.length;
 
-            // 🆕 Update label periode
             document.getElementById('periodeLabelKomputer').textContent = data.labelKomputer;
             document.getElementById('periodeLabelCctv').textContent = data.labelCctv;
 
-            // Notif suara
             const currentJobCount = data.hariIni.total;
             if (!isFirstLoad && currentJobCount > lastJobCount && audioUnlocked) {
                 playBeep();
@@ -1194,19 +1182,16 @@
             localStorage.setItem('monitor_last_job_count', currentJobCount);
             isFirstLoad = false;
 
-            // Render tabel
             renderTable('tableHariIniKomputer', data.kerjaanHariIniKomputer);
             renderTable('tableKemarinKomputer', data.kerjaanKemarinKomputer);
             renderTable('tableHariIniCctv', data.kerjaanHariIniCctv);
             renderTable('tableKemarinCctv', data.kerjaanKemarinCctv);
 
-            // Render chart
             lastRekapKomputer = data.rekapTeknisiKomputer;
             lastRekapCctv = data.rekapTeknisiCctv;
             chartKomputer = renderChart('chartKomputer', chartKomputer, lastRekapKomputer, 'komputer');
             chartCctv = renderChart('chartCctv', chartCctv, lastRekapCctv, 'cctv');
 
-            // Update timestamp
             document.getElementById('lastUpdate').textContent = data.timestamp;
         } catch (err) {
             console.error('❌ Error:', err);
