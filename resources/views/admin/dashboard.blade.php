@@ -74,6 +74,16 @@
         color: #000 !important;
     }
 
+    /* Styling Accordion agar lebih rapi */
+    .accordion-button:not(.collapsed) {
+        background-color: rgba(13, 110, 253, 0.05);
+        color: inherit;
+        box-shadow: none;
+    }
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: rgba(0,0,0,.125);
+    }
     .table-scroll { max-height: 300px; overflow-y: auto; }
     .table-scroll::-webkit-scrollbar { width: 6px; }
     .table-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -119,7 +129,7 @@
 </div>
 
 {{-- FILTER TANGGAL & PERIODE RATING --}}
-<div class="date-filter-card p-3 mb-4">
+<div class="date-filter-card p-3 mb-4 shadow-sm">
     <form method="GET" action="{{ route('admin.dashboard') }}" class="row g-2 align-items-end">
         <div class="col-md-3 col-12">
             <label class="form-label mb-1 small fw-bold">
@@ -229,344 +239,370 @@
 
     {{-- KOLOM KIRI: KOMPUTER --}}
     <div class="col-md-6">
-        <div class="section-header komputer">
+        <div class="section-header komputer shadow-sm">
             <span><i class="bi bi-pc-display"></i> PEKERJAAN KOMPUTER</span>
             <span class="badge bg-light text-dark">
                 {{ $kerjaanHariIniKomputer->count() + $kerjaanKemarinKomputer->count() }} total
             </span>
         </div>
 
-        {{-- HARI INI --}}
-        <div class="card shadow-sm border-0 mb-3">
-            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">
-                    <i class="bi bi-calendar-day"></i>
-                    {{ $tanggalObj->translatedFormat('d F Y') }}
-                </h6>
-                <span class="badge bg-primary">{{ $kerjaanHariIniKomputer->count() }}</span>
+        <div class="accordion shadow-sm" id="accordionKomputer">
+            {{-- HARI INI (KOMPUTER) --}}
+            <div class="accordion-item border-0 mb-2">
+                <h2 class="accordion-header" id="headingHariIniKmpt">
+                    <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#collapseHariIniKmpt" aria-expanded="true" aria-controls="collapseHariIniKmpt">
+                        <i class="bi bi-calendar-day text-primary me-2"></i>
+                        {{ $tanggalObj->translatedFormat('d F Y') }}
+                        <span class="badge bg-primary ms-2">{{ $kerjaanHariIniKomputer->count() }}</span>
+                    </button>
+                </h2>
+                <div id="collapseHariIniKmpt" class="accordion-collapse collapse show" 
+                     aria-labelledby="headingHariIniKmpt" data-bs-parent="#accordionKomputer">
+                    <div class="accordion-body p-0">
+                        <div class="table-responsive table-scroll">
+                            <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
+                                <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
+                                    <tr>
+                                        <th style="width: 22%;">Kode</th>
+                                        <th style="width: 43%;">Pekerjaan</th>
+                                        <th style="width: 18%;">Teknisi</th>
+                                        <th style="width: 17%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @forelse($kerjaanHariIniKomputer as $j)
+                                    @php
+                                        $badgeClass = $j->statusBadgeClass();
+                                        $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                                        $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                                        if ($belumDiambil) {
+                                            $rowClass = 'row-lampu-merah';
+                                        } elseif ($belumDikerjakan) {
+                                            $rowClass = 'row-lampu';
+                                        } else {
+                                            $rowClass = 'tugas-sudah-kerja';
+                                        }
+                                    @endphp
+                                    <tr class="{{ $rowClass }}">
+                                        <td>
+                                            @if($belumDikerjakan || $belumDiambil)
+                                                <span class="lampu-indicator"></span>
+                                            @endif
+                                            <code style="font-size: .7rem;">{{ $j->kode_job }}</code>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ $j->judul }}</div>
+                                            <small class="text-muted" style="font-size: .7rem;">
+                                                <i class="bi bi-geo-alt-fill"></i> {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            @php $penyelesai = $j->penyelesai(); @endphp
+                                            @if($j->status === 'SELESAI')
+                                                @if($penyelesai)
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle"></i> {{ $penyelesai->display_name }}
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle"></i> Selesai
+                                                    </span>
+                                                @endif
+                                            @elseif($j->teknisi)
+                                                <span class="badge bg-primary">
+                                                    <i class="bi bi-person-circle"></i> {{ $j->teknisi->display_name }}
+                                                </span>
+                                            @elseif($j->status === 'DIKERJAKAN')
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-tools"></i> Sedang dikerjakan
+                                                </span>
+                                            @else
+                                                <span class="badge bg-danger badge-belum-diambil">
+                                                    <i class="bi bi-exclamation-triangle"></i> Belum diambil
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td><span class="badge {{ $badgeClass }}">{{ $j->statusLabel() }}</span></td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="4" class="text-center text-muted py-3">
+                                        Tidak ada pekerjaan komputer pada {{ $tanggalObj->translatedFormat('d F Y') }}
+                                    </td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="table-responsive table-scroll">
-                <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
-                    <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
-                        <tr>
-                            <th style="width: 22%;">Kode</th>
-                            <th style="width: 43%;">Pekerjaan</th>
-                            <th style="width: 18%;">Teknisi</th>
-                            <th style="width: 17%;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @forelse($kerjaanHariIniKomputer as $j)
-                        @php
-                            $badgeClass = $j->statusBadgeClass();
-                            $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
-                            $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
-                            if ($belumDiambil) {
-                                $rowClass = 'row-lampu-merah';
-                            } elseif ($belumDikerjakan) {
-                                $rowClass = 'row-lampu';
-                            } else {
-                                $rowClass = 'tugas-sudah-kerja';
-                            }
-                        @endphp
-                        <tr class="{{ $rowClass }}">
-                            <td>
-                                @if($belumDikerjakan || $belumDiambil)
-                                    <span class="lampu-indicator"></span>
-                                @endif
-                                <code style="font-size: .7rem;">{{ $j->kode_job }}</code>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $j->judul }}</div>
-                                <small class="text-muted" style="font-size: .7rem;">
-                                    <i class="bi bi-geo-alt-fill"></i> {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}
-                                </small>
-                            </td>
-                            <td>
-                                @php $penyelesai = $j->penyelesai(); @endphp
-                                @if($j->status === 'SELESAI')
-                                    @if($penyelesai)
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> {{ $penyelesai->display_name }}
-                                        </span>
-                                    @else
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> Selesai
-                                        </span>
-                                    @endif
-                                @elseif($j->teknisi)
-                                    <span class="badge bg-primary">
-                                        <i class="bi bi-person-circle"></i> {{ $j->teknisi->display_name }}
-                                    </span>
-                                @elseif($j->status === 'DIKERJAKAN')
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="bi bi-tools"></i> Sedang dikerjakan
-                                    </span>
-                                @else
-                                    <span class="badge bg-danger badge-belum-diambil">
-                                        <i class="bi bi-exclamation-triangle"></i> Belum diambil
-                                    </span>
-                                @endif
-                            </td>
-                            <td><span class="badge {{ $badgeClass }}">{{ $j->statusLabel() }}</span></td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="4" class="text-center text-muted py-3">
-                            Tidak ada pekerjaan komputer pada {{ $tanggalObj->translatedFormat('d F Y') }}
-                        </td></tr>
-                    @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
-        {{-- KEMARIN --}}
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">
-                    <i class="bi bi-calendar-check"></i>
-                    {{ $tanggalObj->copy()->subDay()->translatedFormat('d F Y') }}
-                </h6>
-                <span class="badge bg-secondary">{{ $kerjaanKemarinKomputer->count() }}</span>
-            </div>
-            <div class="table-responsive table-scroll">
-                <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
-                    <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
-                        <tr>
-                            <th style="width: 22%;">Kode</th>
-                            <th style="width: 43%;">Pekerjaan</th>
-                            <th style="width: 18%;">Teknisi</th>
-                            <th style="width: 17%;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @forelse($kerjaanKemarinKomputer as $j)
-                        @php
-                            $badgeClass = $j->statusBadgeClass();
-                            $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
-                            $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
-                            
-                            // LOGIKA BARU: Terapkan class kelap-kelip jika belum selesai
-                            if ($belumDiambil) {
-                                $rowClass = 'row-lampu-merah';
-                            } elseif ($belumDikerjakan) {
-                                $rowClass = 'row-lampu';
-                            } else {
-                                $rowClass = 'tugas-sudah-kerja';
-                            }
-                        @endphp
-                        <tr class="{{ $rowClass }}">
-                            <td>
-                                @if($belumDikerjakan || $belumDiambil)
-                                    <span class="lampu-indicator"></span>
-                                @endif
-                                <code style="font-size: .7rem;">{{ $j->kode_job }}</code>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $j->judul }}</div>
-                                <small class="text-muted" style="font-size: .7rem;">
-                                    <i class="bi bi-geo-alt-fill"></i> {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}
-                                </small>
-                            </td>
-                            <td>
-                                @php $penyelesai = $j->penyelesai(); @endphp
-                                @if($j->status === 'SELESAI' && $penyelesai)
-                                    <span class="badge bg-success">
-                                        <i class="bi bi-check-circle"></i> {{ $penyelesai->display_name }}
-                                    </span>
-                                @elseif($j->teknisi)
-                                    <span class="badge bg-primary">
-                                        <i class="bi bi-person-circle"></i> {{ $j->teknisi->display_name }}
-                                    </span>
-                                @elseif($j->status === 'DIKERJAKAN')
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="bi bi-tools"></i> Sedang dikerjakan
-                                    </span>
-                                @else
-                                    <span class="badge bg-danger badge-belum-diambil">
-                                        <i class="bi bi-exclamation-triangle"></i> Belum diambil
-                                    </span>
-                                @endif
-                            </td>
-                            <td><span class="badge {{ $j->statusBadgeClass() }}">{{ $j->statusLabel() }}</span></td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan komputer</td></tr>
-                    @endforelse
-                    </tbody>
-                </table>
+            {{-- KEMARIN (KOMPUTER) --}}
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header" id="headingKemarinKmpt">
+                    <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#collapseKemarinKmpt" aria-expanded="false" aria-controls="collapseKemarinKmpt">
+                        <i class="bi bi-calendar-check text-secondary me-2"></i>
+                        {{ $tanggalObj->copy()->subDay()->translatedFormat('d F Y') }}
+                        <span class="badge bg-secondary ms-2">{{ $kerjaanKemarinKomputer->count() }}</span>
+                    </button>
+                </h2>
+                <div id="collapseKemarinKmpt" class="accordion-collapse collapse" 
+                     aria-labelledby="headingKemarinKmpt" data-bs-parent="#accordionKomputer">
+                    <div class="accordion-body p-0">
+                        <div class="table-responsive table-scroll">
+                            <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
+                                <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
+                                    <tr>
+                                        <th style="width: 22%;">Kode</th>
+                                        <th style="width: 43%;">Pekerjaan</th>
+                                        <th style="width: 18%;">Teknisi</th>
+                                        <th style="width: 17%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @forelse($kerjaanKemarinKomputer as $j)
+                                    @php
+                                        $badgeClass = $j->statusBadgeClass();
+                                        $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                                        $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                                        
+                                        if ($belumDiambil) {
+                                            $rowClass = 'row-lampu-merah';
+                                        } elseif ($belumDikerjakan) {
+                                            $rowClass = 'row-lampu';
+                                        } else {
+                                            $rowClass = 'tugas-sudah-kerja';
+                                        }
+                                    @endphp
+                                    <tr class="{{ $rowClass }}">
+                                        <td>
+                                            @if($belumDikerjakan || $belumDiambil)
+                                                <span class="lampu-indicator"></span>
+                                            @endif
+                                            <code style="font-size: .7rem;">{{ $j->kode_job }}</code>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ $j->judul }}</div>
+                                            <small class="text-muted" style="font-size: .7rem;">
+                                                <i class="bi bi-geo-alt-fill"></i> {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            @php $penyelesai = $j->penyelesai(); @endphp
+                                            @if($j->status === 'SELESAI' && $penyelesai)
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle"></i> {{ $penyelesai->display_name }}
+                                                </span>
+                                            @elseif($j->teknisi)
+                                                <span class="badge bg-primary">
+                                                    <i class="bi bi-person-circle"></i> {{ $j->teknisi->display_name }}
+                                                </span>
+                                            @elseif($j->status === 'DIKERJAKAN')
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-tools"></i> Sedang dikerjakan
+                                                </span>
+                                            @else
+                                                <span class="badge bg-danger badge-belum-diambil">
+                                                    <i class="bi bi-exclamation-triangle"></i> Belum diambil
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td><span class="badge {{ $j->statusBadgeClass() }}">{{ $j->statusLabel() }}</span></td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan komputer</td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     {{-- KOLOM KANAN: CCTV --}}
     <div class="col-md-6">
-        <div class="section-header cctv">
+        <div class="section-header cctv shadow-sm">
             <span><i class="bi bi-camera-video"></i> PEKERJAAN CCTV</span>
             <span class="badge bg-dark text-white">
                 {{ $kerjaanHariIniCctv->count() + $kerjaanKemarinCctv->count() }} total
             </span>
         </div>
 
-        {{-- HARI INI --}}
-        <div class="card shadow-sm border-0 mb-3">
-            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">
-                    <i class="bi bi-calendar-day"></i>
-                    {{ $tanggalObj->translatedFormat('d F Y') }}
-                </h6>
-                <span class="badge bg-info text-dark">{{ $kerjaanHariIniCctv->count() }}</span>
+        <div class="accordion shadow-sm" id="accordionCctv">
+            {{-- HARI INI (CCTV) --}}
+            <div class="accordion-item border-0 mb-2">
+                <h2 class="accordion-header" id="headingHariIniCctv">
+                    <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#collapseHariIniCctv" aria-expanded="true" aria-controls="collapseHariIniCctv">
+                        <i class="bi bi-calendar-day text-info me-2"></i>
+                        {{ $tanggalObj->translatedFormat('d F Y') }}
+                        <span class="badge bg-info text-dark ms-2">{{ $kerjaanHariIniCctv->count() }}</span>
+                    </button>
+                </h2>
+                <div id="collapseHariIniCctv" class="accordion-collapse collapse show" 
+                     aria-labelledby="headingHariIniCctv" data-bs-parent="#accordionCctv">
+                    <div class="accordion-body p-0">
+                        <div class="table-responsive table-scroll">
+                            <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
+                                <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
+                                    <tr>
+                                        <th style="width: 22%;">Kode</th>
+                                        <th style="width: 43%;">Pekerjaan</th>
+                                        <th style="width: 18%;">Teknisi</th>
+                                        <th style="width: 17%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @forelse($kerjaanHariIniCctv as $j)
+                                    @php
+                                        $badgeClass = $j->statusBadgeClass();
+                                        $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                                        $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                                        if ($belumDiambil) {
+                                            $rowClass = 'row-lampu-merah';
+                                        } elseif ($belumDikerjakan) {
+                                            $rowClass = 'row-lampu';
+                                        } else {
+                                            $rowClass = 'tugas-sudah-kerja';
+                                        }
+                                    @endphp
+                                    <tr class="{{ $rowClass }}">
+                                        <td>
+                                            @if($belumDikerjakan || $belumDiambil)
+                                                <span class="lampu-indicator"></span>
+                                            @endif
+                                            <code style="font-size: .7rem;">{{ $j->kode_job }}</code>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ $j->judul }}</div>
+                                            <small class="text-muted" style="font-size: .7rem;">
+                                                <i class="bi bi-geo-alt-fill"></i> {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            @php $penyelesai = $j->penyelesai(); @endphp
+                                            @if($j->status === 'SELESAI')
+                                                @if($penyelesai)
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle"></i> {{ $penyelesai->display_name }}
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle"></i> Selesai
+                                                    </span>
+                                                @endif
+                                            @elseif($j->teknisi)
+                                                <span class="badge bg-info text-dark">
+                                                    <i class="bi bi-person-circle"></i> {{ $j->teknisi->display_name }}
+                                                </span>
+                                            @elseif($j->status === 'DIKERJAKAN')
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-tools"></i> Sedang dikerjakan
+                                                </span>
+                                            @else
+                                                <span class="badge bg-danger badge-belum-diambil">
+                                                    <i class="bi bi-exclamation-triangle"></i> Belum diambil
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td><span class="badge {{ $badgeClass }}">{{ $j->statusLabel() }}</span></td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="4" class="text-center text-muted py-3">
+                                        Tidak ada pekerjaan CCTV pada {{ $tanggalObj->translatedFormat('d F Y') }}
+                                    </td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="table-responsive table-scroll">
-                <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
-                    <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
-                        <tr>
-                            <th style="width: 22%;">Kode</th>
-                            <th style="width: 43%;">Pekerjaan</th>
-                            <th style="width: 18%;">Teknisi</th>
-                            <th style="width: 17%;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @forelse($kerjaanHariIniCctv as $j)
-                        @php
-                            $badgeClass = $j->statusBadgeClass();
-                            $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
-                            $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
-                            if ($belumDiambil) {
-                                $rowClass = 'row-lampu-merah';
-                            } elseif ($belumDikerjakan) {
-                                $rowClass = 'row-lampu';
-                            } else {
-                                $rowClass = 'tugas-sudah-kerja';
-                            }
-                        @endphp
-                        <tr class="{{ $rowClass }}">
-                            <td>
-                                @if($belumDikerjakan || $belumDiambil)
-                                    <span class="lampu-indicator"></span>
-                                @endif
-                                <code style="font-size: .7rem;">{{ $j->kode_job }}</code>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $j->judul }}</div>
-                                <small class="text-muted" style="font-size: .7rem;">
-                                    <i class="bi bi-geo-alt-fill"></i> {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}
-                                </small>
-                            </td>
-                            <td>
-                                @php $penyelesai = $j->penyelesai(); @endphp
-                                @if($j->status === 'SELESAI')
-                                    @if($penyelesai)
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> {{ $penyelesai->display_name }}
-                                        </span>
-                                    @else
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> Selesai
-                                        </span>
-                                    @endif
-                                @elseif($j->teknisi)
-                                    <span class="badge bg-info text-dark">
-                                        <i class="bi bi-person-circle"></i> {{ $j->teknisi->display_name }}
-                                    </span>
-                                @elseif($j->status === 'DIKERJAKAN')
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="bi bi-tools"></i> Sedang dikerjakan
-                                    </span>
-                                @else
-                                    <span class="badge bg-danger badge-belum-diambil">
-                                        <i class="bi bi-exclamation-triangle"></i> Belum diambil
-                                    </span>
-                                @endif
-                            </td>
-                            <td><span class="badge {{ $badgeClass }}">{{ $j->statusLabel() }}</span></td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="4" class="text-center text-muted py-3">
-                            Tidak ada pekerjaan CCTV pada {{ $tanggalObj->translatedFormat('d F Y') }}
-                        </td></tr>
-                    @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
-        {{-- KEMARIN --}}
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">
-                    <i class="bi bi-calendar-check"></i>
-                    {{ $tanggalObj->copy()->subDay()->translatedFormat('d F Y') }}
-                </h6>
-                <span class="badge bg-secondary">{{ $kerjaanKemarinCctv->count() }}</span>
-            </div>
-            <div class="table-responsive table-scroll">
-                <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
-                    <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
-                        <tr>
-                            <th style="width: 22%;">Kode</th>
-                            <th style="width: 43%;">Pekerjaan</th>
-                            <th style="width: 18%;">Teknisi</th>
-                            <th style="width: 17%;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @forelse($kerjaanKemarinCctv as $j)
-                        @php
-                            $badgeClass = $j->statusBadgeClass();
-                            $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
-                            $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
-                            
-                            // LOGIKA BARU: Terapkan class kelap-kelip jika belum selesai
-                            if ($belumDiambil) {
-                                $rowClass = 'row-lampu-merah';
-                            } elseif ($belumDikerjakan) {
-                                $rowClass = 'row-lampu';
-                            } else {
-                                $rowClass = 'tugas-sudah-kerja';
-                            }
-                        @endphp
-                        <tr class="{{ $rowClass }}">
-                            <td>
-                                @if($belumDikerjakan || $belumDiambil)
-                                    <span class="lampu-indicator"></span>
-                                @endif
-                                <code style="font-size: .7rem;">{{ $j->kode_job }}</code>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $j->judul }}</div>
-                                <small class="text-muted" style="font-size: .7rem;">
-                                    <i class="bi bi-geo-alt-fill"></i> {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}
-                                </small>
-                            </td>
-                            <td>
-                                @php $penyelesai = $j->penyelesai(); @endphp
-                                @if($j->status === 'SELESAI' && $penyelesai)
-                                    <span class="badge bg-success">
-                                        <i class="bi bi-check-circle"></i> {{ $penyelesai->display_name }}
-                                    </span>
-                                @elseif($j->teknisi)
-                                    <span class="badge bg-info text-dark">
-                                        <i class="bi bi-person-circle"></i> {{ $j->teknisi->display_name }}
-                                    </span>
-                                @elseif($j->status === 'DIKERJAKAN')
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="bi bi-tools"></i> Sedang dikerjakan
-                                    </span>
-                                @else
-                                    <span class="badge bg-danger badge-belum-diambil">
-                                        <i class="bi bi-exclamation-triangle"></i> Belum diambil
-                                    </span>
-                                @endif
-                            </td>
-                            <td><span class="badge {{ $j->statusBadgeClass() }}">{{ $j->statusLabel() }}</span></td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan CCTV</td></tr>
-                    @endforelse
-                    </tbody>
-                </table>
+            {{-- KEMARIN (CCTV) --}}
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header" id="headingKemarinCctv">
+                    <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#collapseKemarinCctv" aria-expanded="false" aria-controls="collapseKemarinCctv">
+                        <i class="bi bi-calendar-check text-secondary me-2"></i>
+                        {{ $tanggalObj->copy()->subDay()->translatedFormat('d F Y') }}
+                        <span class="badge bg-secondary ms-2">{{ $kerjaanKemarinCctv->count() }}</span>
+                    </button>
+                </h2>
+                <div id="collapseKemarinCctv" class="accordion-collapse collapse" 
+                     aria-labelledby="headingKemarinCctv" data-bs-parent="#accordionCctv">
+                    <div class="accordion-body p-0">
+                        <div class="table-responsive table-scroll">
+                            <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
+                                <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
+                                    <tr>
+                                        <th style="width: 22%;">Kode</th>
+                                        <th style="width: 43%;">Pekerjaan</th>
+                                        <th style="width: 18%;">Teknisi</th>
+                                        <th style="width: 17%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @forelse($kerjaanKemarinCctv as $j)
+                                    @php
+                                        $badgeClass = $j->statusBadgeClass();
+                                        $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                                        $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                                        
+                                        if ($belumDiambil) {
+                                            $rowClass = 'row-lampu-merah';
+                                        } elseif ($belumDikerjakan) {
+                                            $rowClass = 'row-lampu';
+                                        } else {
+                                            $rowClass = 'tugas-sudah-kerja';
+                                        }
+                                    @endphp
+                                    <tr class="{{ $rowClass }}">
+                                        <td>
+                                            @if($belumDikerjakan || $belumDiambil)
+                                                <span class="lampu-indicator"></span>
+                                            @endif
+                                            <code style="font-size: .7rem;">{{ $j->kode_job }}</code>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ $j->judul }}</div>
+                                            <small class="text-muted" style="font-size: .7rem;">
+                                                <i class="bi bi-geo-alt-fill"></i> {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            @php $penyelesai = $j->penyelesai(); @endphp
+                                            @if($j->status === 'SELESAI' && $penyelesai)
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle"></i> {{ $penyelesai->display_name }}
+                                                </span>
+                                            @elseif($j->teknisi)
+                                                <span class="badge bg-info text-dark">
+                                                    <i class="bi bi-person-circle"></i> {{ $j->teknisi->display_name }}
+                                                </span>
+                                            @elseif($j->status === 'DIKERJAKAN')
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-tools"></i> Sedang dikerjakan
+                                                </span>
+                                            @else
+                                                <span class="badge bg-danger badge-belum-diambil">
+                                                    <i class="bi bi-exclamation-triangle"></i> Belum diambil
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td><span class="badge {{ $j->statusBadgeClass() }}">{{ $j->statusLabel() }}</span></td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan CCTV</td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

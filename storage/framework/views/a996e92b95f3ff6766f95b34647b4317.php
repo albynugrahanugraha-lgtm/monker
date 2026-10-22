@@ -74,6 +74,16 @@
         color: #000 !important;
     }
 
+    /* Styling Accordion agar lebih rapi */
+    .accordion-button:not(.collapsed) {
+        background-color: rgba(13, 110, 253, 0.05);
+        color: inherit;
+        box-shadow: none;
+    }
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: rgba(0,0,0,.125);
+    }
     .table-scroll { max-height: 300px; overflow-y: auto; }
     .table-scroll::-webkit-scrollbar { width: 6px; }
     .table-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -119,7 +129,7 @@
 </div>
 
 
-<div class="date-filter-card p-3 mb-4">
+<div class="date-filter-card p-3 mb-4 shadow-sm">
     <form method="GET" action="<?php echo e(route('admin.dashboard')); ?>" class="row g-2 align-items-end">
         <div class="col-md-3 col-12">
             <label class="form-label mb-1 small fw-bold">
@@ -229,362 +239,388 @@
 
     
     <div class="col-md-6">
-        <div class="section-header komputer">
+        <div class="section-header komputer shadow-sm">
             <span><i class="bi bi-pc-display"></i> PEKERJAAN KOMPUTER</span>
             <span class="badge bg-light text-dark">
                 <?php echo e($kerjaanHariIniKomputer->count() + $kerjaanKemarinKomputer->count()); ?> total
             </span>
         </div>
 
-        
-        <div class="card shadow-sm border-0 mb-3">
-            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">
-                    <i class="bi bi-calendar-day"></i>
-                    <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
+        <div class="accordion shadow-sm" id="accordionKomputer">
+            
+            <div class="accordion-item border-0 mb-2">
+                <h2 class="accordion-header" id="headingHariIniKmpt">
+                    <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#collapseHariIniKmpt" aria-expanded="true" aria-controls="collapseHariIniKmpt">
+                        <i class="bi bi-calendar-day text-primary me-2"></i>
+                        <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
 
-                </h6>
-                <span class="badge bg-primary"><?php echo e($kerjaanHariIniKomputer->count()); ?></span>
+                        <span class="badge bg-primary ms-2"><?php echo e($kerjaanHariIniKomputer->count()); ?></span>
+                    </button>
+                </h2>
+                <div id="collapseHariIniKmpt" class="accordion-collapse collapse show" 
+                     aria-labelledby="headingHariIniKmpt" data-bs-parent="#accordionKomputer">
+                    <div class="accordion-body p-0">
+                        <div class="table-responsive table-scroll">
+                            <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
+                                <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
+                                    <tr>
+                                        <th style="width: 22%;">Kode</th>
+                                        <th style="width: 43%;">Pekerjaan</th>
+                                        <th style="width: 18%;">Teknisi</th>
+                                        <th style="width: 17%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <?php $__empty_1 = true; $__currentLoopData = $kerjaanHariIniKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php
+                                        $badgeClass = $j->statusBadgeClass();
+                                        $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                                        $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                                        if ($belumDiambil) {
+                                            $rowClass = 'row-lampu-merah';
+                                        } elseif ($belumDikerjakan) {
+                                            $rowClass = 'row-lampu';
+                                        } else {
+                                            $rowClass = 'tugas-sudah-kerja';
+                                        }
+                                    ?>
+                                    <tr class="<?php echo e($rowClass); ?>">
+                                        <td>
+                                            <?php if($belumDikerjakan || $belumDiambil): ?>
+                                                <span class="lampu-indicator"></span>
+                                            <?php endif; ?>
+                                            <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold"><?php echo e($j->judul); ?></div>
+                                            <small class="text-muted" style="font-size: .7rem;">
+                                                <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
+
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <?php $penyelesai = $j->penyelesai(); ?>
+                                            <?php if($j->status === 'SELESAI'): ?>
+                                                <?php if($penyelesai): ?>
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
+
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle"></i> Selesai
+                                                    </span>
+                                                <?php endif; ?>
+                                            <?php elseif($j->teknisi): ?>
+                                                <span class="badge bg-primary">
+                                                    <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
+
+                                                </span>
+                                            <?php elseif($j->status === 'DIKERJAKAN'): ?>
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-tools"></i> Sedang dikerjakan
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge bg-danger badge-belum-diambil">
+                                                    <i class="bi bi-exclamation-triangle"></i> Belum diambil
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e($j->statusLabel()); ?></span></td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    <tr><td colspan="4" class="text-center text-muted py-3">
+                                        Tidak ada pekerjaan komputer pada <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
+
+                                    </td></tr>
+                                <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="table-responsive table-scroll">
-                <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
-                    <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
-                        <tr>
-                            <th style="width: 22%;">Kode</th>
-                            <th style="width: 43%;">Pekerjaan</th>
-                            <th style="width: 18%;">Teknisi</th>
-                            <th style="width: 17%;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php $__empty_1 = true; $__currentLoopData = $kerjaanHariIniKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <?php
-                            $badgeClass = $j->statusBadgeClass();
-                            $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
-                            $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
-                            if ($belumDiambil) {
-                                $rowClass = 'row-lampu-merah';
-                            } elseif ($belumDikerjakan) {
-                                $rowClass = 'row-lampu';
-                            } else {
-                                $rowClass = 'tugas-sudah-kerja';
-                            }
-                        ?>
-                        <tr class="<?php echo e($rowClass); ?>">
-                            <td>
-                                <?php if($belumDikerjakan || $belumDiambil): ?>
-                                    <span class="lampu-indicator"></span>
+
+            
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header" id="headingKemarinKmpt">
+                    <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#collapseKemarinKmpt" aria-expanded="false" aria-controls="collapseKemarinKmpt">
+                        <i class="bi bi-calendar-check text-secondary me-2"></i>
+                        <?php echo e($tanggalObj->copy()->subDay()->translatedFormat('d F Y')); ?>
+
+                        <span class="badge bg-secondary ms-2"><?php echo e($kerjaanKemarinKomputer->count()); ?></span>
+                    </button>
+                </h2>
+                <div id="collapseKemarinKmpt" class="accordion-collapse collapse" 
+                     aria-labelledby="headingKemarinKmpt" data-bs-parent="#accordionKomputer">
+                    <div class="accordion-body p-0">
+                        <div class="table-responsive table-scroll">
+                            <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
+                                <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
+                                    <tr>
+                                        <th style="width: 22%;">Kode</th>
+                                        <th style="width: 43%;">Pekerjaan</th>
+                                        <th style="width: 18%;">Teknisi</th>
+                                        <th style="width: 17%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <?php $__empty_1 = true; $__currentLoopData = $kerjaanKemarinKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php
+                                        $badgeClass = $j->statusBadgeClass();
+                                        $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                                        $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                                        
+                                        if ($belumDiambil) {
+                                            $rowClass = 'row-lampu-merah';
+                                        } elseif ($belumDikerjakan) {
+                                            $rowClass = 'row-lampu';
+                                        } else {
+                                            $rowClass = 'tugas-sudah-kerja';
+                                        }
+                                    ?>
+                                    <tr class="<?php echo e($rowClass); ?>">
+                                        <td>
+                                            <?php if($belumDikerjakan || $belumDiambil): ?>
+                                                <span class="lampu-indicator"></span>
+                                            <?php endif; ?>
+                                            <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold"><?php echo e($j->judul); ?></div>
+                                            <small class="text-muted" style="font-size: .7rem;">
+                                                <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
+
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <?php $penyelesai = $j->penyelesai(); ?>
+                                            <?php if($j->status === 'SELESAI' && $penyelesai): ?>
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
+
+                                                </span>
+                                            <?php elseif($j->teknisi): ?>
+                                                <span class="badge bg-primary">
+                                                    <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
+
+                                                </span>
+                                            <?php elseif($j->status === 'DIKERJAKAN'): ?>
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-tools"></i> Sedang dikerjakan
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge bg-danger badge-belum-diambil">
+                                                    <i class="bi bi-exclamation-triangle"></i> Belum diambil
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><span class="badge <?php echo e($j->statusBadgeClass()); ?>"><?php echo e($j->statusLabel()); ?></span></td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan komputer</td></tr>
                                 <?php endif; ?>
-                                <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
-                            </td>
-                            <td>
-                                <div class="fw-semibold"><?php echo e($j->judul); ?></div>
-                                <small class="text-muted" style="font-size: .7rem;">
-                                    <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
-
-                                </small>
-                            </td>
-                            <td>
-                                <?php $penyelesai = $j->penyelesai(); ?>
-                                <?php if($j->status === 'SELESAI'): ?>
-                                    <?php if($penyelesai): ?>
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
-
-                                        </span>
-                                    <?php else: ?>
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> Selesai
-                                        </span>
-                                    <?php endif; ?>
-                                <?php elseif($j->teknisi): ?>
-                                    <span class="badge bg-primary">
-                                        <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
-
-                                    </span>
-                                <?php elseif($j->status === 'DIKERJAKAN'): ?>
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="bi bi-tools"></i> Sedang dikerjakan
-                                    </span>
-                                <?php else: ?>
-                                    <span class="badge bg-danger badge-belum-diambil">
-                                        <i class="bi bi-exclamation-triangle"></i> Belum diambil
-                                    </span>
-                                <?php endif; ?>
-                            </td>
-                            <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e($j->statusLabel()); ?></span></td>
-                        </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr><td colspan="4" class="text-center text-muted py-3">
-                            Tidak ada pekerjaan komputer pada <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
-
-                        </td></tr>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">
-                    <i class="bi bi-calendar-check"></i>
-                    <?php echo e($tanggalObj->copy()->subDay()->translatedFormat('d F Y')); ?>
-
-                </h6>
-                <span class="badge bg-secondary"><?php echo e($kerjaanKemarinKomputer->count()); ?></span>
-            </div>
-            <div class="table-responsive table-scroll">
-                <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
-                    <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
-                        <tr>
-                            <th style="width: 22%;">Kode</th>
-                            <th style="width: 43%;">Pekerjaan</th>
-                            <th style="width: 18%;">Teknisi</th>
-                            <th style="width: 17%;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php $__empty_1 = true; $__currentLoopData = $kerjaanKemarinKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <?php
-                            $badgeClass = $j->statusBadgeClass();
-                            $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
-                            $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
-                            
-                            // LOGIKA BARU: Terapkan class kelap-kelip jika belum selesai
-                            if ($belumDiambil) {
-                                $rowClass = 'row-lampu-merah';
-                            } elseif ($belumDikerjakan) {
-                                $rowClass = 'row-lampu';
-                            } else {
-                                $rowClass = 'tugas-sudah-kerja';
-                            }
-                        ?>
-                        <tr class="<?php echo e($rowClass); ?>">
-                            <td>
-                                <?php if($belumDikerjakan || $belumDiambil): ?>
-                                    <span class="lampu-indicator"></span>
-                                <?php endif; ?>
-                                <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
-                            </td>
-                            <td>
-                                <div class="fw-semibold"><?php echo e($j->judul); ?></div>
-                                <small class="text-muted" style="font-size: .7rem;">
-                                    <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
-
-                                </small>
-                            </td>
-                            <td>
-                                <?php $penyelesai = $j->penyelesai(); ?>
-                                <?php if($j->status === 'SELESAI' && $penyelesai): ?>
-                                    <span class="badge bg-success">
-                                        <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
-
-                                    </span>
-                                <?php elseif($j->teknisi): ?>
-                                    <span class="badge bg-primary">
-                                        <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
-
-                                    </span>
-                                <?php elseif($j->status === 'DIKERJAKAN'): ?>
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="bi bi-tools"></i> Sedang dikerjakan
-                                    </span>
-                                <?php else: ?>
-                                    <span class="badge bg-danger badge-belum-diambil">
-                                        <i class="bi bi-exclamation-triangle"></i> Belum diambil
-                                    </span>
-                                <?php endif; ?>
-                            </td>
-                            <td><span class="badge <?php echo e($j->statusBadgeClass()); ?>"><?php echo e($j->statusLabel()); ?></span></td>
-                        </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan komputer</td></tr>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     
     <div class="col-md-6">
-        <div class="section-header cctv">
+        <div class="section-header cctv shadow-sm">
             <span><i class="bi bi-camera-video"></i> PEKERJAAN CCTV</span>
             <span class="badge bg-dark text-white">
                 <?php echo e($kerjaanHariIniCctv->count() + $kerjaanKemarinCctv->count()); ?> total
             </span>
         </div>
 
-        
-        <div class="card shadow-sm border-0 mb-3">
-            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">
-                    <i class="bi bi-calendar-day"></i>
-                    <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
+        <div class="accordion shadow-sm" id="accordionCctv">
+            
+            <div class="accordion-item border-0 mb-2">
+                <h2 class="accordion-header" id="headingHariIniCctv">
+                    <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#collapseHariIniCctv" aria-expanded="true" aria-controls="collapseHariIniCctv">
+                        <i class="bi bi-calendar-day text-info me-2"></i>
+                        <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
 
-                </h6>
-                <span class="badge bg-info text-dark"><?php echo e($kerjaanHariIniCctv->count()); ?></span>
+                        <span class="badge bg-info text-dark ms-2"><?php echo e($kerjaanHariIniCctv->count()); ?></span>
+                    </button>
+                </h2>
+                <div id="collapseHariIniCctv" class="accordion-collapse collapse show" 
+                     aria-labelledby="headingHariIniCctv" data-bs-parent="#accordionCctv">
+                    <div class="accordion-body p-0">
+                        <div class="table-responsive table-scroll">
+                            <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
+                                <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
+                                    <tr>
+                                        <th style="width: 22%;">Kode</th>
+                                        <th style="width: 43%;">Pekerjaan</th>
+                                        <th style="width: 18%;">Teknisi</th>
+                                        <th style="width: 17%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <?php $__empty_1 = true; $__currentLoopData = $kerjaanHariIniCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php
+                                        $badgeClass = $j->statusBadgeClass();
+                                        $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                                        $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                                        if ($belumDiambil) {
+                                            $rowClass = 'row-lampu-merah';
+                                        } elseif ($belumDikerjakan) {
+                                            $rowClass = 'row-lampu';
+                                        } else {
+                                            $rowClass = 'tugas-sudah-kerja';
+                                        }
+                                    ?>
+                                    <tr class="<?php echo e($rowClass); ?>">
+                                        <td>
+                                            <?php if($belumDikerjakan || $belumDiambil): ?>
+                                                <span class="lampu-indicator"></span>
+                                            <?php endif; ?>
+                                            <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold"><?php echo e($j->judul); ?></div>
+                                            <small class="text-muted" style="font-size: .7rem;">
+                                                <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
+
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <?php $penyelesai = $j->penyelesai(); ?>
+                                            <?php if($j->status === 'SELESAI'): ?>
+                                                <?php if($penyelesai): ?>
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
+
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle"></i> Selesai
+                                                    </span>
+                                                <?php endif; ?>
+                                            <?php elseif($j->teknisi): ?>
+                                                <span class="badge bg-info text-dark">
+                                                    <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
+
+                                                </span>
+                                            <?php elseif($j->status === 'DIKERJAKAN'): ?>
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-tools"></i> Sedang dikerjakan
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge bg-danger badge-belum-diambil">
+                                                    <i class="bi bi-exclamation-triangle"></i> Belum diambil
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e($j->statusLabel()); ?></span></td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    <tr><td colspan="4" class="text-center text-muted py-3">
+                                        Tidak ada pekerjaan CCTV pada <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
+
+                                    </td></tr>
+                                <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="table-responsive table-scroll">
-                <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
-                    <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
-                        <tr>
-                            <th style="width: 22%;">Kode</th>
-                            <th style="width: 43%;">Pekerjaan</th>
-                            <th style="width: 18%;">Teknisi</th>
-                            <th style="width: 17%;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php $__empty_1 = true; $__currentLoopData = $kerjaanHariIniCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <?php
-                            $badgeClass = $j->statusBadgeClass();
-                            $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
-                            $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
-                            if ($belumDiambil) {
-                                $rowClass = 'row-lampu-merah';
-                            } elseif ($belumDikerjakan) {
-                                $rowClass = 'row-lampu';
-                            } else {
-                                $rowClass = 'tugas-sudah-kerja';
-                            }
-                        ?>
-                        <tr class="<?php echo e($rowClass); ?>">
-                            <td>
-                                <?php if($belumDikerjakan || $belumDiambil): ?>
-                                    <span class="lampu-indicator"></span>
+
+            
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header" id="headingKemarinCctv">
+                    <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#collapseKemarinCctv" aria-expanded="false" aria-controls="collapseKemarinCctv">
+                        <i class="bi bi-calendar-check text-secondary me-2"></i>
+                        <?php echo e($tanggalObj->copy()->subDay()->translatedFormat('d F Y')); ?>
+
+                        <span class="badge bg-secondary ms-2"><?php echo e($kerjaanKemarinCctv->count()); ?></span>
+                    </button>
+                </h2>
+                <div id="collapseKemarinCctv" class="accordion-collapse collapse" 
+                     aria-labelledby="headingKemarinCctv" data-bs-parent="#accordionCctv">
+                    <div class="accordion-body p-0">
+                        <div class="table-responsive table-scroll">
+                            <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
+                                <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
+                                    <tr>
+                                        <th style="width: 22%;">Kode</th>
+                                        <th style="width: 43%;">Pekerjaan</th>
+                                        <th style="width: 18%;">Teknisi</th>
+                                        <th style="width: 17%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <?php $__empty_1 = true; $__currentLoopData = $kerjaanKemarinCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php
+                                        $badgeClass = $j->statusBadgeClass();
+                                        $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                                        $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                                        
+                                        if ($belumDiambil) {
+                                            $rowClass = 'row-lampu-merah';
+                                        } elseif ($belumDikerjakan) {
+                                            $rowClass = 'row-lampu';
+                                        } else {
+                                            $rowClass = 'tugas-sudah-kerja';
+                                        }
+                                    ?>
+                                    <tr class="<?php echo e($rowClass); ?>">
+                                        <td>
+                                            <?php if($belumDikerjakan || $belumDiambil): ?>
+                                                <span class="lampu-indicator"></span>
+                                            <?php endif; ?>
+                                            <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold"><?php echo e($j->judul); ?></div>
+                                            <small class="text-muted" style="font-size: .7rem;">
+                                                <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
+
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <?php $penyelesai = $j->penyelesai(); ?>
+                                            <?php if($j->status === 'SELESAI' && $penyelesai): ?>
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
+
+                                                </span>
+                                            <?php elseif($j->teknisi): ?>
+                                                <span class="badge bg-info text-dark">
+                                                    <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
+
+                                                </span>
+                                            <?php elseif($j->status === 'DIKERJAKAN'): ?>
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-tools"></i> Sedang dikerjakan
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge bg-danger badge-belum-diambil">
+                                                    <i class="bi bi-exclamation-triangle"></i> Belum diambil
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><span class="badge <?php echo e($j->statusBadgeClass()); ?>"><?php echo e($j->statusLabel()); ?></span></td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan CCTV</td></tr>
                                 <?php endif; ?>
-                                <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
-                            </td>
-                            <td>
-                                <div class="fw-semibold"><?php echo e($j->judul); ?></div>
-                                <small class="text-muted" style="font-size: .7rem;">
-                                    <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
-
-                                </small>
-                            </td>
-                            <td>
-                                <?php $penyelesai = $j->penyelesai(); ?>
-                                <?php if($j->status === 'SELESAI'): ?>
-                                    <?php if($penyelesai): ?>
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
-
-                                        </span>
-                                    <?php else: ?>
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> Selesai
-                                        </span>
-                                    <?php endif; ?>
-                                <?php elseif($j->teknisi): ?>
-                                    <span class="badge bg-info text-dark">
-                                        <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
-
-                                    </span>
-                                <?php elseif($j->status === 'DIKERJAKAN'): ?>
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="bi bi-tools"></i> Sedang dikerjakan
-                                    </span>
-                                <?php else: ?>
-                                    <span class="badge bg-danger badge-belum-diambil">
-                                        <i class="bi bi-exclamation-triangle"></i> Belum diambil
-                                    </span>
-                                <?php endif; ?>
-                            </td>
-                            <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e($j->statusLabel()); ?></span></td>
-                        </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr><td colspan="4" class="text-center text-muted py-3">
-                            Tidak ada pekerjaan CCTV pada <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
-
-                        </td></tr>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">
-                    <i class="bi bi-calendar-check"></i>
-                    <?php echo e($tanggalObj->copy()->subDay()->translatedFormat('d F Y')); ?>
-
-                </h6>
-                <span class="badge bg-secondary"><?php echo e($kerjaanKemarinCctv->count()); ?></span>
-            </div>
-            <div class="table-responsive table-scroll">
-                <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
-                    <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
-                        <tr>
-                            <th style="width: 22%;">Kode</th>
-                            <th style="width: 43%;">Pekerjaan</th>
-                            <th style="width: 18%;">Teknisi</th>
-                            <th style="width: 17%;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php $__empty_1 = true; $__currentLoopData = $kerjaanKemarinCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <?php
-                            $badgeClass = $j->statusBadgeClass();
-                            $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
-                            $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
-                            
-                            // LOGIKA BARU: Terapkan class kelap-kelip jika belum selesai
-                            if ($belumDiambil) {
-                                $rowClass = 'row-lampu-merah';
-                            } elseif ($belumDikerjakan) {
-                                $rowClass = 'row-lampu';
-                            } else {
-                                $rowClass = 'tugas-sudah-kerja';
-                            }
-                        ?>
-                        <tr class="<?php echo e($rowClass); ?>">
-                            <td>
-                                <?php if($belumDikerjakan || $belumDiambil): ?>
-                                    <span class="lampu-indicator"></span>
-                                <?php endif; ?>
-                                <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
-                            </td>
-                            <td>
-                                <div class="fw-semibold"><?php echo e($j->judul); ?></div>
-                                <small class="text-muted" style="font-size: .7rem;">
-                                    <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
-
-                                </small>
-                            </td>
-                            <td>
-                                <?php $penyelesai = $j->penyelesai(); ?>
-                                <?php if($j->status === 'SELESAI' && $penyelesai): ?>
-                                    <span class="badge bg-success">
-                                        <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
-
-                                    </span>
-                                <?php elseif($j->teknisi): ?>
-                                    <span class="badge bg-info text-dark">
-                                        <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
-
-                                    </span>
-                                <?php elseif($j->status === 'DIKERJAKAN'): ?>
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="bi bi-tools"></i> Sedang dikerjakan
-                                    </span>
-                                <?php else: ?>
-                                    <span class="badge bg-danger badge-belum-diambil">
-                                        <i class="bi bi-exclamation-triangle"></i> Belum diambil
-                                    </span>
-                                <?php endif; ?>
-                            </td>
-                            <td><span class="badge <?php echo e($j->statusBadgeClass()); ?>"><?php echo e($j->statusLabel()); ?></span></td>
-                        </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan CCTV</td></tr>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

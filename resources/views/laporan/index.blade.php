@@ -52,13 +52,11 @@
             </div>
             @endif
 
-            {{-- 🆕 Filter Tanggal Mulai --}}
             <div class="col-md-2">
                 <label class="form-label fw-semibold">📅 Dari Tanggal</label>
                 <input type="date" name="tanggal_mulai" class="form-control" value="{{ $tanggalMulai ?? '' }}">
             </div>
 
-            {{-- 🆕 Filter Tanggal Akhir --}}
             <div class="col-md-2">
                 <label class="form-label fw-semibold">📅 Sampai Tanggal</label>
                 <input type="date" name="tanggal_akhir" class="form-control" value="{{ $tanggalAkhir ?? '' }}">
@@ -79,7 +77,7 @@
 </div>
 
 {{-- INFO PERIODE --}}
-<div class="alert alert-info d-flex align-items-center mb-3">
+<div class="alert alert-info d-flex align-items-center mb-4">
     <i class="bi bi-info-circle-fill me-2" style="font-size: 1.3rem;"></i>
     <div>
         <strong>Periode:</strong>
@@ -102,34 +100,6 @@
         @if(request('bidang'))
             · Bidang: <strong>{{ ucfirst(request('bidang')) }}</strong>
         @endif
-    </div>
-</div>
-
-{{-- STATISTIK --}}
-<div class="row g-3 mb-4">
-    <div class="col-md-3 col-6">
-        <div class="card text-bg-primary shadow-sm p-3">
-            <small>Total</small>
-            <h3 class="mb-0">{{ $stats['total'] }}</h3>
-        </div>
-    </div>
-    <div class="col-md-3 col-6">
-        <div class="card text-bg-secondary shadow-sm p-3">
-            <small>Ditugaskan</small>
-            <h3 class="mb-0">{{ $stats['ditugaskan'] }}</h3>
-        </div>
-    </div>
-    <div class="col-md-3 col-6">
-        <div class="card text-bg-warning shadow-sm p-3">
-            <small>Dikerjakan</small>
-            <h3 class="mb-0">{{ $stats['dikerjakan'] }}</h3>
-        </div>
-    </div>
-    <div class="col-md-3 col-6">
-        <div class="card text-bg-success shadow-sm p-3">
-            <small>Selesai</small>
-            <h3 class="mb-0">{{ $stats['selesai'] }}</h3>
-        </div>
     </div>
 </div>
 
@@ -218,84 +188,131 @@
 </div>
 @endif
 
-{{-- DETAIL PEKERJAAN (dengan Foto) --}}
+{{-- DETAIL PEKERJAAN (DROPDOWN ACCORDION) --}}
 <div class="card shadow-sm">
     <div class="card-header bg-light d-flex justify-content-between align-items-center">
         <h6 class="mb-0">
             <i class="bi bi-list-task"></i> Detail Pekerjaan ({{ $jobs->count() }})
         </h6>
+        <small class="text-muted">Klik untuk melihat detail</small>
     </div>
-    <div class="card-body">
-    @forelse($jobs as $j)
-        <div class="border rounded p-3 mb-3">
-            <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
-                <div>
-                    <h6 class="mb-1">
-                        <code>{{ $j->kode_job }}</code> — {{ $j->judul }}
-                        <span class="badge {{ $j->bidangBadgeClass() }} ms-1">
-                            <i class="bi {{ $j->bidangIcon() }}"></i> {{ $j->bidangLabel() }}
-                        </span>
-                    </h6>
-                    <p class="mb-1 small text-muted">
-                        <i class="bi bi-person"></i> {{ $j->teknisi->display_name ?? '-' }} ·
-                        <i class="bi bi-calendar"></i> {{ $j->tanggal_tugas?->format('d-m-Y') }} ·
-                        <i class="bi bi-geo-alt"></i> {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}
-                    </p>
-                </div>
-                <div>
-                    @php $badge = match($j->status) {
-                        'DITUGASKAN' => 'bg-secondary',
-                        'DIKERJAKAN' => 'bg-warning text-dark',
-                        'SELESAI'    => 'bg-success',
-                        default      => 'bg-light text-dark',
-                    }; @endphp
-                    <span class="badge {{ $badge }}">{{ $j->status }}</span>
-                </div>
-            </div>
-
-            @if($j->hasil_pekerjaan)
-                <p class="mb-2 small"><strong>Hasil:</strong> {{ $j->hasil_pekerjaan }}</p>
-            @endif
-
-            {{-- FOTO --}}
-            <div class="row g-3 mt-2">
-                <div class="col-md-6">
-                    <div class="small text-muted mb-1"><strong>📷 Foto Sebelum:</strong></div>
-                    <div class="d-flex flex-wrap gap-2">
-                        @if($j->fotoSebelum->count() > 0)
-                            @foreach($j->fotoSebelum as $f)
-                                <a href="{{ asset($f->nama_file) }}" target="_blank">
-                                    <img src="{{ asset($f->nama_file) }}" class="rounded border" style="width: 90px; height: 90px; object-fit: cover;">
-                                </a>
-                            @endforeach
-                        @else
-                            <span class="small text-muted fst-italic">Tidak ada foto</span>
-                        @endif
+    <div class="card-body p-0">
+        @forelse($jobs as $index => $j)
+            <div class="accordion accordion-flush" id="accordionJob{{ $j->id }}">
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header" id="headingJob{{ $j->id }}">
+                        <button class="accordion-button collapsed" type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#collapseJob{{ $j->id }}" 
+                                aria-expanded="false" 
+                                aria-controls="collapseJob{{ $j->id }}">
+                            <div class="d-flex w-100 justify-content-between align-items-center me-3 flex-wrap gap-2">
+                                <div>
+                                    <code class="me-2">{{ $j->kode_job }}</code>
+                                    <strong>{{ $j->judul }}</strong>
+                                    <span class="badge {{ $j->bidangBadgeClass() }} ms-1">
+                                        <i class="bi {{ $j->bidangIcon() }}"></i> {{ $j->bidangLabel() }}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <small class="text-muted d-none d-md-inline">
+                                        <i class="bi bi-person"></i> {{ $j->teknisi->display_name ?? '-' }}
+                                    </small>
+                                    @php $badge = match($j->status) {
+                                        'DITUGASKAN' => 'bg-secondary',
+                                        'DIKERJAKAN' => 'bg-warning text-dark',
+                                        'SELESAI'    => 'bg-success',
+                                        default      => 'bg-light text-dark',
+                                    }; @endphp
+                                    <span class="badge {{ $badge }}">{{ $j->status }}</span>
+                                </div>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapseJob{{ $j->id }}" class="accordion-collapse collapse" 
+                         aria-labelledby="headingJob{{ $j->id }}" 
+                         data-bs-parent="#accordionJob{{ $j->id }}">
+                        <div class="accordion-body bg-light">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <table class="table table-sm table-borderless mb-0">
+                                        <tr>
+                                            <th width="120">Tanggal</th>
+                                            <td>: <i class="bi bi-calendar"></i> {{ $j->tanggal_tugas?->format('d-m-Y') }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Lokasi</th>
+                                            <td>: <i class="bi bi-geo-alt"></i> {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Perangkat</th>
+                                            <td>: {{ $j->computer_name ?? '-' }} ({{ $j->merk ?? '-' }})</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Kategori</th>
+                                            <td>: {{ $j->kategori ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Prioritas</th>
+                                            <td>: {{ $j->prioritas }}</td>
+                                        </tr>
+                                        @if($j->hasil_pekerjaan)
+                                        <tr>
+                                            <th>Hasil</th>
+                                            <td>: {{ $j->hasil_pekerjaan }}</td>
+                                        </tr>
+                                        @endif
+                                        @if($j->catatan)
+                                        <tr>
+                                            <th>Catatan</th>
+                                            <td>: {{ $j->catatan }}</td>
+                                        </tr>
+                                        @endif
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row g-2">
+                                        <div class="col-12">
+                                            <div class="small fw-bold text-muted mb-1">📷 Foto Sebelum:</div>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @if($j->fotoSebelum->count() > 0)
+                                                    @foreach($j->fotoSebelum as $f)
+                                                        <a href="{{ asset($f->nama_file) }}" target="_blank">
+                                                            <img src="{{ asset($f->nama_file) }}" class="rounded border" style="width: 80px; height: 80px; object-fit: cover;">
+                                                        </a>
+                                                    @endforeach
+                                                @else
+                                                    <span class="small text-muted fst-italic">Tidak ada foto</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="small fw-bold text-muted mb-1">📷 Foto Sesudah:</div>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @if($j->fotoSesudah->count() > 0)
+                                                    @foreach($j->fotoSesudah as $f)
+                                                        <a href="{{ asset($f->nama_file) }}" target="_blank">
+                                                            <img src="{{ asset($f->nama_file) }}" class="rounded border" style="width: 80px; height: 80px; object-fit: cover;">
+                                                        </a>
+                                                    @endforeach
+                                                @else
+                                                    <span class="small text-muted fst-italic">Tidak ada foto</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="col-md-6">
-                    <div class="small text-muted mb-1"><strong>📷 Foto Sesudah:</strong></div>
-                    <div class="d-flex flex-wrap gap-2">
-                        @if($j->fotoSesudah->count() > 0)
-                            @foreach($j->fotoSesudah as $f)
-                                <a href="{{ asset($f->nama_file) }}" target="_blank">
-                                    <img src="{{ asset($f->nama_file) }}" class="rounded border" style="width: 90px; height: 90px; object-fit: cover;">
-                                </a>
-                            @endforeach
-                        @else
-                            <span class="small text-muted fst-italic">Tidak ada foto</span>
-                        @endif
-                    </div>
-                </div>
             </div>
-        </div>
-    @empty
-        <div class="text-center text-muted py-5">
-            <i class="bi bi-inbox" style="font-size: 3rem; opacity: .3;"></i>
-            <p class="mt-2 mb-0">Belum ada pekerjaan pada periode ini</p>
-        </div>
-    @endforelse
+        @empty
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; opacity: .3;"></i>
+                <p class="mt-2 mb-0">Belum ada pekerjaan pada periode ini</p>
+            </div>
+        @endforelse
     </div>
 </div>
 @endsection

@@ -52,13 +52,11 @@
             </div>
             <?php endif; ?>
 
-            
             <div class="col-md-2">
                 <label class="form-label fw-semibold">📅 Dari Tanggal</label>
                 <input type="date" name="tanggal_mulai" class="form-control" value="<?php echo e($tanggalMulai ?? ''); ?>">
             </div>
 
-            
             <div class="col-md-2">
                 <label class="form-label fw-semibold">📅 Sampai Tanggal</label>
                 <input type="date" name="tanggal_akhir" class="form-control" value="<?php echo e($tanggalAkhir ?? ''); ?>">
@@ -79,7 +77,7 @@
 </div>
 
 
-<div class="alert alert-info d-flex align-items-center mb-3">
+<div class="alert alert-info d-flex align-items-center mb-4">
     <i class="bi bi-info-circle-fill me-2" style="font-size: 1.3rem;"></i>
     <div>
         <strong>Periode:</strong>
@@ -106,34 +104,6 @@
         <?php if(request('bidang')): ?>
             · Bidang: <strong><?php echo e(ucfirst(request('bidang'))); ?></strong>
         <?php endif; ?>
-    </div>
-</div>
-
-
-<div class="row g-3 mb-4">
-    <div class="col-md-3 col-6">
-        <div class="card text-bg-primary shadow-sm p-3">
-            <small>Total</small>
-            <h3 class="mb-0"><?php echo e($stats['total']); ?></h3>
-        </div>
-    </div>
-    <div class="col-md-3 col-6">
-        <div class="card text-bg-secondary shadow-sm p-3">
-            <small>Ditugaskan</small>
-            <h3 class="mb-0"><?php echo e($stats['ditugaskan']); ?></h3>
-        </div>
-    </div>
-    <div class="col-md-3 col-6">
-        <div class="card text-bg-warning shadow-sm p-3">
-            <small>Dikerjakan</small>
-            <h3 class="mb-0"><?php echo e($stats['dikerjakan']); ?></h3>
-        </div>
-    </div>
-    <div class="col-md-3 col-6">
-        <div class="card text-bg-success shadow-sm p-3">
-            <small>Selesai</small>
-            <h3 class="mb-0"><?php echo e($stats['selesai']); ?></h3>
-        </div>
     </div>
 </div>
 
@@ -232,81 +202,127 @@
         <h6 class="mb-0">
             <i class="bi bi-list-task"></i> Detail Pekerjaan (<?php echo e($jobs->count()); ?>)
         </h6>
+        <small class="text-muted">Klik untuk melihat detail</small>
     </div>
-    <div class="card-body">
-    <?php $__empty_1 = true; $__currentLoopData = $jobs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-        <div class="border rounded p-3 mb-3">
-            <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
-                <div>
-                    <h6 class="mb-1">
-                        <code><?php echo e($j->kode_job); ?></code> — <?php echo e($j->judul); ?>
+    <div class="card-body p-0">
+        <?php $__empty_1 = true; $__currentLoopData = $jobs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <div class="accordion accordion-flush" id="accordionJob<?php echo e($j->id); ?>">
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header" id="headingJob<?php echo e($j->id); ?>">
+                        <button class="accordion-button collapsed" type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#collapseJob<?php echo e($j->id); ?>" 
+                                aria-expanded="false" 
+                                aria-controls="collapseJob<?php echo e($j->id); ?>">
+                            <div class="d-flex w-100 justify-content-between align-items-center me-3 flex-wrap gap-2">
+                                <div>
+                                    <code class="me-2"><?php echo e($j->kode_job); ?></code>
+                                    <strong><?php echo e($j->judul); ?></strong>
+                                    <span class="badge <?php echo e($j->bidangBadgeClass()); ?> ms-1">
+                                        <i class="bi <?php echo e($j->bidangIcon()); ?>"></i> <?php echo e($j->bidangLabel()); ?>
 
-                        <span class="badge <?php echo e($j->bidangBadgeClass()); ?> ms-1">
-                            <i class="bi <?php echo e($j->bidangIcon()); ?>"></i> <?php echo e($j->bidangLabel()); ?>
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <small class="text-muted d-none d-md-inline">
+                                        <i class="bi bi-person"></i> <?php echo e($j->teknisi->display_name ?? '-'); ?>
 
-                        </span>
-                    </h6>
-                    <p class="mb-1 small text-muted">
-                        <i class="bi bi-person"></i> <?php echo e($j->teknisi->display_name ?? '-'); ?> ·
-                        <i class="bi bi-calendar"></i> <?php echo e($j->tanggal_tugas?->format('d-m-Y')); ?> ·
-                        <i class="bi bi-geo-alt"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
-
-                    </p>
-                </div>
-                <div>
-                    <?php $badge = match($j->status) {
-                        'DITUGASKAN' => 'bg-secondary',
-                        'DIKERJAKAN' => 'bg-warning text-dark',
-                        'SELESAI'    => 'bg-success',
-                        default      => 'bg-light text-dark',
-                    }; ?>
-                    <span class="badge <?php echo e($badge); ?>"><?php echo e($j->status); ?></span>
-                </div>
-            </div>
-
-            <?php if($j->hasil_pekerjaan): ?>
-                <p class="mb-2 small"><strong>Hasil:</strong> <?php echo e($j->hasil_pekerjaan); ?></p>
-            <?php endif; ?>
-
-            
-            <div class="row g-3 mt-2">
-                <div class="col-md-6">
-                    <div class="small text-muted mb-1"><strong>📷 Foto Sebelum:</strong></div>
-                    <div class="d-flex flex-wrap gap-2">
-                        <?php if($j->fotoSebelum->count() > 0): ?>
-                            <?php $__currentLoopData = $j->fotoSebelum; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $f): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <a href="<?php echo e(asset($f->nama_file)); ?>" target="_blank">
-                                    <img src="<?php echo e(asset($f->nama_file)); ?>" class="rounded border" style="width: 90px; height: 90px; object-fit: cover;">
-                                </a>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        <?php else: ?>
-                            <span class="small text-muted fst-italic">Tidak ada foto</span>
-                        <?php endif; ?>
+                                    </small>
+                                    <?php $badge = match($j->status) {
+                                        'DITUGASKAN' => 'bg-secondary',
+                                        'DIKERJAKAN' => 'bg-warning text-dark',
+                                        'SELESAI'    => 'bg-success',
+                                        default      => 'bg-light text-dark',
+                                    }; ?>
+                                    <span class="badge <?php echo e($badge); ?>"><?php echo e($j->status); ?></span>
+                                </div>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapseJob<?php echo e($j->id); ?>" class="accordion-collapse collapse" 
+                         aria-labelledby="headingJob<?php echo e($j->id); ?>" 
+                         data-bs-parent="#accordionJob<?php echo e($j->id); ?>">
+                        <div class="accordion-body bg-light">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <table class="table table-sm table-borderless mb-0">
+                                        <tr>
+                                            <th width="120">Tanggal</th>
+                                            <td>: <i class="bi bi-calendar"></i> <?php echo e($j->tanggal_tugas?->format('d-m-Y')); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Lokasi</th>
+                                            <td>: <i class="bi bi-geo-alt"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Perangkat</th>
+                                            <td>: <?php echo e($j->computer_name ?? '-'); ?> (<?php echo e($j->merk ?? '-'); ?>)</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Kategori</th>
+                                            <td>: <?php echo e($j->kategori ?? '-'); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Prioritas</th>
+                                            <td>: <?php echo e($j->prioritas); ?></td>
+                                        </tr>
+                                        <?php if($j->hasil_pekerjaan): ?>
+                                        <tr>
+                                            <th>Hasil</th>
+                                            <td>: <?php echo e($j->hasil_pekerjaan); ?></td>
+                                        </tr>
+                                        <?php endif; ?>
+                                        <?php if($j->catatan): ?>
+                                        <tr>
+                                            <th>Catatan</th>
+                                            <td>: <?php echo e($j->catatan); ?></td>
+                                        </tr>
+                                        <?php endif; ?>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row g-2">
+                                        <div class="col-12">
+                                            <div class="small fw-bold text-muted mb-1">📷 Foto Sebelum:</div>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <?php if($j->fotoSebelum->count() > 0): ?>
+                                                    <?php $__currentLoopData = $j->fotoSebelum; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $f): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <a href="<?php echo e(asset($f->nama_file)); ?>" target="_blank">
+                                                            <img src="<?php echo e(asset($f->nama_file)); ?>" class="rounded border" style="width: 80px; height: 80px; object-fit: cover;">
+                                                        </a>
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                <?php else: ?>
+                                                    <span class="small text-muted fst-italic">Tidak ada foto</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="small fw-bold text-muted mb-1">📷 Foto Sesudah:</div>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <?php if($j->fotoSesudah->count() > 0): ?>
+                                                    <?php $__currentLoopData = $j->fotoSesudah; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $f): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <a href="<?php echo e(asset($f->nama_file)); ?>" target="_blank">
+                                                            <img src="<?php echo e(asset($f->nama_file)); ?>" class="rounded border" style="width: 80px; height: 80px; object-fit: cover;">
+                                                        </a>
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                <?php else: ?>
+                                                    <span class="small text-muted fst-italic">Tidak ada foto</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="col-md-6">
-                    <div class="small text-muted mb-1"><strong>📷 Foto Sesudah:</strong></div>
-                    <div class="d-flex flex-wrap gap-2">
-                        <?php if($j->fotoSesudah->count() > 0): ?>
-                            <?php $__currentLoopData = $j->fotoSesudah; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $f): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <a href="<?php echo e(asset($f->nama_file)); ?>" target="_blank">
-                                    <img src="<?php echo e(asset($f->nama_file)); ?>" class="rounded border" style="width: 90px; height: 90px; object-fit: cover;">
-                                </a>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        <?php else: ?>
-                            <span class="small text-muted fst-italic">Tidak ada foto</span>
-                        <?php endif; ?>
-                    </div>
-                </div>
             </div>
-        </div>
-    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-        <div class="text-center text-muted py-5">
-            <i class="bi bi-inbox" style="font-size: 3rem; opacity: .3;"></i>
-            <p class="mt-2 mb-0">Belum ada pekerjaan pada periode ini</p>
-        </div>
-    <?php endif; ?>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; opacity: .3;"></i>
+                <p class="mt-2 mb-0">Belum ada pekerjaan pada periode ini</p>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 <?php $__env->stopSection(); ?>
