@@ -8,11 +8,11 @@
         Laporan Pekerjaan
     </h3>
     <div class="d-flex gap-2 flex-wrap">
-        <a href="<?php echo e(route('laporan.excel', ['tahun' => $tahun, 'bulan' => $bulan, 'bidang' => request('bidang')])); ?>"
+        <a href="<?php echo e(route('laporan.excel', request()->query())); ?>"
            class="btn btn-success">
             <i class="bi bi-file-earmark-excel"></i> Export Excel
         </a>
-        <a href="<?php echo e(route('laporan.cetak', ['tahun' => $tahun, 'bulan' => $bulan, 'bidang' => request('bidang')])); ?>"
+        <a href="<?php echo e(route('laporan.cetak', request()->query())); ?>"
            target="_blank" class="btn btn-primary">
             <i class="bi bi-file-earmark-pdf"></i> Cetak PDF
         </a>
@@ -52,10 +52,27 @@
             </div>
             <?php endif; ?>
 
-            <div class="col-md-3">
+            
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">📅 Dari Tanggal</label>
+                <input type="date" name="tanggal_mulai" class="form-control" value="<?php echo e($tanggalMulai ?? ''); ?>">
+            </div>
+
+            
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">📅 Sampai Tanggal</label>
+                <input type="date" name="tanggal_akhir" class="form-control" value="<?php echo e($tanggalAkhir ?? ''); ?>">
+            </div>
+
+            <div class="col-md-2">
                 <button class="btn btn-primary w-100">
                     <i class="bi bi-search"></i> Tampilkan
                 </button>
+            </div>
+            <div class="col-md-2">
+                <a href="<?php echo e(route('laporan.index')); ?>" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-clockwise"></i> Reset
+                </a>
             </div>
         </form>
     </div>
@@ -66,11 +83,25 @@
     <i class="bi bi-info-circle-fill me-2" style="font-size: 1.3rem;"></i>
     <div>
         <strong>Periode:</strong>
-        <?php if($bulan && $bulan !== 'semua'): ?>
-            <?php echo e($daftarBulan[$bulan]); ?> <?php echo e($tahun); ?>
+        <?php if($tanggalMulai || $tanggalAkhir): ?>
+            <?php if($tanggalMulai && $tanggalAkhir): ?>
+                <?php echo e(\Carbon\Carbon::parse($tanggalMulai)->format('d M Y')); ?> s/d <?php echo e(\Carbon\Carbon::parse($tanggalAkhir)->format('d M Y')); ?>
 
+            <?php elseif($tanggalMulai): ?>
+                Sejak <?php echo e(\Carbon\Carbon::parse($tanggalMulai)->format('d M Y')); ?>
+
+            <?php elseif($tanggalAkhir): ?>
+                Sampai <?php echo e(\Carbon\Carbon::parse($tanggalAkhir)->format('d M Y')); ?>
+
+            <?php endif; ?>
+            <span class="badge bg-warning text-dark ms-1">Filter Tanggal Aktif</span>
         <?php else: ?>
-            Seluruh Tahun <?php echo e($tahun); ?> (Januari - Desember)
+            <?php if($bulan && $bulan !== 'semua'): ?>
+                <?php echo e($daftarBulan[$bulan]); ?> <?php echo e($tahun); ?>
+
+            <?php else: ?>
+                Seluruh Tahun <?php echo e($tahun); ?> (Januari - Desember)
+            <?php endif; ?>
         <?php endif; ?>
         <?php if(request('bidang')): ?>
             · Bidang: <strong><?php echo e(ucfirst(request('bidang'))); ?></strong>

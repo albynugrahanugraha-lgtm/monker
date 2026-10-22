@@ -155,47 +155,10 @@
             flex: 1;
             padding: 6px 8px;
             display: grid;
-            grid-template-rows: auto 1fr;
+            grid-template-rows: 1fr; 
             gap: 6px;
             overflow: hidden;
             min-height: 0;
-        }
-
-        /* STATS */
-        .stats-total {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-        }
-        .stat-card {
-            border-radius: 6px;
-            color: white;
-            padding: 6px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            min-height: 48px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.08);
-            position: relative;
-            overflow: hidden;
-        }
-        .stat-card .icon-bg {
-            position: absolute;
-            right: -5px;
-            bottom: -10px;
-            font-size: 2rem;
-            opacity: 0.15;
-        }
-        .stat-card small {
-            font-size: .62rem;
-            opacity: 0.9;
-            display: block;
-        }
-        .stat-card h3 {
-            margin: 1px 0 0 0;
-            font-size: 1.2rem;
-            font-weight: 700;
-            line-height: 1;
         }
 
         /* 2 KOLOM */
@@ -483,7 +446,6 @@
             .monitor-wrapper { height: auto; }
             .monitor-content { overflow: visible; }
             .two-columns { grid-template-columns: 1fr; }
-            .stats-total { grid-template-columns: 1fr; }
             .table-scroll { max-height: 300px; flex: none; }
             .chart-container { height: 180px; }
         }
@@ -628,31 +590,6 @@
 
     {{-- CONTENT --}}
     <div class="monitor-content">
-
-        {{-- STATISTIK GABUNGAN --}}
-        <div class="stats-total">
-            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <i class="bi bi-calendar-day icon-bg"></i>
-                <div>
-                    <small>📥 Total Tugas Hari Ini</small>
-                    <h3 id="totalTugas">0</h3>
-                </div>
-            </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                <i class="bi bi-check-circle icon-bg"></i>
-                <div>
-                    <small>✅ Sudah Dikerjakan</small>
-                    <h3 id="tugasSelesai">0</h3>
-                </div>
-            </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                <i class="bi bi-hourglass-split icon-bg"></i>
-                <div>
-                    <small>⏳ Belum Dikerjakan</small>
-                    <h3 id="tugasBelum">0</h3>
-                </div>
-            </div>
-        </div>
 
         {{-- 2 KOLOM --}}
         <div class="two-columns">
@@ -1144,10 +1081,6 @@
             const response = await fetch(url);
             const data = await response.json();
 
-            document.getElementById('totalTugas').textContent = data.hariIni.total;
-            document.getElementById('tugasSelesai').textContent = data.hariIni.selesai;
-            document.getElementById('tugasBelum').textContent = data.hariIni.belum;
-
             document.getElementById('kmptTotal').textContent = data.statsKomputer.total;
             document.getElementById('kmptSelesai').textContent = data.statsKomputer.selesai;
             document.getElementById('kmptBelum').textContent = data.statsKomputer.belum;
@@ -1172,7 +1105,7 @@
             document.getElementById('periodeLabelKomputer').textContent = data.labelKomputer;
             document.getElementById('periodeLabelCctv').textContent = data.labelCctv;
 
-            const currentJobCount = data.hariIni.total;
+            const currentJobCount = data.hariIni ? data.hariIni.total : 0;
             if (!isFirstLoad && currentJobCount > lastJobCount && audioUnlocked) {
                 playBeep();
                 setTimeout(playBeep, 500);
@@ -1198,6 +1131,9 @@
         }
     }
 
+    // ============================================================
+    // RENDER TABEL (DENGAN PENGURUTAN PRIORITAS)
+    // ============================================================
     function renderTable(tbodyId, jobs) {
         const tbody = document.getElementById(tbodyId);
         if (!tbody) return;
@@ -1207,7 +1143,19 @@
             return;
         }
 
-        tbody.innerHTML = jobs.map(j => {
+        // LOGIKA SORTING: 
+        // Tugas yang BELUM selesai (DITUGASKAN / DIKERJAKAN) ditaruh di atas.
+        // Tugas yang SELESAI ditaruh di bawah.
+        const sortedJobs = [...jobs].sort((a, b) => {
+            const aIsPending = (a.status === 'DITUGASKAN' || a.status === 'DIKERJAKAN');
+            const bIsPending = (b.status === 'DITUGASKAN' || b.status === 'DIKERJAKAN');
+            
+            if (aIsPending && !bIsPending) return -1; // a di atas b
+            if (!aIsPending && bIsPending) return 1;  // b di atas a
+            return 0; // urutan tetap jika status sama
+        });
+
+        tbody.innerHTML = sortedJobs.map(j => {
             const badgeClass = {
                 'DITUGASKAN': 'bg-secondary',
                 'DIKERJAKAN': 'bg-warning text-dark',

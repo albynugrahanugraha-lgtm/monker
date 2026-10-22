@@ -8,11 +8,11 @@
         Laporan Pekerjaan
     </h3>
     <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('laporan.excel', ['tahun' => $tahun, 'bulan' => $bulan, 'bidang' => request('bidang')]) }}"
+        <a href="{{ route('laporan.excel', request()->query()) }}"
            class="btn btn-success">
             <i class="bi bi-file-earmark-excel"></i> Export Excel
         </a>
-        <a href="{{ route('laporan.cetak', ['tahun' => $tahun, 'bulan' => $bulan, 'bidang' => request('bidang')]) }}"
+        <a href="{{ route('laporan.cetak', request()->query()) }}"
            target="_blank" class="btn btn-primary">
             <i class="bi bi-file-earmark-pdf"></i> Cetak PDF
         </a>
@@ -52,10 +52,27 @@
             </div>
             @endif
 
-            <div class="col-md-3">
+            {{-- 🆕 Filter Tanggal Mulai --}}
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">📅 Dari Tanggal</label>
+                <input type="date" name="tanggal_mulai" class="form-control" value="{{ $tanggalMulai ?? '' }}">
+            </div>
+
+            {{-- 🆕 Filter Tanggal Akhir --}}
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">📅 Sampai Tanggal</label>
+                <input type="date" name="tanggal_akhir" class="form-control" value="{{ $tanggalAkhir ?? '' }}">
+            </div>
+
+            <div class="col-md-2">
                 <button class="btn btn-primary w-100">
                     <i class="bi bi-search"></i> Tampilkan
                 </button>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ route('laporan.index') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-clockwise"></i> Reset
+                </a>
             </div>
         </form>
     </div>
@@ -66,10 +83,21 @@
     <i class="bi bi-info-circle-fill me-2" style="font-size: 1.3rem;"></i>
     <div>
         <strong>Periode:</strong>
-        @if($bulan && $bulan !== 'semua')
-            {{ $daftarBulan[$bulan] }} {{ $tahun }}
+        @if($tanggalMulai || $tanggalAkhir)
+            @if($tanggalMulai && $tanggalAkhir)
+                {{ \Carbon\Carbon::parse($tanggalMulai)->format('d M Y') }} s/d {{ \Carbon\Carbon::parse($tanggalAkhir)->format('d M Y') }}
+            @elseif($tanggalMulai)
+                Sejak {{ \Carbon\Carbon::parse($tanggalMulai)->format('d M Y') }}
+            @elseif($tanggalAkhir)
+                Sampai {{ \Carbon\Carbon::parse($tanggalAkhir)->format('d M Y') }}
+            @endif
+            <span class="badge bg-warning text-dark ms-1">Filter Tanggal Aktif</span>
         @else
-            Seluruh Tahun {{ $tahun }} (Januari - Desember)
+            @if($bulan && $bulan !== 'semua')
+                {{ $daftarBulan[$bulan] }} {{ $tahun }}
+            @else
+                Seluruh Tahun {{ $tahun }} (Januari - Desember)
+            @endif
         @endif
         @if(request('bidang'))
             · Bidang: <strong>{{ ucfirst(request('bidang')) }}</strong>

@@ -32,98 +32,19 @@
     /* ============================================
        RIWAYAT SELESAI — TABEL
        ============================================ */
-    .table-riwayat {
-        font-size: .82rem;
-        margin-bottom: 0;
-    }
-
-    .table-riwayat thead th {
-        background: #f8f9fa;
-        color: #495057;
-        font-weight: 600;
-        font-size: .72rem;
-        text-transform: uppercase;
-        letter-spacing: .3px;
-        padding: 8px 10px;
-        white-space: nowrap;
-        border-bottom: 2px solid #dee2e6;
-    }
-
-    .table-riwayat tbody tr {
-        cursor: pointer;
-        transition: all 0.15s ease;
-        border-left: 3px solid transparent;
-    }
-
-    .table-riwayat tbody tr:hover {
-        background: #e8f5e9 !important;
-        border-left-color: #198754;
-    }
-
-    .table-riwayat tbody tr:hover .arrow-riwayat {
-        transform: translateX(4px);
-        color: #0d6efd;
-    }
-
-    .table-riwayat tbody td {
-        padding: 10px;
-        vertical-align: middle;
-        border-bottom: 1px solid #f0f0f0;
-    }
-
-    .table-riwayat .judul-riwayat {
-        color: #212529;
-        font-weight: 600;
-        font-size: .85rem;
-        margin-bottom: 2px;
-        line-height: 1.3;
-    }
-
-    .table-riwayat .kode-riwayat {
-        color: #6c757d;
-        font-size: .7rem;
-        font-family: 'Courier New', monospace;
-        background: #f1f3f5;
-        padding: 2px 6px;
-        border-radius: 3px;
-        display: inline-block;
-    }
-
-    .table-riwayat .meta-riwayat {
-        color: #6c757d;
-        font-size: .72rem;
-        margin-top: 3px;
-    }
-
-    .table-riwayat .meta-riwayat i {
-        color: #6c757d;
-        margin-right: 2px;
-    }
-
-    .table-riwayat .badge-selesai-riwayat {
-        background: #198754;
-        color: white;
-        font-size: .62rem;
-        padding: 3px 8px;
-        border-radius: 10px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-    }
-
-    .table-riwayat .waktu-riwayat {
-        color: #6c757d;
-        font-size: .7rem;
-        font-family: 'Courier New', monospace;
-        white-space: nowrap;
-    }
-
-    .table-riwayat .arrow-riwayat {
-        color: #adb5bd;
-        font-size: 1.1rem;
-        transition: transform 0.15s, color 0.15s;
-    }
+    .table-riwayat { font-size: .82rem; margin-bottom: 0; }
+    .table-riwayat thead th { background: #f8f9fa; color: #495057; font-weight: 600; font-size: .72rem; text-transform: uppercase; letter-spacing: .3px; padding: 8px 10px; white-space: nowrap; border-bottom: 2px solid #dee2e6; }
+    .table-riwayat tbody tr { cursor: pointer; transition: all 0.15s ease; border-left: 3px solid transparent; }
+    .table-riwayat tbody tr:hover { background: #e8f5e9 !important; border-left-color: #198754; }
+    .table-riwayat tbody tr:hover .arrow-riwayat { transform: translateX(4px); color: #0d6efd; }
+    .table-riwayat tbody td { padding: 10px; vertical-align: middle; border-bottom: 1px solid #f0f0f0; }
+    .table-riwayat .judul-riwayat { color: #212529; font-weight: 600; font-size: .85rem; margin-bottom: 2px; line-height: 1.3; }
+    .table-riwayat .kode-riwayat { color: #6c757d; font-size: .7rem; font-family: 'Courier New', monospace; background: #f1f3f5; padding: 2px 6px; border-radius: 3px; display: inline-block; }
+    .table-riwayat .meta-riwayat { color: #6c757d; font-size: .72rem; margin-top: 3px; }
+    .table-riwayat .meta-riwayat i { color: #6c757d; margin-right: 2px; }
+    .table-riwayat .badge-selesai-riwayat { background: #198754; color: white; font-size: .62rem; padding: 3px 8px; border-radius: 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
+    .table-riwayat .waktu-riwayat { color: #6c757d; font-size: .7rem; font-family: 'Courier New', monospace; white-space: nowrap; }
+    .table-riwayat .arrow-riwayat { color: #adb5bd; font-size: 1.1rem; transition: transform 0.15s, color 0.15s; }
 
     .modal-content { border: none; border-radius: 12px; }
     .modal-header { border-radius: 12px 12px 0 0; padding: 12px 16px; }
@@ -137,6 +58,7 @@
 
 @section('content')
 
+{{-- HEADER --}}
 <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
     <div>
         <h5 class="mb-0 fw-bold">
@@ -150,37 +72,35 @@
     </a>
 </div>
 
-<div class="row g-2 g-md-3 mb-3">
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-            <div class="card-body p-2 p-md-3">
-                <small style="opacity: 0.9; font-size: .7rem;">📥 Total Tugas Hari Ini</small>
-                <h3 class="mb-0 fw-bold mt-1">{{ $hariIni['total'] }}</h3>
+{{-- 3 KOTAK STATISTIK (RINGKASAN BULAN INI) --}}
+<div class="row g-2 mb-3">
+    <div class="col-6 col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <small class="text-muted d-block" style="font-size: .7rem;">📥 Total Tugas (Bulan Ini)</small>
+                    <h5 class="mb-0 fw-bold">{{ $hariIni['total'] }}</h5>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
-            <div class="card-body p-2 p-md-3">
-                <small style="opacity: 0.9; font-size: .7rem;">✅ Sudah Dikerjakan</small>
-                <h3 class="mb-0 fw-bold mt-1">{{ $hariIni['selesai'] }}</h3>
+    <div class="col-6 col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <small class="text-muted d-block" style="font-size: .7rem;">✅ Sudah Dikerjakan</small>
+                    <h5 class="mb-0 fw-bold text-success">{{ $hariIni['selesai'] }}</h5>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-            <div class="card-body p-2 p-md-3">
-                <small style="opacity: 0.9; font-size: .7rem;">⏳ Belum Dikerjakan</small>
-                <h3 class="mb-0 fw-bold mt-1">{{ $hariIni['belum'] }}</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: white;">
-            <div class="card-body p-2 p-md-3">
-                <small style="opacity: 0.9; font-size: .7rem;">🏆 Statistik Saya</small>
-                <h3 class="mb-0 fw-bold mt-1">{{ $myStats['selesai_bulan'] }}</h3>
-                <small style="opacity: 0.9; font-size: .65rem;">dari {{ $myStats['total_bulan'] }} tugas</small>
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <small class="text-muted d-block" style="font-size: .7rem;">⏳ Belum Dikerjakan</small>
+                    <h5 class="mb-0 fw-bold text-danger">{{ $hariIni['belum'] }}</h5>
+                </div>
             </div>
         </div>
     </div>
@@ -230,6 +150,29 @@
                 $rowClass = 'row-clickable';
                 if ($isBelum) $rowClass .= ' row-belum-dikerjakan';
                 if ($isProses) $rowClass .= ' row-dikerjakan';
+
+                // LOGIKA KETERANGAN TANGGAL
+                $tglTugas = $j->tanggal_tugas;
+                $tglHariIni = \Carbon\Carbon::today();
+                $keteranganTanggal = '';
+                $badgeTanggalClass = '';
+
+                if ($tglTugas) {
+                    if ($tglTugas->isToday()) {
+                        $keteranganTanggal = 'Hari Ini';
+                        $badgeTanggalClass = 'bg-success';
+                    } elseif ($tglTugas->isYesterday()) {
+                        $keteranganTanggal = 'Kemarin';
+                        $badgeTanggalClass = 'bg-warning text-dark';
+                    } elseif ($tglTugas->isPast()) {
+                        $selisih = (int) $tglTugas->diffInDays($tglHariIni);
+                        $keteranganTanggal = $selisih . ' Hari Lalu';
+                        $badgeTanggalClass = 'bg-danger';
+                    } else {
+                        $keteranganTanggal = $tglTugas->format('d M Y');
+                        $badgeTanggalClass = 'bg-info text-dark';
+                    }
+                }
             @endphp
 
             <tr class="{{ $rowClass }} job-row" data-status="{{ $j->status }}" data-id="{{ $j->id }}">
@@ -248,6 +191,15 @@
                     <small class="text-muted">
                         <i class="bi bi-geo-alt-fill"></i> {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}
                     </small>
+
+                    {{-- KETERANGAN TANGGAL --}}
+                    @if($keteranganTanggal)
+                        <br>
+                        <span class="badge {{ $badgeTanggalClass }} mt-1" style="font-size: .65rem;">
+                            <i class="bi bi-calendar-event"></i> Tugas: {{ $keteranganTanggal }}
+                        </span>
+                    @endif
+
                     <br>
                     <small class="text-muted">
                         <i class="bi bi-pc-display"></i> {{ $j->computer_name ?? '-' }}
@@ -355,19 +307,33 @@
 @endforeach
 
 {{-- ============================================ --}}
-{{-- 🆕 RIWAYAT SELESAI — TABEL YANG BISA DIKLIK --}}
+{{-- RIWAYAT SELESAI -- FILTER PERIODE DI SINI --}}
 {{-- ============================================ --}}
-@if($jobsSelesai->count() > 0)
 <div class="card shadow-sm">
-    <div class="card-header bg-success text-white py-2 d-flex justify-content-between align-items-center">
+    <div class="card-header bg-success text-white py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h6 class="mb-0">
             <i class="bi bi-check-circle-fill"></i> Riwayat Selesai
             <span class="badge bg-light text-success ms-1">{{ $jobsSelesai->count() }}</span>
         </h6>
-        <small style="opacity: .85;">
-            <i class="bi bi-info-circle"></i> Klik baris untuk lihat detail
-        </small>
+
+        {{-- FILTER PERIODE KHUSUS RIWAYAT --}}
+        <form method="GET" action="{{ route($rp . '.dashboard') }}" class="d-flex gap-1 align-items-center mb-0" style="font-size: .75rem;">
+            <span class="me-1 text-white-50 d-none d-sm-inline">Filter:</span>
+            <input type="radio" class="btn-check" name="periode" id="p_harian" value="harian" @checked($periode === 'harian') onchange="this.form.submit()">
+            <label class="btn btn-outline-light btn-sm py-0 px-2" for="p_harian" style="font-size: .7rem;">Harian</label>
+
+            <input type="radio" class="btn-check" name="periode" id="p_mingguan" value="mingguan" @checked($periode === 'mingguan') onchange="this.form.submit()">
+            <label class="btn btn-outline-light btn-sm py-0 px-2" for="p_mingguan" style="font-size: .7rem;">Mingguan</label>
+
+            <input type="radio" class="btn-check" name="periode" id="p_bulanan" value="bulanan" @checked($periode === 'bulanan') onchange="this.form.submit()">
+            <label class="btn btn-outline-light btn-sm py-0 px-2" for="p_bulanan" style="font-size: .7rem;">Bulanan</label>
+
+            <input type="radio" class="btn-check" name="periode" id="p_semua" value="semua" @checked($periode === 'semua') onchange="this.form.submit()">
+            <label class="btn btn-outline-light btn-sm py-0 px-2" for="p_semua" style="font-size: .7rem;">Semua</label>
+        </form>
     </div>
+
+    @if($jobsSelesai->count() > 0)
     <div class="table-responsive">
         <table class="table table-riwayat align-middle">
             <thead>
@@ -382,36 +348,25 @@
             <tbody>
                 @foreach($jobsSelesai as $j)
                     <tr onclick="window.location='{{ route($rp . '.show', $j) }}'">
-                        {{-- Pekerjaan --}}
                         <td>
-                            <div class="judul-riwayat">
-                                {{ $j->judul }}
-                            </div>
+                            <div class="judul-riwayat">{{ $j->judul }}</div>
                             <span class="kode-riwayat">
                                 <i class="bi bi-hash"></i>{{ $j->kode_job }}
                             </span>
                         </td>
-
-                        {{-- Lokasi --}}
                         <td>
                             <div class="meta-riwayat">
-                                <i class="bi bi-geo-alt-fill"></i>
-                                {{ $j->lok_gedung ?? '-' }}
+                                <i class="bi bi-geo-alt-fill"></i> {{ $j->lok_gedung ?? '-' }}
                             </div>
                             <div class="meta-riwayat">
-                                <i class="bi bi-door-open"></i>
-                                {{ $j->lokasi_ruang ?? '-' }}
+                                <i class="bi bi-door-open"></i> {{ $j->lokasi_ruang ?? '-' }}
                             </div>
                         </td>
-
-                        {{-- Status --}}
                         <td class="text-center">
                             <span class="badge-selesai-riwayat">
                                 <i class="bi bi-check-circle-fill"></i> Selesai
                             </span>
                         </td>
-
-                        {{-- Waktu --}}
                         <td>
                             <div class="waktu-riwayat">
                                 <i class="bi bi-calendar-event"></i>
@@ -422,8 +377,6 @@
                                 {{ $j->tanggal_selesai?->format('H:i') ?? '-' }}
                             </div>
                         </td>
-
-                        {{-- Arrow --}}
                         <td class="text-center">
                             <i class="bi bi-chevron-right arrow-riwayat"></i>
                         </td>
@@ -432,8 +385,13 @@
             </tbody>
         </table>
     </div>
+    @else
+    <div class="card-body text-center text-muted py-4">
+        <i class="bi bi-inbox" style="font-size: 2.5rem; opacity: .3;"></i>
+        <p class="mt-2 mb-0">Belum ada riwayat pekerjaan untuk periode ini.</p>
+    </div>
+    @endif
 </div>
-@endif
 
 @endsection
 
@@ -451,7 +409,7 @@
         });
     });
 
-    // Efek blinking untuk row belum dikerjakan
+    // JS Blinking untuk memastikan efek kelap-kelip pasti jalan
     setInterval(function() {
         document.querySelectorAll('tr.row-belum-dikerjakan').forEach(function(row, idx) {
             const offset = idx * 200;

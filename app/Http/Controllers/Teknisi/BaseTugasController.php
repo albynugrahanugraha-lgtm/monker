@@ -24,36 +24,64 @@ abstract class BaseTugasController extends Controller
     }
 
     // ============================================
+    // HELPER — Filter query berdasarkan periode (Untuk Riwayat)
+    // ============================================
+    private function applyPeriode($query, string $periode)
+    {
+        return match($periode) {
+            'harian'   => $query->whereDate('tanggal_tugas', today()),
+            'mingguan' => $query->whereBetween('tanggal_tugas', [
+                            now()->startOfWeek(),
+                            now()->endOfWeek()
+                          ]),
+            'bulanan'  => $query->whereMonth('tanggal_tugas', now()->month)
+                                ->whereYear('tanggal_tugas', now()->year),
+            'semua'    => $query,
+            default    => $query->whereDate('tanggal_tugas', today()),
+        };
+    }
+
+    // ============================================
     // DASHBOARD
     // ============================================
     public function dashboard(Request $request)
     {
-        $user = auth()->user();
+        $user    = auth()->user();
+        $periode = $request->input('periode', 'harian'); // Filter untuk Riwayat Selesai
 
-        // ===== 4 KOTAK DASHBOARD TEKNISI =====
+        // Validasi periode
+        if (!in_array($periode, ['harian', 'mingguan', 'bulanan', 'semua'])) {
+            $periode = 'harian';
+        }
+
+        // ============================================================
+        // 3 KOTAK STATISTIK (SELALU BULAN INI)
+        // ============================================================
         $hariIni = [
             'total'   => Job::where('teknisi_id', $user->id)
                 ->where('bidang', $this->bidang)
-                ->whereDate('tanggal_tugas', today())->count(),
+                ->whereMonth('tanggal_tugas', now()->month)
+                ->whereYear('tanggal_tugas', now()->year)
+                ->count(),
             'selesai' => Job::where('teknisi_id', $user->id)
                 ->where('bidang', $this->bidang)
-                ->whereDate('tanggal_tugas', today())
-                ->where('status', 'SELESAI')->count(),
+                ->whereMonth('tanggal_tugas', now()->month)
+                ->whereYear('tanggal_tugas', now()->year)
+                ->where('status', 'SELESAI')
+                ->count(),
             'belum'   => Job::where('teknisi_id', $user->id)
                 ->where('bidang', $this->bidang)
-                ->whereDate('tanggal_tugas', today())
-                ->where('status', 'DITUGASKAN')->count(),
+                ->whereMonth('tanggal_tugas', now()->month)
+                ->whereYear('tanggal_tugas', now()->year)
+                ->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])
+                ->count(),
         ];
 
         // ============================================================
-        // DAFTAR PEKERJAAN — FILTER BY TANGGAL
-        // Muncul kalau:
-        //   1. Tanggal tugas = HARI INI, atau
-        //   2. Tanggal tugas < HARI INI & status masih aktif (tugas tertinggal)
+        // DAFTAR PEKERJAAN AKTIF (TIDAK TERPENGARUH FILTER PERIODE)
         // ============================================================
         $jobs = Job::with(['photos', 'fotoSebelum', 'fotoSesudah'])
             ->where('bidang', $this->bidang)
-            ->whereDate('tanggal_tugas', '<=', today())   // ✅ FILTER TANGGAL
             ->where(function ($q) use ($user) {
                 $q->where(function ($sub) use ($user) {
                     $sub->where('teknisi_id', $user->id)
@@ -64,38 +92,30 @@ abstract class BaseTugasController extends Controller
                         ->where('status', 'DITUGASKAN');
                 });
             })
-            ->orderBy('tanggal_tugas', 'asc')
+            ->orderBy('tanggal_tugas', 'desc')
             ->latest('created_at')
             ->get();
 
-        // Riwayat selesai — filter bidang (10 terakhir)
-        $jobsSelesai = Job::with(['fotoSebelum', 'fotoSesudah'])
+        // ============================================================
+        // RIWAYAT SELESAI (TERPENGARUH FILTER PERIODE)
+        // ============================================================
+        $jobsSelesaiQuery = Job::with(['fotoSebelum', 'fotoSesudah'])
             ->where('teknisi_id', $user->id)
             ->where('bidang', $this->bidang)
-            ->where('status', 'SELESAI')
+            ->where('status', 'SELESAI');
+
+        $jobsSelesai = $this->applyPeriode($jobsSelesaiQuery, $periode)
             ->latest('tanggal_selesai')
             ->limit(10)
             ->get();
 
-        // Statistik pribadi bulan ini
-        $myStats = [
-            'total_bulan' => Job::where('teknisi_id', $user->id)
-                ->where('bidang', $this->bidang)
-                ->whereMonth('tanggal_tugas', now()->month)
-                ->whereYear('tanggal_tugas', now()->year)
-                ->count(),
-            'selesai_bulan' => Job::where('teknisi_id', $user->id)
-                ->where('bidang', $this->bidang)
-                ->whereMonth('tanggal_tugas', now()->month)
-                ->whereYear('tanggal_tugas', now()->year)
-                ->where('status', 'SELESAI')
-                ->count(),
-        ];
-
         $routePrefix = $this->routePrefix;
         $bidang      = $this->bidang;
 
-        return view('teknisi.dashboard', compact('jobs', 'jobsSelesai', 'hariIni', 'myStats', 'routePrefix', 'bidang'));
+        return view('teknisi.dashboard', compact(
+            'jobs', 'jobsSelesai', 'hariIni',
+            'routePrefix', 'bidang', 'periode'
+        ));
     }
 
     // ============================================

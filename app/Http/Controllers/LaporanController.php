@@ -25,11 +25,24 @@ class LaporanController extends Controller
         $bulan  = $request->input('bulan');
         $bidang = $request->input('bidang');
 
+        // 🆕 Filter Rentang Tanggal
+        $tanggalMulai = $request->input('tanggal_mulai');
+        $tanggalAkhir = $request->input('tanggal_akhir');
+
         $query = Job::query()
             ->whereYear('tanggal_tugas', $tahun);
 
         if ($bulan && $bulan !== 'semua') {
             $query->whereMonth('tanggal_tugas', $bulan);
+        }
+
+        // 🆕 Terapkan filter rentang tanggal kalau diisi
+        if ($tanggalMulai && $tanggalAkhir) {
+            $query->whereBetween('tanggal_tugas', [$tanggalMulai, $tanggalAkhir]);
+        } elseif ($tanggalMulai) {
+            $query->whereDate('tanggal_tugas', '>=', $tanggalMulai);
+        } elseif ($tanggalAkhir) {
+            $query->whereDate('tanggal_tugas', '<=', $tanggalAkhir);
         }
 
         if ($user->isTeknisi()) {
@@ -155,6 +168,10 @@ class LaporanController extends Controller
         $chartTahunan = $this->getChartTahunan($user, $tahun, $request->input('bidang'));
         $chartHarian  = $this->getChartHarian($jobs, $bulan, $tahun);
 
+        // 🆕 Kirim balik variabel filter
+        $tanggalMulai = $request->input('tanggal_mulai');
+        $tanggalAkhir = $request->input('tanggal_akhir');
+
         $tahunList = Job::selectRaw('YEAR(tanggal_tugas) as tahun')
             ->distinct()
             ->whereNotNull('tanggal_tugas')
@@ -168,7 +185,8 @@ class LaporanController extends Controller
 
         return view('laporan.index', compact(
             'jobs', 'stats', 'rekapTeknisi', 'bulan', 'tahun',
-            'daftarBulan', 'chartTahunan', 'chartHarian', 'tahunList'
+            'daftarBulan', 'chartTahunan', 'chartHarian', 'tahunList',
+            'tanggalMulai', 'tanggalAkhir' // 🆕
         ));
     }
 

@@ -11,11 +11,17 @@ use Illuminate\Support\Facades\File;
 class JobController extends Controller
 {
     /**
-     * Dashboard admin dengan filter tanggal
+     * Dashboard admin dengan filter tanggal & periode rating
      */
     public function dashboard(Request $request)
     {
         $tanggal = $request->input('tanggal');
+        $periode = $request->input('periode', 'harian'); // 🆕 default harian
+
+        // Validasi periode
+        if (!in_array($periode, ['harian', 'mingguan', 'bulanan', 'semua'])) {
+            $periode = 'harian';
+        }
 
         try {
             $tanggalObj = $tanggal ? Carbon::parse($tanggal) : today();
@@ -61,11 +67,12 @@ class JobController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $ratingHariIniKomputer = $this->getRatingPerBidang('komputer', $tanggalStr);
-        $ratingHariIniCctv     = $this->getRatingPerBidang('cctv', $tanggalStr);
+        // 🆕 GUNAKAN PERIODE UNTUK RATING & REKAP
+        $ratingHariIniKomputer = $this->getRatingPerBidang('komputer', $periode);
+        $ratingHariIniCctv     = $this->getRatingPerBidang('cctv', $periode);
 
-        $rekapTeknisiKomputer = $this->getRekapPerBidang('komputer');
-        $rekapTeknisiCctv     = $this->getRekapPerBidang('cctv');
+        $rekapTeknisiKomputer = $this->getRekapPerBidang('komputer', $periode);
+        $rekapTeknisiCctv     = $this->getRekapPerBidang('cctv', $periode);
 
         return view('admin.dashboard', compact(
             'hariIni',
@@ -73,7 +80,7 @@ class JobController extends Controller
             'kerjaanKemarinKomputer', 'kerjaanKemarinCctv',
             'ratingHariIniKomputer', 'ratingHariIniCctv',
             'rekapTeknisiKomputer', 'rekapTeknisiCctv',
-            'tanggalObj'
+            'tanggalObj', 'periode' // 🆕 kirim periode ke view
         ));
     }
 
@@ -111,7 +118,6 @@ class JobController extends Controller
                   ->whereYear('tanggal_tugas', now()->year);
         }
 
-        // 🆕 URUT DESC (tanggal terbaru di atas)
         $jobs = $query
             ->orderBy('tanggal_tugas', 'desc')
             ->orderBy('created_at', 'desc')
@@ -279,22 +285,43 @@ class JobController extends Controller
         ));
     }
 
-    private function getRatingPerBidang(string $bidang, string $tanggal)
+    /**
+     * Rating per bidang dengan filter periode
+     */
+    private function getRatingPerBidang(string $bidang, string $periode)
     {
         $role = $bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
 
         return User::where('role', $role)
             ->where('status', 'aktif')
             ->get()
-            ->map(function ($teknisi) use ($tanggal) {
-                $total = Job::where('teknisi_id', $teknisi->id)
-                    ->whereDate('tanggal_tugas', $tanggal)
-                    ->count();
+            ->map(function ($teknisi) use ($periode) {
+                // Query dasar
+                $queryTotal = Job::where('teknisi_id', $teknisi->id);
+                $querySelesai = Job::where('teknisi_id', $teknisi->id)->where('status', 'SELESAI');
 
-                $selesai = Job::where('teknisi_id', $teknisi->id)
-                    ->whereDate('tanggal_tugas', $tanggal)
-                    ->where('status', 'SELESAI')
-                    ->count();
+                // Filter Periode
+                switch ($periode) {
+                    case 'harian':
+                        $queryTotal->whereDate('tanggal_tugas', today());
+                        $querySelesai->whereDate('tanggal_tugas', today());
+                        break;
+                    case 'mingguan':
+                        $queryTotal->whereBetween('tanggal_tugas', [now()->startOfWeek(), now()->endOfWeek()]);
+                        $querySelesai->whereBetween('tanggal_tugas', [now()->startOfWeek(), now()->endOfWeek()]);
+                        break;
+                    case 'bulanan':
+                        $queryTotal->whereMonth('tanggal_tugas', now()->month)->whereYear('tanggal_tugas', now()->year);
+                        $querySelesai->whereMonth('tanggal_tugas', now()->month)->whereYear('tanggal_tugas', now()->year);
+                        break;
+                    case 'semua':
+                    default:
+                        // Tanpa filter tanggal
+                        break;
+                }
+
+                $total = $queryTotal->count();
+                $selesai = $querySelesai->count();
 
                 $teknisi->hari_ini_total   = $total;
                 $teknisi->hari_ini_selesai = $selesai;
@@ -308,19 +335,42 @@ class JobController extends Controller
             ->values();
     }
 
-    private function getRekapPerBidang(string $bidang): array
+    /**
+     * Rekap per bidang dengan filter periode
+     */
+    private function getRekapPerBidang(string $bidang, string $periode): array
     {
         $role = $bidang === 'cctv' ? 'teknisi_cctv' : 'teknisi';
 
         return User::where('role', $role)
             ->where('status', 'aktif')
             ->get()
-            ->map(function ($teknisi) {
-                $selesai = Job::where('teknisi_id', $teknisi->id)
-                    ->where('status', 'SELESAI')->count();
+            ->map(function ($teknisi) use ($periode) {
+                $querySelesai = Job::where('teknisi_id', $teknisi->id)->where('status', 'SELESAI');
+                $queryBelum = Job::where('teknisi_id', $teknisi->id)->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN']);
 
-                $belum = Job::where('teknisi_id', $teknisi->id)
-                    ->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])->count();
+                // Filter Periode
+                switch ($periode) {
+                    case 'harian':
+                        $querySelesai->whereDate('tanggal_tugas', today());
+                        $queryBelum->whereDate('tanggal_tugas', today());
+                        break;
+                    case 'mingguan':
+                        $querySelesai->whereBetween('tanggal_tugas', [now()->startOfWeek(), now()->endOfWeek()]);
+                        $queryBelum->whereBetween('tanggal_tugas', [now()->startOfWeek(), now()->endOfWeek()]);
+                        break;
+                    case 'bulanan':
+                        $querySelesai->whereMonth('tanggal_tugas', now()->month)->whereYear('tanggal_tugas', now()->year);
+                        $queryBelum->whereMonth('tanggal_tugas', now()->month)->whereYear('tanggal_tugas', now()->year);
+                        break;
+                    case 'semua':
+                    default:
+                        // Tanpa filter
+                        break;
+                }
+
+                $selesai = $querySelesai->count();
+                $belum = $queryBelum->count();
 
                 return [
                     'display_name' => $teknisi->display_name,

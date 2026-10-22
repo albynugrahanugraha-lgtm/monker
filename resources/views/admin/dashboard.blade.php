@@ -118,10 +118,10 @@
     </div>
 </div>
 
-{{-- FILTER TANGGAL --}}
+{{-- FILTER TANGGAL & PERIODE RATING --}}
 <div class="date-filter-card p-3 mb-4">
     <form method="GET" action="{{ route('admin.dashboard') }}" class="row g-2 align-items-end">
-        <div class="col-md-4 col-12">
+        <div class="col-md-3 col-12">
             <label class="form-label mb-1 small fw-bold">
                 <i class="bi bi-calendar-event"></i> Pilih Tanggal Monitoring
             </label>
@@ -132,19 +132,31 @@
                    max="{{ now()->addYear()->format('Y-m-d') }}">
         </div>
 
-        <div class="col-md-8 col-12 d-flex gap-2 flex-wrap align-items-end">
+        <div class="col-md-3 col-12">
+            <label class="form-label mb-1 small fw-bold">
+                <i class="bi bi-trophy-fill"></i> Periode Rating
+            </label>
+            <select name="periode" class="form-select fw-bold text-dark">
+                <option value="harian" @selected($periode === 'harian')>📅 Harian</option>
+                <option value="mingguan" @selected($periode === 'mingguan')>📆 Mingguan</option>
+                <option value="bulanan" @selected($periode === 'bulanan')>🗓 Bulanan</option>
+                <option value="semua" @selected($periode === 'semua')>🏆 Semua Waktu</option>
+            </select>
+        </div>
+
+        <div class="col-md-6 col-12 d-flex gap-2 flex-wrap align-items-end">
             <button type="submit" class="btn btn-light fw-bold">
                 <i class="bi bi-search"></i> Tampilkan
             </button>
-            <a href="{{ route('admin.dashboard', ['tanggal' => now()->format('Y-m-d')]) }}"
+            <a href="{{ route('admin.dashboard', ['tanggal' => now()->format('Y-m-d'), 'periode' => 'harian']) }}"
                class="btn btn-outline-light btn-sm">
                 📅 Hari Ini
             </a>
-            <a href="{{ route('admin.dashboard', ['tanggal' => now()->subDay()->format('Y-m-d')]) }}"
+            <a href="{{ route('admin.dashboard', ['tanggal' => now()->subDay()->format('Y-m-d'), 'periode' => 'harian']) }}"
                class="btn btn-outline-light btn-sm">
                 ⏮️ Kemarin
             </a>
-            <a href="{{ route('admin.dashboard', ['tanggal' => now()->addDay()->format('Y-m-d')]) }}"
+            <a href="{{ route('admin.dashboard', ['tanggal' => now()->addDay()->format('Y-m-d'), 'periode' => 'harian']) }}"
                class="btn btn-outline-light btn-sm">
                 ⏭️ Besok
             </a>
@@ -329,8 +341,27 @@
                     </thead>
                     <tbody>
                     @forelse($kerjaanKemarinKomputer as $j)
-                        <tr>
-                            <td><code style="font-size: .7rem;">{{ $j->kode_job }}</code></td>
+                        @php
+                            $badgeClass = $j->statusBadgeClass();
+                            $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                            $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                            
+                            // LOGIKA BARU: Terapkan class kelap-kelip jika belum selesai
+                            if ($belumDiambil) {
+                                $rowClass = 'row-lampu-merah';
+                            } elseif ($belumDikerjakan) {
+                                $rowClass = 'row-lampu';
+                            } else {
+                                $rowClass = 'tugas-sudah-kerja';
+                            }
+                        @endphp
+                        <tr class="{{ $rowClass }}">
+                            <td>
+                                @if($belumDikerjakan || $belumDiambil)
+                                    <span class="lampu-indicator"></span>
+                                @endif
+                                <code style="font-size: .7rem;">{{ $j->kode_job }}</code>
+                            </td>
                             <td>
                                 <div class="fw-semibold">{{ $j->judul }}</div>
                                 <small class="text-muted" style="font-size: .7rem;">
@@ -347,8 +378,14 @@
                                     <span class="badge bg-primary">
                                         <i class="bi bi-person-circle"></i> {{ $j->teknisi->display_name }}
                                     </span>
+                                @elseif($j->status === 'DIKERJAKAN')
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-tools"></i> Sedang dikerjakan
+                                    </span>
                                 @else
-                                    <span class="badge bg-secondary">Belum diambil</span>
+                                    <span class="badge bg-danger badge-belum-diambil">
+                                        <i class="bi bi-exclamation-triangle"></i> Belum diambil
+                                    </span>
                                 @endif
                             </td>
                             <td><span class="badge {{ $j->statusBadgeClass() }}">{{ $j->statusLabel() }}</span></td>
@@ -476,8 +513,27 @@
                     </thead>
                     <tbody>
                     @forelse($kerjaanKemarinCctv as $j)
-                        <tr>
-                            <td><code style="font-size: .7rem;">{{ $j->kode_job }}</code></td>
+                        @php
+                            $badgeClass = $j->statusBadgeClass();
+                            $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                            $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                            
+                            // LOGIKA BARU: Terapkan class kelap-kelip jika belum selesai
+                            if ($belumDiambil) {
+                                $rowClass = 'row-lampu-merah';
+                            } elseif ($belumDikerjakan) {
+                                $rowClass = 'row-lampu';
+                            } else {
+                                $rowClass = 'tugas-sudah-kerja';
+                            }
+                        @endphp
+                        <tr class="{{ $rowClass }}">
+                            <td>
+                                @if($belumDikerjakan || $belumDiambil)
+                                    <span class="lampu-indicator"></span>
+                                @endif
+                                <code style="font-size: .7rem;">{{ $j->kode_job }}</code>
+                            </td>
                             <td>
                                 <div class="fw-semibold">{{ $j->judul }}</div>
                                 <small class="text-muted" style="font-size: .7rem;">
@@ -494,8 +550,14 @@
                                     <span class="badge bg-info text-dark">
                                         <i class="bi bi-person-circle"></i> {{ $j->teknisi->display_name }}
                                     </span>
+                                @elseif($j->status === 'DIKERJAKAN')
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-tools"></i> Sedang dikerjakan
+                                    </span>
                                 @else
-                                    <span class="badge bg-secondary">Belum diambil</span>
+                                    <span class="badge bg-danger badge-belum-diambil">
+                                        <i class="bi bi-exclamation-triangle"></i> Belum diambil
+                                    </span>
                                 @endif
                             </td>
                             <td><span class="badge {{ $j->statusBadgeClass() }}">{{ $j->statusLabel() }}</span></td>
@@ -519,7 +581,7 @@
             <div class="card-header header-komputer py-2">
                 <h6 class="mb-0 fw-bold">
                     <i class="bi bi-trophy-fill"></i>
-                    Top Teknisi Komputer — {{ $tanggalObj->translatedFormat('d F Y') }}
+                    Top Teknisi Komputer — {{ ucfirst($periode) }}
                 </h6>
             </div>
             <div class="table-responsive">
@@ -582,7 +644,7 @@
             <div class="card-header header-cctv py-2">
                 <h6 class="mb-0 fw-bold">
                     <i class="bi bi-trophy-fill"></i>
-                    Top Teknisi CCTV — {{ $tanggalObj->translatedFormat('d F Y') }}
+                    Top Teknisi CCTV — {{ ucfirst($periode) }}
                 </h6>
             </div>
             <div class="table-responsive">
@@ -650,7 +712,7 @@
             <div class="card-header bg-white border-bottom py-2">
                 <h6 class="mb-0 fw-bold">
                     <i class="bi bi-pc-display text-primary"></i>
-                    Top Teknisi Komputer (Keseluruhan)
+                    Top Teknisi Komputer (Keseluruhan) — {{ ucfirst($periode) }}
                 </h6>
             </div>
             <div class="card-body">
@@ -674,7 +736,7 @@
             <div class="card-header bg-white border-bottom py-2">
                 <h6 class="mb-0 fw-bold">
                     <i class="bi bi-camera-video text-info"></i>
-                    Top Teknisi CCTV (Keseluruhan)
+                    Top Teknisi CCTV (Keseluruhan) — {{ ucfirst($periode) }}
                 </h6>
             </div>
             <div class="card-body">
