@@ -78,10 +78,13 @@ abstract class BaseTugasController extends Controller
         ];
 
         // ============================================================
-        // DAFTAR PEKERJAAN AKTIF (TIDAK TERPENGARUH FILTER PERIODE)
+        // DAFTAR PEKERJAAN AKTIF
+        // ✅ Hanya muncul jika tanggal_tugas <= HARI INI
+        // (Tugas besok/lusa/bulan depan TIDAK muncul)
         // ============================================================
         $jobs = Job::with(['photos', 'fotoSebelum', 'fotoSesudah'])
             ->where('bidang', $this->bidang)
+            ->whereDate('tanggal_tugas', '<=', today())   // 🆕 FILTER TANGGAL
             ->where(function ($q) use ($user) {
                 $q->where(function ($sub) use ($user) {
                     $sub->where('teknisi_id', $user->id)
@@ -92,7 +95,7 @@ abstract class BaseTugasController extends Controller
                         ->where('status', 'DITUGASKAN');
                 });
             })
-            ->orderBy('tanggal_tugas', 'desc')
+            ->orderBy('tanggal_tugas', 'asc')   // Urut dari yang paling lama (tertinggal dulu)
             ->latest('created_at')
             ->get();
 
