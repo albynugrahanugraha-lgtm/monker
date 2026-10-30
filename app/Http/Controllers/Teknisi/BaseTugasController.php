@@ -236,13 +236,13 @@ abstract class BaseTugasController extends Controller
             'hasil_pekerjaan' => 'required|string',
             'catatan'         => 'nullable|string',
 
-            'foto_sebelum_1'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'foto_sebelum_2'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'foto_sebelum_3'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'foto_sebelum_1'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
+            'foto_sebelum_2'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
+            'foto_sebelum_3'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
 
-            'foto_sesudah_1'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'foto_sesudah_2'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'foto_sesudah_3'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'foto_sesudah_1'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
+            'foto_sesudah_2'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
+            'foto_sesudah_3'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
         ]);
 
         $statusLama = $job->status;

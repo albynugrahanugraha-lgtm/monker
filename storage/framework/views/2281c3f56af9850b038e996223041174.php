@@ -23,7 +23,9 @@
     <style>
         * { box-sizing: border-box; }
 
-        /* FIT TV SCREEN — NO SCROLL */
+        /* ==========================================
+           FIT TV SCREEN — NO SCROLL
+           ========================================== */
         html, body {
             height: 100vh;
             overflow: hidden;
@@ -45,43 +47,46 @@
             overflow: hidden;
         }
 
-        /* HEADER */
+        /* ==========================================
+           HEADER
+           ========================================== */
         .monitor-header {
             background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
             color: white;
-            padding: 5px 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            padding: 4px 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 6px;
             flex-shrink: 0;
+            height: 40px;
         }
         .monitor-header h4 {
             margin: 0;
             font-weight: 700;
-            font-size: .92rem;
+            font-size: .85rem;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
         .monitor-header .live-indicator {
             display: inline-flex;
             align-items: center;
             gap: 4px;
             background: rgba(255,255,255,0.2);
-            padding: 2px 8px;
+            padding: 1px 7px;
             border-radius: 20px;
-            font-size: .6rem;
-            margin-left: 6px;
+            font-size: .55rem;
+            margin-left: 5px;
         }
         .live-dot {
-            width: 6px; height: 6px;
+            width: 5px; height: 5px;
             background: #43e97b;
             border-radius: 50%;
             animation: livePulse 1.5s infinite;
-            box-shadow: 0 0 10px #43e97b;
+            box-shadow: 0 0 8px #43e97b;
         }
         @keyframes livePulse {
             0%, 100% { transform: scale(1); opacity: 1; }
@@ -89,7 +94,7 @@
         }
         .clock {
             font-family: 'Courier New', monospace;
-            font-size: .78rem;
+            font-size: .72rem;
             font-weight: bold;
             background: rgba(0,0,0,0.2);
             padding: 2px 8px;
@@ -99,10 +104,10 @@
             background: white;
             color: #0d6efd;
             border: none;
-            padding: 3px 10px;
+            padding: 2px 9px;
             border-radius: 5px;
             font-weight: 600;
-            font-size: .7rem;
+            font-size: .65rem;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -115,10 +120,10 @@
             background: #ffc107;
             color: #000;
             border: none;
-            padding: 3px 10px;
+            padding: 2px 9px;
             border-radius: 5px;
             font-weight: 600;
-            font-size: .7rem;
+            font-size: .65rem;
             display: inline-flex;
             align-items: center;
             gap: 3px;
@@ -130,46 +135,37 @@
             background: rgba(255,255,255,0.15);
             border: 1px solid rgba(255,255,255,0.25);
             color: white;
-            padding: 3px 9px;
+            padding: 2px 8px;
             border-radius: 5px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: .85rem;
+            font-size: .8rem;
             line-height: 1;
         }
-        .theme-toggle:hover {
-            background: rgba(255,255,255,0.3);
-            color: #fff;
-        }
+        .theme-toggle:hover { background: rgba(255,255,255,0.3); }
         .theme-toggle .icon-sun,
-        .theme-toggle .icon-moon {
-            display: none;
-        }
+        .theme-toggle .icon-moon { display: none; }
         html[data-bs-theme="light"] .theme-toggle .icon-moon { display: inline-block; }
         html[data-bs-theme="dark"] .theme-toggle .icon-sun { display: inline-block; }
 
-        /* CONTENT */
+        /* ==========================================
+           MAIN CONTENT — 2 KOLOM
+           ========================================== */
         .monitor-content {
             flex: 1;
-            padding: 6px 8px;
-            display: grid;
-            grid-template-rows: 1fr; 
-            gap: 6px;
-            overflow: hidden;
-            min-height: 0;
-        }
-
-        /* 2 KOLOM */
-        .two-columns {
+            padding: 6px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 6px;
-            min-height: 0;
             overflow: hidden;
+            min-height: 0;
         }
 
+        /* ==========================================
+           KOLOM BIDANG
+           ========================================== */
         .kolom-bidang {
             background: white;
             border-radius: 8px;
@@ -182,9 +178,9 @@
         }
 
         .kolom-header {
-            padding: 5px 12px;
+            padding: 4px 12px;
             font-weight: 700;
-            font-size: .78rem;
+            font-size: .73rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -200,44 +196,45 @@
         }
         .kolom-header .count-badge {
             background: rgba(255,255,255,.3);
-            padding: 1px 7px;
+            padding: 1px 8px;
             border-radius: 8px;
-            font-size: .65rem;
+            font-size: .6rem;
+            font-weight: 700;
         }
         .kolom-header.cctv .count-badge { background: rgba(0,0,0,.15); color: #000; }
 
-        /* Mini Stats */
+        /* ==========================================
+           MINI STATS
+           ========================================== */
         .mini-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 3px;
-            padding: 4px 6px;
+            padding: 3px 6px;
             background: #f8f9fa;
             border-bottom: 1px solid #dee2e6;
             flex-shrink: 0;
-            transition: background-color 0.3s, border-color 0.3s;
         }
         .mini-stat {
             text-align: center;
-            padding: 3px 2px;
+            padding: 2px 2px;
             border-radius: 4px;
             background: white;
             border: 1px solid #dee2e6;
-            transition: background-color 0.3s, border-color 0.3s;
         }
         .mini-stat small {
             display: block;
-            font-size: .55rem;
+            font-size: .5rem;
             color: #6c757d;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: .3px;
+            letter-spacing: .2px;
+            line-height: 1.1;
         }
         .mini-stat .val {
-            font-size: .95rem;
+            font-size: .82rem;
             font-weight: 700;
             line-height: 1.1;
-            margin-top: 1px;
         }
         .mini-stat.blue { border-left: 3px solid #0d6efd; }
         .mini-stat.blue .val { color: #0d6efd; }
@@ -246,40 +243,81 @@
         .mini-stat.red { border-left: 3px solid #dc3545; }
         .mini-stat.red .val { color: #dc3545; }
 
-        /* Sub-section */
+        /* ==========================================
+           SUB-SECTION: HARI INI / KEMARIN (DROPDOWN) / CHART
+           ========================================== */
         .sub-section {
-            border-bottom: 1px solid #e9ecef;
             display: flex;
             flex-direction: column;
             min-height: 0;
-            flex: 1;
             transition: border-color 0.3s;
         }
-        .sub-section:last-of-type {
-            border-bottom: none;
+        .sub-section.hari-ini {
+            flex: 1; /* Akan memenuhi sisa ruang saat Kemarin tertutup */
+            border-bottom: 1px solid #e9ecef;
+        }
+        .sub-section.chart-mini {
+            flex: none; 
+            height: 130px; /* Tinggi chart fix */
+            border-top: 1px solid #e9ecef;
         }
         .sub-header {
             padding: 4px 10px;
             font-weight: 600;
-            font-size: .68rem;
+            font-size: .65rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #f1f3f5;
             border-bottom: 1px solid #dee2e6;
             flex-shrink: 0;
-            transition: background-color 0.3s, border-color 0.3s;
         }
-        .sub-header .sub-count {
-            background: #dee2e6;
-            padding: 1px 6px;
-            border-radius: 6px;
-            font-size: .6rem;
-            color: #495057;
-            transition: background-color 0.3s, color 0.3s;
+        
+        /* ==========================================
+           DROPDOWN KEMARIN
+           ========================================== */
+        .sub-section.kemarin {
+            flex: none;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #e9ecef;
+        }
+        /* Area tabel disembunyikan secara default */
+        .sub-section.kemarin .table-scroll {
+            display: none;
+        }
+        /* Jika class 'is-open' ditambahkan via JS, tabel muncul */
+        .sub-section.kemarin.is-open {
+            flex: 2.5; /* Saat dibuka, ambil 25-30% layar */
+            min-height: 120px;
+            max-height: 30vh;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .sub-section.kemarin.is-open .table-scroll {
+            display: block;
+        }
+        /* Header Kemarin bisa diklik */
+        .sub-section.kemarin .sub-header {
+            cursor: pointer;
+            user-select: none;
+            background: #e2e6ea; /* Warna abu-abu agar terlihat seperti tombol */
+            transition: background 0.2s;
+        }
+        .sub-section.kemarin .sub-header:hover {
+            background: #d1d7dd;
+        }
+        .sub-section.kemarin .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+        .sub-section.kemarin.is-open .toggle-icon {
+            transform: rotate(180deg); /* Panah ke atas saat buka */
         }
 
-        /* Table scroll */
+        /* ==========================================
+           TABLE
+           ========================================== */
         .table-scroll {
             flex: 1;
             overflow-y: auto;
@@ -288,115 +326,174 @@
         .table-scroll::-webkit-scrollbar { width: 4px; }
         .table-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
 
-        table { font-size: .68rem; margin: 0; }
-        table thead th {
+        table.monitor-table { 
+            font-size: .6rem; 
+            margin: 0; 
+            width: 100%;
+        }
+        table.monitor-table thead th {
             position: sticky;
             top: 0;
             z-index: 5;
             background: #f8f9fa;
-            font-size: .6rem;
-            padding: 3px 5px;
+            font-size: .52rem;
+            padding: 2px 5px;
             white-space: nowrap;
-            border-bottom: 2px solid #dee2e6;
+            border-bottom: 1px solid #dee2e6;
             text-transform: uppercase;
-            letter-spacing: .3px;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            letter-spacing: .2px;
+            font-weight: 700;
+            color: #495057;
         }
-        table tbody td {
+        table.monitor-table tbody td {
             padding: 3px 5px;
             vertical-align: middle;
-            transition: background-color 0.3s, color 0.3s;
+            line-height: 1.2;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        table.monitor-table tbody tr:hover {
+            background: #f0f7ff;
         }
 
-        /* KELAP-KELIP */
+        /* Kode job */
+        table.monitor-table .kode-job {
+            font-family: 'Courier New', monospace;
+            font-size: .55rem;
+            background: #f1f3f5;
+            padding: 1px 4px;
+            border-radius: 3px;
+            color: #495057;
+            white-space: nowrap;
+        }
+
+        /* Judul */
+        table.monitor-table .judul-job {
+            font-weight: 600;
+            font-size: .62rem;
+            color: #212529;
+            line-height: 1.15;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+
+        /* Lokasi */
+        table.monitor-table .lokasi-job {
+            font-size: .52rem;
+            color: #6c757d;
+            line-height: 1.15;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Badge teknisi compact */
+        .teknisi-badge {
+            font-size: .5rem;
+            padding: 1px 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Badge status compact */
+        .status-badge {
+            font-size: .5rem;
+            padding: 1px 4px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        /* ==========================================
+           KELAP-KELIP
+           ========================================== */
         @keyframes blinkRowBg {
-            0%   { background-color: #ffeb3b; }
+            0%   { background-color: #fff3cd; }
             50%  { background-color: #ffffff; }
-            100% { background-color: #ffeb3b; }
+            100% { background-color: #fff3cd; }
         }
         tr.row-belum,
         tr.row-belum td {
             animation: blinkRowBg 1s infinite ease-in-out !important;
-            font-weight: 700 !important;
+            font-weight: 600 !important;
         }
-        tr.row-belum { border-left: 4px solid #dc3545 !important; }
+        tr.row-belum { 
+            border-left: 3px solid #dc3545 !important; 
+        }
 
         @keyframes lampuPulse {
             0%, 100% {
                 transform: scale(1);
                 opacity: 1;
                 background: #dc3545;
-                box-shadow: 0 0 10px #dc3545;
+                box-shadow: 0 0 6px #dc3545;
             }
             50% {
-                transform: scale(1.4);
+                transform: scale(1.3);
                 opacity: 0.6;
                 background: #ffc107;
-                box-shadow: 0 0 20px #ffc107;
+                box-shadow: 0 0 12px #ffc107;
             }
         }
         .lampu-indicator {
             display: inline-block;
-            width: 9px;
-            height: 9px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: #dc3545;
-            box-shadow: 0 0 10px #dc3545;
+            box-shadow: 0 0 6px #dc3545;
             animation: lampuPulse 0.8s infinite;
-            margin-right: 4px;
+            margin-right: 3px;
             vertical-align: middle;
         }
 
         @keyframes blinkBadge {
             0%, 100% { transform: scale(1); }
-            50%      { transform: scale(1.15); }
+            50%      { transform: scale(1.1); }
         }
         .badge-blinking {
             animation: blinkBadge 0.8s infinite;
-            box-shadow: 0 0 10px rgba(220, 53, 69, 0.7);
+            box-shadow: 0 0 6px rgba(220, 53, 69, 0.6);
         }
 
-        /* Chart section */
-        .chart-section {
-            padding: 4px 8px;
-            background: #fafbfc;
-            flex-shrink: 0;
-            transition: background-color 0.3s;
-        }
-        .chart-section .chart-header {
+        /* ==========================================
+           CHART MINI
+           ========================================== */
+        .chart-mini-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 4px;
-            flex-wrap: wrap;
             gap: 4px;
         }
-        .chart-section .chart-title {
-            font-size: .65rem;
+        .chart-mini-title {
+            font-size: .55rem;
             font-weight: 700;
             color: #495057;
             display: flex;
             align-items: center;
-            gap: 4px;
-            transition: color 0.3s;
+            gap: 3px;
         }
-        /* Tombol Filter Periode */
         .periode-btn-group {
             display: inline-flex;
-            gap: 2px;
+            gap: 1px;
             background: #e9ecef;
-            padding: 2px;
-            border-radius: 5px;
-            transition: background-color 0.3s;
+            padding: 1px;
+            border-radius: 4px;
         }
         .periode-btn {
             border: none;
             background: transparent;
             color: #6c757d;
-            font-size: .58rem;
+            font-size: .48rem;
             font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 3px;
+            padding: 1px 5px;
+            border-radius: 2px;
             cursor: pointer;
             transition: all 0.2s;
             white-space: nowrap;
@@ -408,49 +505,60 @@
         .periode-btn.active {
             background: #0d6efd;
             color: white;
-            box-shadow: 0 1px 3px rgba(13, 110, 253, 0.4);
         }
         .periode-btn.active.cctv-active {
             background: #0dcaf0;
             color: #000;
         }
-        /* Label periode aktif */
-        .periode-label-text {
-            font-size: .58rem;
-            color: #6c757d;
-            background: #f1f3f5;
-            padding: 2px 8px;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .chart-container {
+        
+        /* Container Canvas Chart */
+        .chart-mini-container {
             position: relative;
-            height: 120px;
+            flex: 1;
+            min-height: 0;
+            padding: 2px 4px;
+            height: 100px; 
         }
 
-        /* Footer */
+        /* ==========================================
+           FOOTER
+           ========================================== */
         .monitor-footer {
             text-align: center;
-            font-size: .62rem;
+            font-size: .55rem;
             color: #6c757d;
-            padding: 3px 0;
+            padding: 2px 0;
             flex-shrink: 0;
-            transition: color 0.3s;
+            height: 16px;
         }
 
-        /* Responsive */
+        /* ==========================================
+           RESPONSIVE
+           ========================================== */
         @media (max-width: 900px) {
             html, body { height: auto; overflow: auto; }
             .monitor-wrapper { height: auto; }
-            .monitor-content { overflow: visible; }
-            .two-columns { grid-template-columns: 1fr; }
-            .table-scroll { max-height: 300px; flex: none; }
-            .chart-container { height: 180px; }
+            .monitor-content { 
+                grid-template-columns: 1fr; 
+                overflow: visible;
+            }
+            .sub-section.hari-ini,
+            .sub-section.kemarin.is-open {
+                flex: none;
+            }
+            .table-scroll { max-height: 300px; }
+            .sub-section.chart-mini { 
+                min-height: 150px; 
+                max-height: 170px;
+            }
+            .chart-mini-container {
+                height: 120px;
+            }
         }
 
-        /* DARK MODE */
+        /* ==========================================
+           DARK MODE
+           ========================================== */
         html[data-bs-theme="dark"] body {
             background: #0d1117 !important;
             color: #e6edf3;
@@ -474,31 +582,44 @@
         html[data-bs-theme="dark"] .mini-stat small {
             color: #8b949e;
         }
-        html[data-bs-theme="dark"] .sub-section {
-            border-color: #30363d;
-        }
         html[data-bs-theme="dark"] .sub-header {
             background: #21262d;
             border-color: #30363d;
             color: #e6edf3;
         }
+        html[data-bs-theme="dark"] .sub-section.kemarin .sub-header {
+            background: #1c2128;
+        }
+        html[data-bs-theme="dark"] .sub-section.kemarin .sub-header:hover {
+            background: #2d333b;
+        }
         html[data-bs-theme="dark"] .sub-header .sub-count {
             background: #30363d;
             color: #8b949e;
         }
-        html[data-bs-theme="dark"] table thead th {
+        html[data-bs-theme="dark"] table.monitor-table thead th {
             background: #21262d !important;
             color: #e6edf3 !important;
             border-color: #30363d !important;
         }
-        html[data-bs-theme="dark"] table tbody td {
+        html[data-bs-theme="dark"] table.monitor-table tbody td {
             color: #e6edf3;
             border-color: #30363d;
         }
-        html[data-bs-theme="dark"] .chart-section {
-            background: #0d1117;
+        html[data-bs-theme="dark"] table.monitor-table tbody tr:hover {
+            background: #1c2128;
         }
-        html[data-bs-theme="dark"] .chart-section .chart-title {
+        html[data-bs-theme="dark"] .kode-job {
+            background: #21262d !important;
+            color: #79c0ff !important;
+        }
+        html[data-bs-theme="dark"] .judul-job {
+            color: #e6edf3 !important;
+        }
+        html[data-bs-theme="dark"] .lokasi-job {
+            color: #8b949e !important;
+        }
+        html[data-bs-theme="dark"] .chart-mini-title {
             color: #e6edf3;
         }
         html[data-bs-theme="dark"] .periode-btn-group {
@@ -519,25 +640,8 @@
             background: #0dcaf0;
             color: #000;
         }
-        html[data-bs-theme="dark"] .periode-label-text {
-            background: #21262d;
-            color: #8b949e;
-        }
-        html[data-bs-theme="dark"] code {
-            background: #21262d;
-            color: #79c0ff;
-            padding: 1px 4px;
-            border-radius: 3px;
-        }
-        html[data-bs-theme="dark"] .text-muted {
-            color: #8b949e !important;
-        }
         html[data-bs-theme="dark"] .monitor-footer {
             color: #8b949e;
-        }
-        html[data-bs-theme="dark"] .badge.bg-light {
-            background-color: #30363d !important;
-            color: #e6edf3 !important;
         }
 
         @keyframes blinkRowBgDark {
@@ -566,7 +670,7 @@
                     <span class="live-dot"></span> LIVE
                 </span>
             </h4>
-            <small style="opacity: 0.9; font-size: .6rem;">
+            <small style="opacity: 0.9; font-size: .55rem;">
                 <i class="bi bi-clock-history"></i>
                 Update: <span id="lastUpdate">-</span>
             </small>
@@ -592,210 +696,227 @@
     <div class="monitor-content">
 
         
-        <div class="two-columns">
+        <div class="kolom-bidang">
+            <div class="kolom-header komputer">
+                <span><i class="bi bi-pc-display"></i> PEKERJAAN KOMPUTER</span>
+                <span class="count-badge" id="countKomputer">0</span>
+            </div>
+
+            <div class="mini-stats">
+                <div class="mini-stat blue">
+                    <small>Total</small>
+                    <div class="val" id="kmptTotal">0</div>
+                </div>
+                <div class="mini-stat green">
+                    <small>Selesai</small>
+                    <div class="val" id="kmptSelesai">0</div>
+                </div>
+                <div class="mini-stat red">
+                    <small>Belum</small>
+                    <div class="val" id="kmptBelum">0</div>
+                </div>
+            </div>
 
             
-            <div class="kolom-bidang">
-                <div class="kolom-header komputer">
-                    <span><i class="bi bi-pc-display"></i> PEKERJAAN KOMPUTER</span>
-                    <span class="count-badge" id="countKomputer">0</span>
+            <div class="sub-section hari-ini">
+                <div class="sub-header">
+                    <span>
+                        <i class="bi bi-calendar-day text-primary"></i>
+                        Hari Ini — <span id="labelHariIniKmpt">-</span>
+                    </span>
+                    <span class="sub-count" id="countHariIniKmpt">0</span>
                 </div>
-
-                <div class="mini-stats">
-                    <div class="mini-stat blue">
-                        <small>Total</small>
-                        <div class="val" id="kmptTotal">0</div>
-                    </div>
-                    <div class="mini-stat green">
-                        <small>Selesai</small>
-                        <div class="val" id="kmptSelesai">0</div>
-                    </div>
-                    <div class="mini-stat red">
-                        <small>Belum</small>
-                        <div class="val" id="kmptBelum">0</div>
-                    </div>
+                <div class="table-scroll">
+                    <table class="monitor-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 18%;">Kode</th>
+                                <th style="width: 52%;">Pekerjaan</th>
+                                <th style="width: 18%;">Teknisi</th>
+                                <th style="width: 12%;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableHariIniKomputer">
+                            <tr><td colspan="4" class="text-center text-muted py-3">Memuat...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
+            </div>
 
-                <div class="sub-section">
-                    <div class="sub-header">
-                        <span>
-                            <i class="bi bi-calendar-day text-primary"></i>
-                            Hari Ini — <span id="labelHariIniKmpt">-</span>
-                        </span>
-                        <span class="sub-count" id="countHariIniKmpt">0</span>
-                    </div>
-                    <div class="table-scroll">
-                        <table class="table table-hover table-sm mb-0">
-                            <thead>
-                                <tr>
-                                    <th style="width: 22%;">Kode</th>
-                                    <th style="width: 43%;">Pekerjaan</th>
-                                    <th style="width: 20%;">Teknisi</th>
-                                    <th style="width: 15%;">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableHariIniKomputer">
-                                <tr><td colspan="4" class="text-center text-muted py-3">Memuat...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="sub-section">
-                    <div class="sub-header">
-                        <span>
-                            <i class="bi bi-calendar-check text-secondary"></i>
-                            Kemarin — <span id="labelKemarinKmpt">-</span>
-                        </span>
+            
+            <div class="sub-section kemarin" id="kemarinKomputer">
+                <div class="sub-header" onclick="toggleKemarin('kemarinKomputer')">
+                    <span>
+                        <i class="bi bi-calendar-check text-secondary"></i>
+                        Kemarin — <span id="labelKemarinKmpt">-</span>
+                    </span>
+                    <div class="d-flex align-items-center gap-2">
                         <span class="sub-count" id="countKemarinKmpt">0</span>
-                    </div>
-                    <div class="table-scroll">
-                        <table class="table table-hover table-sm mb-0">
-                            <thead>
-                                <tr>
-                                    <th style="width: 22%;">Kode</th>
-                                    <th style="width: 43%;">Pekerjaan</th>
-                                    <th style="width: 20%;">Teknisi</th>
-                                    <th style="width: 15%;">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableKemarinKomputer">
-                                <tr><td colspan="4" class="text-center text-muted py-3">Memuat...</td></tr>
-                            </tbody>
-                        </table>
+                        <i class="bi bi-chevron-down toggle-icon"></i>
                     </div>
                 </div>
+                <div class="table-scroll">
+                    <table class="monitor-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 18%;">Kode</th>
+                                <th style="width: 52%;">Pekerjaan</th>
+                                <th style="width: 18%;">Teknisi</th>
+                                <th style="width: 12%;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableKemarinKomputer">
+                            <tr><td colspan="4" class="text-center text-muted py-3">Memuat...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-                
-                <div class="chart-section">
-                    <div class="chart-header">
-                        <div class="chart-title">
+            
+            <div class="sub-section chart-mini">
+                <div class="sub-header">
+                    <div class="chart-mini-header">
+                        <div class="chart-mini-title">
                             <i class="bi bi-trophy-fill text-warning"></i>
                             <span>Top Teknisi</span>
                         </div>
                         <div class="periode-btn-group" data-target="komputer">
-                            <button class="periode-btn" data-periode="harian">Harian</button>
-                            <button class="periode-btn" data-periode="mingguan">Mingguan</button>
-                            <button class="periode-btn active" data-periode="bulanan">Bulanan</button>
-                            <button class="periode-btn" data-periode="semua">Semua</button>
+                            <button class="periode-btn" data-periode="harian">H</button>
+                            <button class="periode-btn" data-periode="mingguan">M</button>
+                            <button class="periode-btn active" data-periode="bulanan">B</button>
+                            <button class="periode-btn" data-periode="semua">S</button>
                         </div>
                     </div>
-                    <div class="periode-label-text" id="periodeLabelKomputer">Bulan Ini</div>
-                    <div class="chart-container" style="margin-top: 4px;">
-                        <canvas id="chartKomputer"></canvas>
-                    </div>
+                </div>
+                <div class="chart-mini-container">
+                    <canvas id="chartKomputer"></canvas>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="kolom-bidang">
+            <div class="kolom-header cctv">
+                <span><i class="bi bi-camera-video"></i> PEKERJAAN CCTV</span>
+                <span class="count-badge" id="countCctv">0</span>
+            </div>
+
+            <div class="mini-stats">
+                <div class="mini-stat blue">
+                    <small>Total</small>
+                    <div class="val" id="cctvTotal">0</div>
+                </div>
+                <div class="mini-stat green">
+                    <small>Selesai</small>
+                    <div class="val" id="cctvSelesai">0</div>
+                </div>
+                <div class="mini-stat red">
+                    <small>Belum</small>
+                    <div class="val" id="cctvBelum">0</div>
                 </div>
             </div>
 
             
-            <div class="kolom-bidang">
-                <div class="kolom-header cctv">
-                    <span><i class="bi bi-camera-video"></i> PEKERJAAN CCTV</span>
-                    <span class="count-badge" id="countCctv">0</span>
+            <div class="sub-section hari-ini">
+                <div class="sub-header">
+                    <span>
+                        <i class="bi bi-calendar-day text-info"></i>
+                        Hari Ini — <span id="labelHariIniCctv">-</span>
+                    </span>
+                    <span class="sub-count" id="countHariIniCctv">0</span>
                 </div>
-
-                <div class="mini-stats">
-                    <div class="mini-stat blue">
-                        <small>Total</small>
-                        <div class="val" id="cctvTotal">0</div>
-                    </div>
-                    <div class="mini-stat green">
-                        <small>Selesai</small>
-                        <div class="val" id="cctvSelesai">0</div>
-                    </div>
-                    <div class="mini-stat red">
-                        <small>Belum</small>
-                        <div class="val" id="cctvBelum">0</div>
-                    </div>
+                <div class="table-scroll">
+                    <table class="monitor-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 18%;">Kode</th>
+                                <th style="width: 52%;">Pekerjaan</th>
+                                <th style="width: 18%;">Teknisi</th>
+                                <th style="width: 12%;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableHariIniCctv">
+                            <tr><td colspan="4" class="text-center text-muted py-3">Memuat...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
+            </div>
 
-                <div class="sub-section">
-                    <div class="sub-header">
-                        <span>
-                            <i class="bi bi-calendar-day text-info"></i>
-                            Hari Ini — <span id="labelHariIniCctv">-</span>
-                        </span>
-                        <span class="sub-count" id="countHariIniCctv">0</span>
-                    </div>
-                    <div class="table-scroll">
-                        <table class="table table-hover table-sm mb-0">
-                            <thead>
-                                <tr>
-                                    <th style="width: 22%;">Kode</th>
-                                    <th style="width: 43%;">Pekerjaan</th>
-                                    <th style="width: 20%;">Teknisi</th>
-                                    <th style="width: 15%;">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableHariIniCctv">
-                                <tr><td colspan="4" class="text-center text-muted py-3">Memuat...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="sub-section">
-                    <div class="sub-header">
-                        <span>
-                            <i class="bi bi-calendar-check text-secondary"></i>
-                            Kemarin — <span id="labelKemarinCctv">-</span>
-                        </span>
+            
+            <div class="sub-section kemarin" id="kemarinCctv">
+                <div class="sub-header" onclick="toggleKemarin('kemarinCctv')">
+                    <span>
+                        <i class="bi bi-calendar-check text-secondary"></i>
+                        Kemarin — <span id="labelKemarinCctv">-</span>
+                    </span>
+                    <div class="d-flex align-items-center gap-2">
                         <span class="sub-count" id="countKemarinCctv">0</span>
-                    </div>
-                    <div class="table-scroll">
-                        <table class="table table-hover table-sm mb-0">
-                            <thead>
-                                <tr>
-                                    <th style="width: 22%;">Kode</th>
-                                    <th style="width: 43%;">Pekerjaan</th>
-                                    <th style="width: 20%;">Teknisi</th>
-                                    <th style="width: 15%;">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableKemarinCctv">
-                                <tr><td colspan="4" class="text-center text-muted py-3">Memuat...</td></tr>
-                            </tbody>
-                        </table>
+                        <i class="bi bi-chevron-down toggle-icon"></i>
                     </div>
                 </div>
+                <div class="table-scroll">
+                    <table class="monitor-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 18%;">Kode</th>
+                                <th style="width: 52%;">Pekerjaan</th>
+                                <th style="width: 18%;">Teknisi</th>
+                                <th style="width: 12%;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableKemarinCctv">
+                            <tr><td colspan="4" class="text-center text-muted py-3">Memuat...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-                
-                <div class="chart-section">
-                    <div class="chart-header">
-                        <div class="chart-title">
+            
+            <div class="sub-section chart-mini">
+                <div class="sub-header">
+                    <div class="chart-mini-header">
+                        <div class="chart-mini-title">
                             <i class="bi bi-trophy-fill text-warning"></i>
                             <span>Top Teknisi</span>
                         </div>
                         <div class="periode-btn-group" data-target="cctv">
-                            <button class="periode-btn cctv-active" data-periode="harian">Harian</button>
-                            <button class="periode-btn cctv-active" data-periode="mingguan">Mingguan</button>
-                            <button class="periode-btn cctv-active active" data-periode="bulanan">Bulanan</button>
-                            <button class="periode-btn cctv-active" data-periode="semua">Semua</button>
+                            <button class="periode-btn cctv-active" data-periode="harian">H</button>
+                            <button class="periode-btn cctv-active" data-periode="mingguan">M</button>
+                            <button class="periode-btn cctv-active active" data-periode="bulanan">B</button>
+                            <button class="periode-btn cctv-active" data-periode="semua">S</button>
                         </div>
                     </div>
-                    <div class="periode-label-text" id="periodeLabelCctv">Bulan Ini</div>
-                    <div class="chart-container" style="margin-top: 4px;">
-                        <canvas id="chartCctv"></canvas>
-                    </div>
+                </div>
+                <div class="chart-mini-container">
+                    <canvas id="chartCctv"></canvas>
                 </div>
             </div>
-
-        </div>
-
-        
-        <div class="monitor-footer">
-            <i class="bi bi-arrow-clockwise"></i>
-            Auto-refresh 10 detik · <span id="refreshCounter">10</span> detik lagi
         </div>
 
     </div>
+
+    
+    <div class="monitor-footer">
+        <i class="bi bi-arrow-clockwise"></i>
+        Auto-refresh 10 detik · <span id="refreshCounter">10</span> detik lagi
+    </div>
+
 </div>
 
 
 <script src="<?php echo e(asset('js/chart.umd.min.js')); ?>"></script>
 
-
 <script>
+    // ============================================================
+    // TOGGLE DROPDOWN KEMARIN
+    // ============================================================
+    function toggleKemarin(elementId) {
+        const section = document.getElementById(elementId);
+        if (section) {
+            section.classList.toggle('is-open');
+        }
+    }
+
     // ============================================================
     // THEME
     // ============================================================
@@ -996,24 +1117,26 @@
                     data: dataSelesai,
                     backgroundColor: colors,
                     borderColor: borders,
-                    borderWidth: 2,
-                    borderRadius: 5,
+                    borderWidth: 1.5,
+                    borderRadius: 3,
                     borderSkipped: false,
-                    barPercentage: 0.75,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.65 
                 }]
             },
             options: {
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: { top: 3, right: 28, left: 3, bottom: 3 } },
+                layout: { padding: { top: 2, right: 25, left: 2, bottom: 2 } },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
                         backgroundColor: 'rgba(0,0,0,0.9)',
-                        padding: 8,
+                        padding: 6,
                         displayColors: false,
-                        cornerRadius: 5,
+                        cornerRadius: 4,
+                        bodyFont: { size: 10 },
                         callbacks: {
                             label: function(context) {
                                 const t = ratings[context.dataIndex];
@@ -1029,12 +1152,20 @@
                 scales: {
                     x: {
                         beginAtZero: true,
-                        ticks: { stepSize: 1, precision: 0, font: { size: 8, weight: 'bold' }, color: textColor },
+                        ticks: { 
+                            stepSize: 1, 
+                            precision: 0, 
+                            font: { size: 8, weight: 'bold' }, 
+                            color: textColor 
+                        },
                         grid: { color: gridColor }
                     },
                     y: {
                         grid: { display: false },
-                        ticks: { font: { size: 9, weight: 'bold' }, color: textColor }
+                        ticks: { 
+                            font: { size: 9, weight: 'bold' }, 
+                            color: textColor 
+                        }
                     }
                 },
                 animation: {
@@ -1052,9 +1183,9 @@
                             const meta = chart.getDatasetMeta(i);
                             meta.data.forEach(function(bar, index) {
                                 const t = ratings[index];
-                                c.font = 'bold 10px Arial';
+                                c.font = 'bold 9px Arial'; 
                                 c.fillStyle = currentTextColor;
-                                c.fillText(t.selesai, bar.x + 5, bar.y);
+                                c.fillText(t.selesai, bar.x + 4, bar.y);
                             });
                         });
                         c.restore();
@@ -1102,9 +1233,6 @@
             document.getElementById('countHariIniCctv').textContent = data.kerjaanHariIniCctv.length;
             document.getElementById('countKemarinCctv').textContent = data.kerjaanKemarinCctv.length;
 
-            document.getElementById('periodeLabelKomputer').textContent = data.labelKomputer;
-            document.getElementById('periodeLabelCctv').textContent = data.labelCctv;
-
             const currentJobCount = data.hariIni ? data.hariIni.total : 0;
             if (!isFirstLoad && currentJobCount > lastJobCount && audioUnlocked) {
                 playBeep();
@@ -1132,7 +1260,7 @@
     }
 
     // ============================================================
-    // RENDER TABEL (DENGAN PENGURUTAN PRIORITAS)
+    // RENDER TABEL
     // ============================================================
     function renderTable(tbodyId, jobs) {
         const tbody = document.getElementById(tbodyId);
@@ -1143,16 +1271,14 @@
             return;
         }
 
-        // LOGIKA SORTING: 
-        // Tugas yang BELUM selesai (DITUGASKAN / DIKERJAKAN) ditaruh di atas.
-        // Tugas yang SELESAI ditaruh di bawah.
+        // Sorting: tugas pending di atas
         const sortedJobs = [...jobs].sort((a, b) => {
             const aIsPending = (a.status === 'DITUGASKAN' || a.status === 'DIKERJAKAN');
             const bIsPending = (b.status === 'DITUGASKAN' || b.status === 'DIKERJAKAN');
             
-            if (aIsPending && !bIsPending) return -1; // a di atas b
-            if (!aIsPending && bIsPending) return 1;  // b di atas a
-            return 0; // urutan tetap jika status sama
+            if (aIsPending && !bIsPending) return -1;
+            if (!aIsPending && bIsPending) return 1;
+            return 0;
         });
 
         tbody.innerHTML = sortedJobs.map(j => {
@@ -1167,20 +1293,20 @@
             const lampu = isBelumSelesai ? '<span class="lampu-indicator"></span>' : '';
 
             const teknisiBadge = j.teknisi
-                ? `<span class="badge bg-primary" style="font-size:.58rem;"><i class="bi bi-person-circle"></i> ${j.teknisi}</span>`
-                : `<span class="badge bg-danger badge-blinking" style="font-size:.58rem;"><i class="bi bi-exclamation-triangle"></i> Belum diambil</span>`;
+                ? `<span class="badge bg-primary teknisi-badge"><i class="bi bi-person-circle"></i> ${j.teknisi}</span>`
+                : `<span class="badge bg-danger badge-blinking teknisi-badge"><i class="bi bi-exclamation-triangle"></i> Belum</span>`;
 
             return `
                 <tr class="${rowClass}">
-                    <td>${lampu}<code style="font-size:.58rem;">${j.kode_job}</code></td>
+                    <td>${lampu}<span class="kode-job">${j.kode_job}</span></td>
                     <td>
-                        <div class="fw-semibold" style="font-size:.65rem;">${j.judul}</div>
-                        <small class="text-muted" style="font-size:.55rem;">
+                        <div class="judul-job" title="${j.judul}">${j.judul}</div>
+                        <div class="lokasi-job">
                             <i class="bi bi-geo-alt-fill"></i> ${j.lok_gedung || '-'} / ${j.lokasi_ruang || '-'}
-                        </small>
+                        </div>
                     </td>
                     <td>${teknisiBadge}</td>
-                    <td><span class="badge ${badgeClass}" style="font-size:.55rem;">${j.status.replace('_', ' ')}</span></td>
+                    <td><span class="badge ${badgeClass} status-badge">${j.status.replace('_', ' ')}</span></td>
                 </tr>`;
         }).join('');
     }
@@ -1197,6 +1323,7 @@
         document.getElementById('refreshCounter').textContent = refreshCountdown;
     }, 1000);
 
+    // Load pertama kali
     loadData();
 </script>
 

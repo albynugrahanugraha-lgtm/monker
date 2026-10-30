@@ -8,12 +8,25 @@
 
 @push('styles')
 <style>
-    /* Hide input file asli */
-    .foto-slot input[type="file"] {
-        display: none !important;
+    /* ============================================
+       TRIK AMPUH HILANGKAN TULISAN "CHOOSE FILE"
+       ============================================ */
+    .foto-slot .file-input-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+        opacity: 0;
+        z-index: -1;
     }
 
-    /* Container slot */
+    /* ============================================
+       CONTAINER SLOT
+       ============================================ */
     .foto-slot {
         position: relative;
         display: flex;
@@ -75,14 +88,14 @@
         color: #adb5bd;
     }
 
-    /* 🆕 Saat sudah ada file — SEMBUNYIKAN icon/label/hint */
+    /* Saat sudah ada file — SEMBUNYIKAN icon/label/hint */
     .foto-slot.has-file .foto-slot-icon,
     .foto-slot.has-file .foto-slot-label,
     .foto-slot.has-file .foto-slot-hint {
         display: none !important;
     }
 
-    /* 🆕 Tampilkan nama file saja */
+    /* Tampilkan nama file saja */
     .foto-slot .file-name-display {
         display: none;
         padding: 6px 4px;
@@ -224,7 +237,9 @@
                     <div class="row g-2">
                         @for($i = 1; $i <= 3; $i++)
                             <div class="col-4">
+                                {{-- Input file diberi class 'file-input-hidden' --}}
                                 <input type="file"
+                                       class="file-input-hidden"
                                        name="foto_sebelum_{{ $i }}"
                                        id="inputSebelum{{ $i }}"
                                        accept="image/*"
@@ -235,7 +250,6 @@
                                     <div class="foto-slot-label" id="labelSebelum{{ $i }}">Foto {{ $i }}</div>
                                     <div class="foto-slot-hint" id="hintSebelum{{ $i }}">Klik untuk pilih</div>
 
-                                    {{-- 🆕 Nama file (tersembunyi, muncul kalau ada file) --}}
                                     <div class="file-name-display" id="fileNameSebelum{{ $i }}">
                                         <i class="bi bi-file-image file-name-icon"></i>
                                         <span class="file-name-text" id="fileNameTextSebelum{{ $i }}">-</span>
@@ -284,7 +298,9 @@
                     <div class="row g-2">
                         @for($i = 1; $i <= 3; $i++)
                             <div class="col-4">
+                                {{-- Input file diberi class 'file-input-hidden' --}}
                                 <input type="file"
+                                       class="file-input-hidden"
                                        name="foto_sesudah_{{ $i }}"
                                        id="inputSesudah{{ $i }}"
                                        accept="image/*"
@@ -295,7 +311,6 @@
                                     <div class="foto-slot-label" id="labelSesudah{{ $i }}">Foto {{ $i }}</div>
                                     <div class="foto-slot-hint" id="hintSesudah{{ $i }}">Klik untuk pilih</div>
 
-                                    {{-- 🆕 Nama file (tersembunyi, muncul kalau ada file) --}}
                                     <div class="file-name-display" id="fileNameSesudah{{ $i }}">
                                         <i class="bi bi-file-image file-name-icon"></i>
                                         <span class="file-name-text" id="fileNameTextSesudah{{ $i }}">-</span>
@@ -353,16 +368,15 @@
         if (input) input.click();
     }
 
-    // 🆕 Handle file — validasi + tampilkan nama file
     function handleFile(input, section, index) {
         const slot = document.getElementById('slot' + section + index);
 
         if (input.files && input.files[0]) {
             const file = input.files[0];
 
-            // Validasi size max 5 MB
-            if (file.size > 5 * 1024 * 1024) {
-                alert('❌ Ukuran foto max 5 MB. File: ' + (file.size / 1024 / 1024).toFixed(2) + ' MB');
+            // Validasi size max 10 MB
+            if (file.size > 10 * 1024 * 1024) {
+                alert('❌ Ukuran foto max 10 MB. File: ' + (file.size / 1024 / 1024).toFixed(2) + ' MB');
                 input.value = '';
                 return;
             }
@@ -405,7 +419,6 @@
         }
     }
 
-    // Reset slot
     function resetSlot(section, index) {
         const input = document.getElementById('input' + section + index);
         const slot  = document.getElementById('slot' + section + index);
