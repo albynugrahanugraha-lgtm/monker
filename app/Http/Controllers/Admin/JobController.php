@@ -16,9 +16,8 @@ class JobController extends Controller
     public function dashboard(Request $request)
     {
         $tanggal = $request->input('tanggal');
-        $periode = $request->input('periode', 'harian'); // 🆕 default harian
+        $periode = $request->input('periode', 'harian');
 
-        // Validasi periode
         if (!in_array($periode, ['harian', 'mingguan', 'bulanan', 'semua'])) {
             $periode = 'harian';
         }
@@ -38,7 +37,6 @@ class JobController extends Controller
             'belum'   => Job::whereDate('tanggal_tugas', $tanggalStr)->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])->count(),
         ];
 
-        // 🆕 URUT DESC (tanggal terbaru di atas)
         $kerjaanHariIniKomputer = Job::with('teknisi')
             ->where('bidang', 'komputer')
             ->whereDate('tanggal_tugas', $tanggalStr)
@@ -67,7 +65,6 @@ class JobController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // 🆕 GUNAKAN PERIODE UNTUK RATING & REKAP
         $ratingHariIniKomputer = $this->getRatingPerBidang('komputer', $periode);
         $ratingHariIniCctv     = $this->getRatingPerBidang('cctv', $periode);
 
@@ -80,18 +77,43 @@ class JobController extends Controller
             'kerjaanKemarinKomputer', 'kerjaanKemarinCctv',
             'ratingHariIniKomputer', 'ratingHariIniCctv',
             'rekapTeknisiKomputer', 'rekapTeknisiCctv',
-            'tanggalObj', 'periode' // 🆕 kirim periode ke view
+            'tanggalObj', 'periode'
         ));
     }
 
     /**
      * Halaman daftar pekerjaan belum dikerjakan
+     * + Sort by date + Pagination custom + Pencarian rentang tanggal
      */
     public function belumDikerjakan(Request $request)
     {
         $bidang        = $request->input('bidang');
         $status        = $request->input('status');
         $tanggalFilter = $request->input('tanggal_filter');
+
+        // 🆕 Filter rentang tanggal custom
+        $tanggalDari   = $request->input('tanggal_dari');
+        $tanggalSampai = $request->input('tanggal_sampai');
+
+        // Validasi format tanggal (biar aman kalau user iseng)
+        if ($tanggalDari && !strtotime($tanggalDari)) {
+            $tanggalDari = null;
+        }
+        if ($tanggalSampai && !strtotime($tanggalSampai)) {
+            $tanggalSampai = null;
+        }
+
+        // Sort: 'desc' (terbaru dulu) atau 'asc' (terlama dulu)
+        $sort = strtolower($request->input('sort', 'desc'));
+        if (!in_array($sort, ['asc', 'desc'])) {
+            $sort = 'desc';
+        }
+
+        // Jumlah data per halaman
+        $perPage = (int) $request->input('per_page', 50);
+        if (!in_array($perPage, [10, 25, 50, 100])) {
+            $perPage = 50;
+        }
 
         $query = Job::with('teknisi')
             ->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN']);
@@ -104,6 +126,7 @@ class JobController extends Controller
             $query->where('status', $status);
         }
 
+        // Quick filter (tanggal_filter)
         if ($tanggalFilter === 'terlambat') {
             $query->whereDate('tanggal_tugas', '<', today());
         } elseif ($tanggalFilter === 'hari_ini') {
@@ -118,10 +141,19 @@ class JobController extends Controller
                   ->whereYear('tanggal_tugas', now()->year);
         }
 
-        $jobs = $query
-            ->orderBy('tanggal_tugas', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(50);
+        // 🆕 Custom date range (dari tanggal - sampai tanggal)
+        if ($tanggalDari) {
+            $query->whereDate('tanggal_tugas', '>=', $tanggalDari);
+        }
+        if ($tanggalSampai) {
+            $query->whereDate('tanggal_tugas', '<=', $tanggalSampai);
+        }
+
+        // Urutkan
+        $query->orderBy('tanggal_tugas', $sort)
+              ->orderBy('created_at', $sort);
+
+        $jobs = $query->paginate($perPage)->withQueryString();
 
         $stats = [
             'total'         => Job::whereIn('status', ['DITUGASKAN', 'DIKERJAKAN'])->count(),
@@ -139,9 +171,18 @@ class JobController extends Controller
             ->orderBy('nama')
             ->get();
 
+        // 👇 WAJIB: semua variable yang dipakai di view harus ada di compact
         return view('admin.belum_dikerjakan', compact(
-            'jobs', 'stats', 'teknisiList',
-            'bidang', 'status', 'tanggalFilter'
+            'jobs',
+            'stats',
+            'teknisiList',
+            'bidang',
+            'status',
+            'tanggalFilter',
+            'tanggalDari',
+            'tanggalSampai',
+            'sort',
+            'perPage'
         ));
     }
 
@@ -296,11 +337,9 @@ class JobController extends Controller
             ->where('status', 'aktif')
             ->get()
             ->map(function ($teknisi) use ($periode) {
-                // Query dasar
                 $queryTotal = Job::where('teknisi_id', $teknisi->id);
                 $querySelesai = Job::where('teknisi_id', $teknisi->id)->where('status', 'SELESAI');
 
-                // Filter Periode
                 switch ($periode) {
                     case 'harian':
                         $queryTotal->whereDate('tanggal_tugas', today());
@@ -316,7 +355,6 @@ class JobController extends Controller
                         break;
                     case 'semua':
                     default:
-                        // Tanpa filter tanggal
                         break;
                 }
 
@@ -349,7 +387,6 @@ class JobController extends Controller
                 $querySelesai = Job::where('teknisi_id', $teknisi->id)->where('status', 'SELESAI');
                 $queryBelum = Job::where('teknisi_id', $teknisi->id)->whereIn('status', ['DITUGASKAN', 'DIKERJAKAN']);
 
-                // Filter Periode
                 switch ($periode) {
                     case 'harian':
                         $querySelesai->whereDate('tanggal_tugas', today());
@@ -365,7 +402,6 @@ class JobController extends Controller
                         break;
                     case 'semua':
                     default:
-                        // Tanpa filter
                         break;
                 }
 
@@ -676,9 +712,6 @@ class JobController extends Controller
             ->with('success', '✅ Pekerjaan berhasil diselesaikan oleh admin.');
     }
 
-    /**
-     * Hapus foto (admin)
-     */
     public function hapusFoto(JobPhoto $photo)
     {
         $user = auth()->user();

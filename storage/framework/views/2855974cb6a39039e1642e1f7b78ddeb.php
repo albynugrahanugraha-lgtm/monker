@@ -72,6 +72,28 @@
         padding: 2px 6px;
         border-radius: 3px;
     }
+
+    /* Pagination custom */
+    .pagination .page-link {
+        font-size: .8rem;
+        padding: .35rem .7rem;
+        border-radius: 6px;
+        margin: 0 2px;
+        border: 1px solid #dee2e6;
+        color: #0d6efd;
+    }
+    .pagination .page-item.active .page-link {
+        background: #0d6efd;
+        border-color: #0d6efd;
+        color: #fff;
+        font-weight: 700;
+    }
+    .pagination .page-item.disabled .page-link {
+        color: #adb5bd;
+    }
+    .pagination .page-item .page-link:hover {
+        background: #e9ecef;
+    }
 </style>
 <?php $__env->stopPush(); ?>
 
@@ -135,6 +157,8 @@
 
 <div class="filter-card p-3 mb-3">
     <form method="GET" action="<?php echo e(route('admin.belum-dikerjakan')); ?>" class="row g-2 align-items-end">
+
+        
         <div class="col-md-3 col-6">
             <label class="form-label mb-1 small fw-bold">
                 <i class="bi bi-layers"></i> Bidang
@@ -157,7 +181,7 @@
         </div>
         <div class="col-md-3 col-6">
             <label class="form-label mb-1 small fw-bold">
-                <i class="bi bi-calendar-event"></i> Tanggal
+                <i class="bi bi-lightning-charge"></i> Tanggal Cepat
             </label>
             <select name="tanggal_filter" class="form-select form-select-sm">
                 <option value="">Semua Tanggal</option>
@@ -167,19 +191,89 @@
                 <option value="bulan_ini" <?php if($tanggalFilter === 'bulan_ini'): echo 'selected'; endif; ?>>🗓 Bulan Ini</option>
             </select>
         </div>
-        <div class="col-md-3 col-6 d-flex gap-1">
+        <div class="col-md-3 col-6">
+            <label class="form-label mb-1 small fw-bold">
+                <i class="bi bi-sort-down"></i> Urutkan
+            </label>
+            <select name="sort" class="form-select form-select-sm">
+                <option value="desc" <?php if(($sort ?? 'desc') === 'desc'): echo 'selected'; endif; ?>>📅 Tanggal Terbaru</option>
+                <option value="asc"  <?php if(($sort ?? '')     === 'asc'): echo 'selected'; endif; ?>>📅 Tanggal Terlama</option>
+            </select>
+        </div>
+
+        
+        <div class="col-md-3 col-6">
+            <label class="form-label mb-1 small fw-bold">
+                <i class="bi bi-calendar-plus"></i> Dari Tanggal
+            </label>
+            <input type="date"
+                   name="tanggal_dari"
+                   value="<?php echo e($tanggalDari ?? ''); ?>"
+                   class="form-control form-control-sm">
+        </div>
+        <div class="col-md-3 col-6">
+            <label class="form-label mb-1 small fw-bold">
+                <i class="bi bi-calendar-check"></i> Sampai Tanggal
+            </label>
+            <input type="date"
+                   name="tanggal_sampai"
+                   value="<?php echo e($tanggalSampai ?? ''); ?>"
+                   class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2 col-6">
+            <label class="form-label mb-1 small fw-bold">
+                <i class="bi bi-list-ol"></i> Per Halaman
+            </label>
+            <select name="per_page" class="form-select form-select-sm">
+                <?php $__currentLoopData = [10, 25, 50, 100]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($pp); ?>" <?php if(($perPage ?? 10) == $pp): echo 'selected'; endif; ?>><?php echo e($pp); ?> baris</option>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </select>
+        </div>
+        <div class="col-md-4 col-12 d-flex gap-1">
             <button type="submit" class="btn btn-light btn-sm flex-fill fw-bold">
-                <i class="bi bi-funnel"></i> Filter
+                <i class="bi bi-search"></i> Cari & Terapkan
             </button>
-            <a href="<?php echo e(route('admin.belum-dikerjakan')); ?>" class="btn btn-outline-light btn-sm">
-                <i class="bi bi-arrow-clockwise"></i>
+            <a href="<?php echo e(route('admin.belum-dikerjakan')); ?>"
+               class="btn btn-outline-light btn-sm"
+               title="Reset semua filter">
+                <i class="bi bi-arrow-clockwise"></i> Reset
             </a>
         </div>
     </form>
 
-    <div class="mt-2 small">
-        <i class="bi bi-info-circle"></i>
-        Menampilkan <strong><?php echo e($jobs->total()); ?></strong> pekerjaan belum dikerjakan
+    
+    <?php if($tanggalDari || $tanggalSampai): ?>
+        <div class="alert alert-light mt-2 mb-0 py-2 small d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span>
+                <i class="bi bi-funnel-fill text-primary"></i>
+                <strong>Rentang tanggal aktif:</strong>
+                <?php echo e($tanggalDari ? \Carbon\Carbon::parse($tanggalDari)->format('d/m/Y') : '...'); ?>
+
+                <i class="bi bi-arrow-right"></i>
+                <?php echo e($tanggalSampai ? \Carbon\Carbon::parse($tanggalSampai)->format('d/m/Y') : '...'); ?>
+
+            </span>
+            <a href="<?php echo e(route('admin.belum-dikerjakan', request()->except(['tanggal_dari', 'tanggal_sampai']))); ?>"
+               class="btn btn-sm btn-outline-danger py-0">
+                <i class="bi bi-x-circle"></i> Hapus filter tanggal
+            </a>
+        </div>
+    <?php endif; ?>
+
+    <div class="mt-2 small d-flex justify-content-between flex-wrap gap-2">
+        <span>
+            <i class="bi bi-info-circle"></i>
+            Menampilkan <strong><?php echo e($jobs->count()); ?></strong>
+            dari <strong><?php echo e($jobs->total()); ?></strong> pekerjaan belum dikerjakan
+        </span>
+        <?php if($jobs->total() > 0): ?>
+            <span>
+                <i class="bi bi-bookmark"></i>
+                Halaman <strong><?php echo e($jobs->currentPage()); ?></strong>
+                dari <strong><?php echo e($jobs->lastPage()); ?></strong>
+            </span>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -326,16 +420,31 @@
                                target="_blank">
                                 <i class="bi bi-eye"></i>
                             </a>
+
+                            <button type="button"
+                                    class="btn btn-outline-danger"
+                                    title="Hapus Tugas"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-job-id="<?php echo e($j->id); ?>"
+                                    data-job-kode="<?php echo e($j->kode_job); ?>"
+                                    data-job-judul="<?php echo e($j->judul); ?>">
+                                <i class="bi bi-trash"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <tr>
                     <td colspan="8" class="text-center text-muted py-5">
-                        <i class="bi bi-check-circle" style="font-size: 3rem; color: #198754; opacity: .5;"></i>
+                        <i class="bi bi-search" style="font-size: 3rem; color: #0d6efd; opacity: .5;"></i>
                         <div class="mt-2">
-                            <strong>Semua pekerjaan sudah dikerjakan!</strong>
+                            <strong>Tidak ada pekerjaan yang cocok dengan filter.</strong>
+                            <div class="small mt-1">Coba ubah atau reset filter tanggal.</div>
                         </div>
+                        <a href="<?php echo e(route('admin.belum-dikerjakan')); ?>" class="btn btn-sm btn-outline-primary mt-2">
+                            <i class="bi bi-arrow-clockwise"></i> Reset Filter
+                        </a>
                     </td>
                 </tr>
             <?php endif; ?>
@@ -345,8 +454,56 @@
 
     <?php if($jobs->hasPages()): ?>
         <div class="card-footer bg-white py-2">
-            <?php echo e($jobs->appends(request()->query())->links()); ?>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="small text-muted">
+                    Menampilkan <strong><?php echo e($jobs->firstItem() ?? 0); ?></strong>
+                    – <strong><?php echo e($jobs->lastItem() ?? 0); ?></strong>
+                    dari <strong><?php echo e($jobs->total()); ?></strong> data
+                </div>
 
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <?php if($jobs->onFirstPage()): ?>
+                        <button class="btn btn-sm btn-outline-secondary" disabled>
+                            <i class="bi bi-chevron-left"></i> Prev
+                        </button>
+                    <?php else: ?>
+                        <a href="<?php echo e($jobs->previousPageUrl()); ?>"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-chevron-left"></i> Prev
+                        </a>
+                    <?php endif; ?>
+
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <?php $__currentLoopData = $jobs->getUrlRange(
+                                max(1, $jobs->currentPage() - 2),
+                                min($jobs->lastPage(), $jobs->currentPage() + 2)
+                            ); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $page => $url): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php if($page == $jobs->currentPage()): ?>
+                                    <li class="page-item active">
+                                        <span class="page-link"><?php echo e($page); ?></span>
+                                    </li>
+                                <?php else: ?>
+                                    <li class="page-item">
+                                        <a class="page-link" href="<?php echo e($url); ?>"><?php echo e($page); ?></a>
+                                    </li>
+                                <?php endif; ?>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </ul>
+                    </nav>
+
+                    <?php if($jobs->hasMorePages()): ?>
+                        <a href="<?php echo e($jobs->nextPageUrl()); ?>"
+                           class="btn btn-sm btn-outline-primary">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </a>
+                    <?php else: ?>
+                        <button class="btn btn-sm btn-outline-secondary" disabled>
+                            Next <i class="bi bi-chevron-right"></i>
+                        </button>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
     <?php endif; ?>
 </div>
@@ -416,6 +573,40 @@
     </div>
 </div>
 
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <form method="POST" id="deleteForm" class="modal-content">
+            <?php echo csrf_field(); ?>
+            <?php echo method_field('DELETE'); ?>
+            <div class="modal-header bg-danger text-white py-2">
+                <h6 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Konfirmasi Hapus
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-3">
+                <p class="mb-2 small">Apakah Anda yakin ingin menghapus tugas ini?</p>
+                <div class="bg-light p-2 rounded small">
+                    <div><strong>Kode:</strong> <code id="deleteJobKode">-</code></div>
+                    <div><strong>Judul:</strong> <span id="deleteJobJudul">-</span></div>
+                </div>
+                <div class="alert alert-warning mt-2 mb-0 small py-2">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <strong>Data tidak bisa dikembalikan.</strong>
+                    Semua foto, history, dan laporan ikut terhapus.
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="bi bi-trash"></i> Ya, Hapus
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
@@ -423,6 +614,7 @@
     const teknisiList = <?php echo json_encode($teknisiList, 15, 512) ?>;
 
     document.addEventListener('DOMContentLoaded', function() {
+        // ===== Modal Assign =====
         const assignModal = document.getElementById('assignModal');
 
         assignModal.addEventListener('show.bs.modal', function(event) {
@@ -466,6 +658,23 @@
             });
 
             updateAssignCount();
+        });
+
+        // ===== Modal Delete =====
+        const deleteModal = document.getElementById('deleteModal');
+
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+
+            const jobId    = button.getAttribute('data-job-id');
+            const jobKode  = button.getAttribute('data-job-kode');
+            const jobJudul = button.getAttribute('data-job-judul');
+
+            const form = document.getElementById('deleteForm');
+            form.action = "<?php echo e(route('admin.destroy', ':id')); ?>".replace(':id', jobId);
+
+            document.getElementById('deleteJobKode').textContent  = jobKode;
+            document.getElementById('deleteJobJudul').textContent = jobJudul;
         });
     });
 
