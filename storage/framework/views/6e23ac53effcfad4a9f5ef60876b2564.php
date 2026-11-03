@@ -17,7 +17,8 @@
         </h5>
     </div>
     <div class="card-body">
-        <form method="POST" action="<?php echo e(route($rp . '.store')); ?>">
+        
+        <form method="POST" action="<?php echo e(route($rp . '.store')); ?>" id="formBuatTugas">
             <?php echo csrf_field(); ?>
 
             <div class="mb-3">
@@ -69,7 +70,8 @@
                 <textarea name="deskripsi" class="form-control" rows="3"><?php echo e(old('deskripsi')); ?></textarea>
             </div>
 
-            <button class="btn <?php echo e($isCctv ? 'btn-info' : 'btn-primary'); ?>">
+            
+            <button type="submit" class="btn <?php echo e($isCctv ? 'btn-info' : 'btn-primary'); ?>" id="btnSubmit">
                 <i class="bi bi-save"></i> Simpan Tugas
             </button>
             <a href="<?php echo e(route($rp . '.dashboard')); ?>" class="btn btn-secondary">Batal</a>
@@ -79,4 +81,23 @@
 </div>
 </div>
 <?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('scripts'); ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('formBuatTugas');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        if (form && btnSubmit) {
+            form.addEventListener('submit', function() {
+                // Matikan tombol agar tidak bisa diklik dua kali
+                btnSubmit.disabled = true;
+                
+                // Ubah teks tombol menjadi loading
+                btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...';
+            });
+        }
+    });
+</script>
+<?php $__env->stopPush(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\CHATBOT LARAVEL\monitoring-teknisi\resources\views/teknisi/buat_tugas.blade.php ENDPATH**/ ?>

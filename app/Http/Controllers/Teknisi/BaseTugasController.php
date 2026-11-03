@@ -149,24 +149,50 @@ abstract class BaseTugasController extends Controller
             'tanggal_tugas' => 'required|date',
         ]);
 
-        $data['kode_job']   = Job::generateKode($this->bidang);
         $data['bidang']     = $this->bidang;
         $data['teknisi_id'] = auth()->id();
         $data['admin_id']   = null;
         $data['status']     = 'DIKERJAKAN';
 
-        $job = Job::create($data);
+        $job = null;
+        $maxAttempts = 5; // Coba maksimal 5 kali jika kode bentrok (Race Condition)
 
-        JobHistory::create([
-            'job_id'      => $job->id,
-            'user_id'     => auth()->id(),
-            'status_lama' => null,
-            'status_baru' => 'DIKERJAKAN',
-            'keterangan'  => "Tugas {$this->bidang} dibuat sendiri oleh teknisi",
-        ]);
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                // Generate kode di dalam blok try
+                $data['kode_job'] = Job::generateKode($this->bidang);
+                
+                // Coba simpan ke database
+                $job = Job::create($data);
+                break; // Jika berhasil, hentikan perulangan
 
-        return redirect()->route("{$this->routePrefix}.dashboard")
-            ->with('success', 'Tugas berhasil dibuat.');
+            } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+                // Jika masih percobaan terakhir dan tetap gagal, lemparkan error
+                if ($attempt === $maxAttempts) {
+                    return back()->withInput()->withErrors([
+                        'error' => 'Gagal menyimpan tugas karena sistem sedang sibuk. Silakan coba lagi.'
+                    ]);
+                }
+                // Beri jeda 0.1 detik sebelum mencoba generate kode baru
+                usleep(100000); 
+            }
+        }
+
+        // Simpan history jika job berhasil dibuat
+        if ($job) {
+            JobHistory::create([
+                'job_id'      => $job->id,
+                'user_id'     => auth()->id(),
+                'status_lama' => null,
+                'status_baru' => 'DIKERJAKAN',
+                'keterangan'  => "Tugas {$this->bidang} dibuat sendiri oleh teknisi",
+            ]);
+
+            return redirect()->route("{$this->routePrefix}.dashboard")
+                ->with('success', 'Tugas berhasil dibuat.');
+        }
+
+        return back()->withInput()->withErrors(['error' => 'Terjadi kesalahan sistem.']);
     }
 
     // ============================================
