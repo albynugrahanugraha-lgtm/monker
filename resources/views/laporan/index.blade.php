@@ -1,326 +1,234 @@
-@extends('layouts.app')
+@extends('layouts.app_pwa')
 @section('title', 'Laporan Pekerjaan')
 
+@php
+    // Deteksi Role User
+    $isTeknisi = auth()->user()->isAnyTeknisi();
+    $isCctv = auth()->user()->isTeknisiCctv() ?? false;
+    $rp = auth()->user()->isTeknisiCctv() ? 'teknisi_cctv' : (auth()->user()->isTeknisi() ? 'teknisi' : 'admin');
+    
+    // 🆕 KONSISTENSI WARNA: Cyan hanya untuk CCTV, sisanya Biru
+    $primaryColor = $isCctv ? '#0dcaf0' : '#0d6efd';
+    $primaryDark  = $isCctv ? '#0aa2c0' : '#0a58ca';
+    $rgbColor     = $isCctv ? '13, 202, 240' : '13, 110, 253';
+@endphp
+
+@push('styles')
+<style>
+    body { background-color: #f2f4f8 !important; }
+    .app-container { max-width: 600px; margin: 0 auto; padding: 16px; padding-bottom: 100px; }
+
+    /* HEADER */
+    .app-header {
+        background: linear-gradient(135deg, {{ $primaryColor }}, {{ $primaryDark }});
+        border-radius: 24px; padding: 24px 20px; color: white;
+        box-shadow: 0 10px 25px rgba({{ $rgbColor }}, 0.3);
+        margin-bottom: 24px;
+    }
+    .app-header h1 { font-size: 1.4rem; font-weight: 800; margin: 0; }
+    .app-header p { font-size: 0.8rem; opacity: 0.9; margin: 4px 0 0 0; }
+    
+    .btn-header-action {
+        background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4);
+        color: white; border-radius: 12px; padding: 8px 14px;
+        font-size: 0.8rem; font-weight: 700; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    /* Menu Desktop (Hanya Teknisi di Laptop) */
+    .desktop-nav { display: none; gap: 8px; margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 16px; }
+    .desktop-nav a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 6px 12px; border-radius: 8px; }
+    .desktop-nav a:hover, .desktop-nav a.active { background: rgba(255,255,255,0.2); color: white; }
+
+    /* FILTER CARD */
+    .filter-card {
+        background: white; border-radius: 16px; padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 24px;
+    }
+    .filter-group { margin-bottom: 12px; }
+    .filter-group label { font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 6px; display: block; }
+    .filter-control {
+        width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #e0e0e0;
+        background: #f9f9f9; font-size: 0.85rem; color: #333;
+    }
+    .btn-filter {
+        width: 100%; padding: 12px; border-radius: 12px; background: {{ $primaryColor }};
+        color: white; border: none; font-weight: 700; font-size: 0.9rem; margin-top: 8px;
+    }
+
+    /* GRAFIK CARD */
+    .chart-card {
+        background: white; border-radius: 16px; padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 24px;
+    }
+    .chart-card h2 { font-size: 1rem; font-weight: 800; margin: 0 0 16px 0; color: #1a1a1a; }
+    .chart-wrapper { position: relative; height: 250px; width: 100%; }
+
+    /* LIST LAPORAN CARD */
+    .laporan-card {
+        background: white; border-radius: 16px; padding: 16px;
+        margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        border-left: 4px solid {{ $primaryColor }};
+        cursor: pointer; transition: transform 0.15s;
+    }
+    .laporan-card:active { transform: scale(0.98); }
+    .lap-title { font-size: 0.95rem; font-weight: 800; color: #1a1a1a; margin-bottom: 8px; }
+    .lap-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.75rem; color: #666; margin-bottom: 12px; }
+    .lap-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #eee; padding-top: 12px; }
+    .btn-aksi { background: #f1f3f5; color: #333; padding: 5px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; text-decoration: none; }
+
+    /* BOTTOM NAV (Hanya Teknisi) */
+    .bottom-nav {
+        position: fixed; bottom: 0; left: 0; right: 0; background: white;
+        border-top: 1px solid #f0f0f0; display: flex; justify-content: space-around;
+        padding: 10px 0 max(10px, env(safe-area-inset-bottom)); z-index: 1000;
+    }
+    .bottom-nav-item {
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+        color: #adb5bd; text-decoration: none !important; font-size: 0.65rem; font-weight: 700;
+    }
+    .bottom-nav-item i { font-size: 1.4rem; }
+    .bottom-nav-item.active { color: {{ $primaryColor }}; }
+
+    /* LAPTOP (GRID) */
+    @media (min-width: 768px) {
+        .app-container { max-width: 1000px; padding: 24px; padding-bottom: 24px; }
+        .bottom-nav { display: none !important; }
+        .desktop-nav { display: flex; }
+        .filter-card form { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: end; }
+        .btn-filter { grid-column: span 4; width: 200px; justify-self: start; }
+        .grid-laporan { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-    <h3 class="mb-0 fw-bold">
-        <i class="bi bi-file-earmark-bar-graph"></i>
-        Laporan Pekerjaan
-    </h3>
-    <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('laporan.excel', request()->query()) }}"
-           class="btn btn-success">
-            <i class="bi bi-file-earmark-excel"></i> Export Excel
-        </a>
-        <a href="{{ route('laporan.cetak', request()->query()) }}"
-           target="_blank" class="btn btn-primary">
-            <i class="bi bi-file-earmark-pdf"></i> Cetak PDF
-        </a>
+<div class="app-container">
+
+    <div class="app-header">
+        <div class="d-flex justify-content-between align-items-center" style="position:relative; z-index:1;">
+            <div class="d-flex align-items-center gap-3">
+                {{-- TOMBOL BACK KHUSUS ADMIN --}}
+                @if(!$isTeknisi)
+                    <a href="{{ route('admin.dashboard') }}" style="color: white; font-size: 1.5rem; text-decoration: none;">
+                        <i class="bi bi-arrow-left-circle-fill"></i>
+                    </a>
+                @endif
+                
+                <div>
+                    <h1>Laporan Pekerjaan</h1>
+                    <p>Rekapitulasi data pekerjaan teknisi</p>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <a href="{{ route('laporan.excel', request()->query()) }}" class="btn-header-action" title="Export Excel"><i class="bi bi-file-earmark-excel"></i></a>
+                <a href="{{ route('laporan.cetak', request()->query()) }}" target="_blank" class="btn-header-action" title="Cetak PDF"><i class="bi bi-printer"></i></a>
+            </div>
+        </div>
+
+        {{-- MENU ATAS (HANYA TEKNISI) --}}
+        @if($isTeknisi)
+        <div class="desktop-nav">
+            <a href="{{ route($rp . '.dashboard') }}"><i class="bi bi-house-door-fill"></i> Beranda</a>
+            <a href="{{ route($rp . '.buat') }}"><i class="bi bi-plus-square"></i> Buat Tugas</a>
+            <a href="{{ route('laporan.index') }}" class="active"><i class="bi bi-bar-chart-fill"></i> Laporan</a>
+            <a href="{{ route('profile.edit') }}"><i class="bi bi-person-circle"></i> Profil</a>
+        </div>
+        @endif
     </div>
-</div>
 
-{{-- FILTER --}}
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <form method="GET" class="row g-2 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">📅 Tahun</label>
-                <select name="tahun" class="form-select">
-                    @foreach($tahunList as $y)
-                        <option value="{{ $y }}" @selected($tahun == $y)>{{ $y }}</option>
-                    @endforeach
+    <div class="filter-card">
+        <form method="GET" action="{{ route('laporan.index') }}">
+            <div class="filter-group">
+                <label>Tahun</label>
+                <select name="tahun" class="filter-control">
+                    @foreach($tahunList as $y)<option value="{{ $y }}" @selected($tahun == $y)>{{ $y }}</option>@endforeach
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">📆 Bulan</label>
-                <select name="bulan" class="form-select">
-                    <option value="semua" @selected($bulan === 'semua' || !$bulan)>🗓 Semua Bulan (1 Tahun)</option>
-                    @foreach($daftarBulan as $num => $nama)
-                        <option value="{{ $num }}" @selected($bulan == $num)>{{ $nama }}</option>
-                    @endforeach
+            <div class="filter-group">
+                <label>Bulan</label>
+                <select name="bulan" class="filter-control">
+                    <option value="semua" @selected($bulan === 'semua' || !$bulan)>Semua Bulan</option>
+                    @foreach($daftarBulan as $num => $nama)<option value="{{ $num }}" @selected($bulan == $num)>{{ $nama }}</option>@endforeach
                 </select>
             </div>
-
             @if(auth()->user()->isAdmin() || auth()->user()->isSuperAdmin())
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">📋 Bidang</label>
-                <select name="bidang" class="form-select">
+            <div class="filter-group">
+                <label>Bidang</label>
+                <select name="bidang" class="filter-control">
                     <option value="">Semua Bidang</option>
-                    <option value="komputer" @selected(request('bidang')==='komputer')>🖥 Komputer</option>
-                    <option value="cctv"     @selected(request('bidang')==='cctv')>📹 CCTV</option>
+                    <option value="komputer" @selected(request('bidang')==='komputer')>Komputer</option>
+                    <option value="cctv" @selected(request('bidang')==='cctv')>CCTV</option>
                 </select>
             </div>
             @endif
-
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">📅 Dari Tanggal</label>
-                <input type="date" name="tanggal_mulai" class="form-control" value="{{ $tanggalMulai ?? '' }}">
-            </div>
-
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">📅 Sampai Tanggal</label>
-                <input type="date" name="tanggal_akhir" class="form-control" value="{{ $tanggalAkhir ?? '' }}">
-            </div>
-
-            <div class="col-md-2">
-                <button class="btn btn-primary w-100">
-                    <i class="bi bi-search"></i> Tampilkan
-                </button>
-            </div>
-            <div class="col-md-2">
-                <a href="{{ route('laporan.index') }}" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-arrow-clockwise"></i> Reset
-                </a>
-            </div>
+            <div class="filter-group"><label>Dari Tanggal</label><input type="date" name="tanggal_mulai" class="filter-control" value="{{ $tanggalMulai ?? '' }}"></div>
+            <div class="filter-group"><label>Sampai Tanggal</label><input type="date" name="tanggal_akhir" class="filter-control" value="{{ $tanggalAkhir ?? '' }}"></div>
+            <button type="submit" class="btn-filter"><i class="bi bi-search"></i> Tampilkan</button>
         </form>
     </div>
-</div>
 
-{{-- INFO PERIODE --}}
-<div class="alert alert-info d-flex align-items-center mb-4">
-    <i class="bi bi-info-circle-fill me-2" style="font-size: 1.3rem;"></i>
-    <div>
-        <strong>Periode:</strong>
-        @if($tanggalMulai || $tanggalAkhir)
-            @if($tanggalMulai && $tanggalAkhir)
-                {{ \Carbon\Carbon::parse($tanggalMulai)->format('d M Y') }} s/d {{ \Carbon\Carbon::parse($tanggalAkhir)->format('d M Y') }}
-            @elseif($tanggalMulai)
-                Sejak {{ \Carbon\Carbon::parse($tanggalMulai)->format('d M Y') }}
-            @elseif($tanggalAkhir)
-                Sampai {{ \Carbon\Carbon::parse($tanggalAkhir)->format('d M Y') }}
-            @endif
-            <span class="badge bg-warning text-dark ms-1">Filter Tanggal Aktif</span>
-        @else
-            @if($bulan && $bulan !== 'semua')
-                {{ $daftarBulan[$bulan] }} {{ $tahun }}
-            @else
-                Seluruh Tahun {{ $tahun }} (Januari - Desember)
-            @endif
-        @endif
-        @if(request('bidang'))
-            · Bidang: <strong>{{ ucfirst(request('bidang')) }}</strong>
+    <div class="chart-grid">
+        <div class="chart-card">
+            <h2><i class="bi bi-bar-chart-fill text-primary"></i> Pekerjaan per Bulan ({{ $tahun }})</h2>
+            <div class="chart-wrapper"><canvas id="chartTahunan"></canvas></div>
+        </div>
+        @if($bulan && $bulan !== 'semua')
+        <div class="chart-card">
+            <h2><i class="bi bi-calendar-range text-success"></i> Pekerjaan per Hari ({{ $daftarBulan[$bulan] }})</h2>
+            <div class="chart-wrapper"><canvas id="chartHarian"></canvas></div>
+        </div>
         @endif
     </div>
-</div>
 
-{{-- GRAFIK PER BULAN (12 Bulan) --}}
-<div class="card shadow-sm mb-4 border-0">
-    <div class="card-body">
-        <h6 class="fw-bold mb-3">
-            <i class="bi bi-bar-chart-fill text-primary"></i>
-            Grafik Pekerjaan per Bulan — Tahun {{ $tahun }}
-        </h6>
-        <div style="position: relative; height: 280px;">
-            <canvas id="chartTahunan"></canvas>
-        </div>
+    <div style="display:flex; justify-content:space-between; align-items:end; margin: 24px 0 12px 0; padding: 0 4px;">
+        <h2 style="font-size: 1.1rem; font-weight: 800; margin:0;">Daftar Pekerjaan</h2>
+        <span style="background: {{ $primaryColor }}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700;">{{ $jobs->count() }} Data</span>
     </div>
-</div>
 
-{{-- GRAFIK PER HARI --}}
-@if($bulan && $bulan !== 'semua')
-<div class="card shadow-sm mb-4 border-0">
-    <div class="card-body">
-        <h6 class="fw-bold mb-3">
-            <i class="bi bi-calendar-range text-success"></i>
-            Grafik Pekerjaan per Hari — {{ $daftarBulan[$bulan] }} {{ $tahun }}
-        </h6>
-        <div style="position: relative; height: 250px;">
-            <canvas id="chartHarian"></canvas>
-        </div>
-    </div>
-</div>
-@else
-<div class="alert alert-secondary small">
-    <i class="bi bi-info-circle"></i>
-    Pilih <strong>bulan tertentu</strong> untuk melihat grafik per hari.
-</div>
-@endif
-
-{{-- REKAP TEKNISI --}}
-@if($rekapTeknisi->count() > 0)
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-light">
-        <h6 class="mb-0">
-            <i class="bi bi-people-fill"></i> Rekap per Teknisi — Tahun {{ $tahun }}
-        </h6>
-    </div>
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th style="width: 50px;" class="text-center">#</th>
-                    <th>Nama Teknisi</th>
-                    <th class="text-center" style="width: 120px;">Total Tugas</th>
-                    <th class="text-center" style="width: 120px;">Selesai</th>
-                    <th class="text-center" style="width: 120px;">Pending</th>
-                    <th class="text-center" style="width: 100px;">Rasio</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach($rekapTeknisi as $i => $r)
-                @php
-                    $rasio = $r->total > 0 ? round(($r->selesai / $r->total) * 100) : 0;
-                    $badgeColor = $rasio >= 80 ? 'success' : ($rasio >= 50 ? 'warning' : 'danger');
-                @endphp
-                <tr>
-                    <td class="text-center">{{ $i + 1 }}</td>
-                    <td>
-                        <i class="bi bi-person-circle text-primary"></i>
-                        {{ $r->teknisi->display_name ?? '-' }}
-                    </td>
-                    <td class="text-center">
-                        <span class="badge bg-secondary">{{ $r->total }}</span>
-                    </td>
-                    <td class="text-center">
-                        <span class="badge bg-success">{{ $r->selesai }}</span>
-                    </td>
-                    <td class="text-center">
-                        <span class="badge bg-warning text-dark">{{ $r->pending }}</span>
-                    </td>
-                    <td class="text-center">
-                        <span class="badge bg-{{ $badgeColor }}">{{ $rasio }}%</span>
-                    </td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
-    </div>
-</div>
-@endif
-
-{{-- DETAIL PEKERJAAN (DROPDOWN ACCORDION) --}}
-<div class="card shadow-sm">
-    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <h6 class="mb-0">
-            <i class="bi bi-list-task"></i> Detail Pekerjaan ({{ $jobs->count() }})
-        </h6>
-        <small class="text-muted">Klik untuk melihat detail</small>
-    </div>
-    <div class="card-body p-0">
-        @forelse($jobs as $index => $j)
-            <div class="accordion accordion-flush" id="accordionJob{{ $j->id }}">
-                <div class="accordion-item border-bottom">
-                    <h2 class="accordion-header" id="headingJob{{ $j->id }}">
-                        <button class="accordion-button collapsed" type="button" 
-                                data-bs-toggle="collapse" 
-                                data-bs-target="#collapseJob{{ $j->id }}" 
-                                aria-expanded="false" 
-                                aria-controls="collapseJob{{ $j->id }}">
-                            <div class="d-flex w-100 justify-content-between align-items-center me-3 flex-wrap gap-2">
-                                <div>
-                                    <code class="me-2">{{ $j->kode_job }}</code>
-                                    <strong>{{ $j->judul }}</strong>
-                                    <span class="badge {{ $j->bidangBadgeClass() }} ms-1">
-                                        <i class="bi {{ $j->bidangIcon() }}"></i> {{ $j->bidangLabel() }}
-                                    </span>
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <small class="text-muted d-none d-md-inline">
-                                        <i class="bi bi-person"></i> {{ $j->teknisi->display_name ?? '-' }}
-                                    </small>
-                                    @php $badge = match($j->status) {
-                                        'DITUGASKAN' => 'bg-secondary',
-                                        'DIKERJAKAN' => 'bg-warning text-dark',
-                                        'SELESAI'    => 'bg-success',
-                                        default      => 'bg-light text-dark',
-                                    }; @endphp
-                                    <span class="badge {{ $badge }}">{{ $j->status }}</span>
-                                </div>
-                            </div>
-                        </button>
-                    </h2>
-                    <div id="collapseJob{{ $j->id }}" class="accordion-collapse collapse" 
-                         aria-labelledby="headingJob{{ $j->id }}" 
-                         data-bs-parent="#accordionJob{{ $j->id }}">
-                        <div class="accordion-body bg-light">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <table class="table table-sm table-borderless mb-0">
-                                        <tr>
-                                            <th width="120">Tanggal</th>
-                                            <td>: <i class="bi bi-calendar"></i> {{ $j->tanggal_tugas?->format('d-m-Y') }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Lokasi</th>
-                                            <td>: <i class="bi bi-geo-alt"></i> {{ $j->lok_gedung ?? '-' }} / {{ $j->lokasi_ruang ?? '-' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Perangkat</th>
-                                            <td>: {{ $j->computer_name ?? '-' }} ({{ $j->merk ?? '-' }})</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Kategori</th>
-                                            <td>: {{ $j->kategori ?? '-' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Prioritas</th>
-                                            <td>: {{ $j->prioritas }}</td>
-                                        </tr>
-                                        @if($j->hasil_pekerjaan)
-                                        <tr>
-                                            <th>Hasil</th>
-                                            <td>: {{ $j->hasil_pekerjaan }}</td>
-                                        </tr>
-                                        @endif
-                                        @if($j->catatan)
-                                        <tr>
-                                            <th>Catatan</th>
-                                            <td>: {{ $j->catatan }}</td>
-                                        </tr>
-                                        @endif
-                                    </table>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="row g-2">
-                                        <div class="col-12">
-                                            <div class="small fw-bold text-muted mb-1">📷 Foto Sebelum:</div>
-                                            <div class="d-flex flex-wrap gap-2">
-                                                @if($j->fotoSebelum->count() > 0)
-                                                    @foreach($j->fotoSebelum as $f)
-                                                        <a href="{{ asset($f->nama_file) }}" target="_blank">
-                                                            <img src="{{ asset($f->nama_file) }}" class="rounded border" style="width: 80px; height: 80px; object-fit: cover;">
-                                                        </a>
-                                                    @endforeach
-                                                @else
-                                                    <span class="small text-muted fst-italic">Tidak ada foto</span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="small fw-bold text-muted mb-1">📷 Foto Sesudah:</div>
-                                            <div class="d-flex flex-wrap gap-2">
-                                                @if($j->fotoSesudah->count() > 0)
-                                                    @foreach($j->fotoSesudah as $f)
-                                                        <a href="{{ asset($f->nama_file) }}" target="_blank">
-                                                            <img src="{{ asset($f->nama_file) }}" class="rounded border" style="width: 80px; height: 80px; object-fit: cover;">
-                                                        </a>
-                                                    @endforeach
-                                                @else
-                                                    <span class="small text-muted fst-italic">Tidak ada foto</span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <div class="grid-laporan">
+        @forelse($jobs as $j)
+            <div class="laporan-card" onclick="window.location='{{ $isTeknisi ? route($rp . '.show', $j) : route('admin.show', $j) }}'">
+                <div class="d-flex justify-content-between align-items-start">
+                    <span style="font-family:monospace; font-size:0.7rem; color:#888;"><i class="bi bi-hash"></i>{{ $j->kode_job }}</span>
+                    <span class="badge {{ $j->statusBadgeClass() }}">{{ $j->status }}</span>
+                </div>
+                <div class="lap-title">{{ $j->judul }}</div>
+                <div class="lap-meta">
+                    <span><i class="bi bi-person-circle text-primary"></i> {{ $j->teknisi->display_name ?? '-' }}</span>
+                    <span><i class="bi bi-calendar-check text-success"></i> {{ $j->tanggal_selesai?->format('d M Y') ?? $j->tanggal_tugas?->format('d M Y') }}</span>
+                </div>
+                <div class="lap-footer">
+                    <span class="badge {{ $j->bidangBadgeClass() }}" style="font-size:0.65rem;"><i class="bi {{ $j->bidangIcon() }}"></i> {{ $j->bidangLabel() }}</span>
+                    <span class="btn-aksi">Detail <i class="bi bi-chevron-right"></i></span>
                 </div>
             </div>
         @empty
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-inbox" style="font-size: 3rem; opacity: .3;"></i>
-                <p class="mt-2 mb-0">Belum ada pekerjaan pada periode ini</p>
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: white; border-radius: 16px;">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                <h3 style="font-size: 1rem; font-weight: 800; margin-top: 12px; color: #333;">Tidak Ada Data</h3>
             </div>
         @endforelse
     </div>
+
 </div>
+
+{{-- BOTTOM NAV (HANYA TEKNISI) --}}
+@if($isTeknisi)
+<div class="bottom-nav">
+    <a href="{{ route($rp . '.dashboard') }}" class="bottom-nav-item"><i class="bi bi-house-door-fill"></i><span>Beranda</span></a>
+    <a href="{{ route($rp . '.buat') }}" class="bottom-nav-item"><i class="bi bi-plus-square"></i><span>Buat</span></a>
+    <a href="{{ route('laporan.index') }}" class="bottom-nav-item active"><i class="bi bi-bar-chart"></i><span>Laporan</span></a>
+    <a href="{{ route('profile.edit') }}" class="bottom-nav-item"><i class="bi bi-person-circle"></i><span>Profil</span></a>
+</div>
+@endif
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    // GRAFIK TAHUNAN
     const ctxTahunan = document.getElementById('chartTahunan');
     if (ctxTahunan) {
         new Chart(ctxTahunan, {
@@ -328,40 +236,14 @@
             data: {
                 labels: @json($chartTahunan['labels']),
                 datasets: [
-                    {
-                        label: 'Total',
-                        data: @json($chartTahunan['data']),
-                        backgroundColor: 'rgba(13, 110, 253, 0.8)',
-                        borderColor: 'rgba(13, 110, 253, 1)',
-                        borderWidth: 1,
-                        borderRadius: 5,
-                    },
-                    {
-                        label: 'Selesai',
-                        data: @json($chartTahunan['selesai']),
-                        backgroundColor: 'rgba(25, 135, 84, 0.8)',
-                        borderColor: 'rgba(25, 135, 84, 1)',
-                        borderWidth: 1,
-                        borderRadius: 5,
-                    }
+                    { label: 'Total', data: @json($chartTahunan['data']), backgroundColor: 'rgba(13, 110, 253, 0.8)', borderRadius: 5 },
+                    { label: 'Selesai', data: @json($chartTahunan['selesai']), backgroundColor: 'rgba(25, 135, 84, 0.8)', borderRadius: 5 }
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'top' } },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1, precision: 0 },
-                        title: { display: true, text: 'Jumlah Pekerjaan' }
-                    }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
         });
     }
 
-    // GRAFIK HARIAN (hanya kalau bulan dipilih)
     const ctxHarian = document.getElementById('chartHarian');
     if (ctxHarian) {
         new Chart(ctxHarian, {
@@ -369,44 +251,11 @@
             data: {
                 labels: @json($chartHarian['labels']),
                 datasets: [
-                    {
-                        label: 'Total',
-                        data: @json($chartHarian['data']),
-                        backgroundColor: 'rgba(13, 110, 253, 0.8)',
-                        borderColor: 'rgba(13, 110, 253, 1)',
-                        borderWidth: 1,
-                        borderRadius: 4,
-                    },
-                    {
-                        label: 'Selesai',
-                        data: @json($chartHarian['selesai']),
-                        backgroundColor: 'rgba(25, 135, 84, 0.8)',
-                        borderColor: 'rgba(25, 135, 84, 1)',
-                        borderWidth: 1,
-                        borderRadius: 4,
-                    }
+                    { label: 'Total', data: @json($chartHarian['data']), backgroundColor: 'rgba(13, 110, 253, 0.8)', borderRadius: 4 },
+                    { label: 'Selesai', data: @json($chartHarian['selesai']), backgroundColor: 'rgba(25, 135, 84, 0.8)', borderRadius: 4 }
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: {
-                        callbacks: {
-                            title: function(context) {
-                                return 'Tanggal ' + context[0].label + ' {{ $bulan && $bulan !== "semua" ? $daftarBulan[$bulan] : "" }} {{ $tahun }}';
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1, precision: 0 }
-                    }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
         });
     }
 </script>

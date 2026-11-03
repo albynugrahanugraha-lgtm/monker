@@ -1,504 +1,223 @@
-@extends('layouts.app')
+@extends('layouts.app_pwa')
 @section('title', 'Kerjakan Pekerjaan')
 
 @php
     $rp = $routePrefix ?? 'teknisi';
     $isCctv = ($bidang ?? 'komputer') === 'cctv';
+    $primaryColor = $isCctv ? '#0dcaf0' : '#0d6efd';
 @endphp
 
 @push('styles')
 <style>
-    /* ============================================
-       TRIK AMPUH HILANGKAN TULISAN "CHOOSE FILE"
-       ============================================ */
-    .foto-slot .file-input-hidden {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        border: 0;
-        opacity: 0;
-        z-index: -1;
+    .app-container { max-width: 600px; margin: 0 auto; padding: 16px; padding-bottom: 100px; }
+
+    /* TOMBOL BACK */
+    .header-back {
+        display: flex; align-items: center; margin-bottom: 20px;
+    }
+    .header-back a {
+        color: #333; font-size: 1.5rem; margin-right: 12px; text-decoration: none;
+    }
+    .header-back .title { font-size: 1.1rem; font-weight: 800; color: #1a1a1a; }
+    .header-back .subtitle { font-size: 0.8rem; color: #888; }
+
+    /* CARD INFO TUGAS */
+    .job-info-card {
+        background: linear-gradient(135deg, {{ $primaryColor }}, {{ $isCctv ? '#0aa2c0' : '#0a58ca' }});
+        border-radius: 20px; padding: 20px; color: white; margin-bottom: 20px;
+        box-shadow: 0 8px 20px rgba({{ $isCctv ? '13, 202, 240' : '13, 110, 253' }}, 0.3);
+    }
+    .job-info-card h5 { font-size: 1.1rem; font-weight: 800; margin: 0 0 8px 0; line-height: 1.3; }
+    .job-info-card .meta { font-size: 0.75rem; opacity: 0.9; display: flex; flex-wrap: wrap; gap: 10px; }
+
+    /* CARD FORM */
+    .form-card {
+        background: white; border-radius: 20px; padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 20px;
     }
 
-    /* ============================================
-       CONTAINER SLOT
-       ============================================ */
+    .form-label { font-size: 0.85rem; font-weight: 700; color: #333; margin-bottom: 8px; display: block; }
+    .form-control-pwa {
+        width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid #e0e0e0;
+        background: #f9f9f9; font-size: 0.95rem; margin-bottom: 16px;
+    }
+    .form-control-pwa:focus { outline: none; border-color: {{ $primaryColor }}; background: white; }
+
+    /* FOTO SLOT PWA */
+    .foto-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
     .foto-slot {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        min-height: 90px;
-        padding: 10px 8px;
-        border: 2px dashed #ced4da;
-        border-radius: 8px;
-        background: #f8f9fa;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-align: center;
-        box-sizing: border-box;
-        overflow: hidden;
+        position: relative; aspect-ratio: 1; border-radius: 16px;
+        border: 2px dashed #ccc; background: #f9f9f9;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        cursor: pointer; overflow: hidden; transition: all 0.2s;
     }
+    .foto-slot:active { transform: scale(0.95); }
+    .foto-slot.has-file { border: 2px solid #198754; background: #e8f5e9; }
+    .foto-slot .icon { font-size: 1.8rem; color: #bbb; margin-bottom: 4px; }
+    .foto-slot .label { font-size: 0.65rem; color: #888; font-weight: 700; }
+    
+    .foto-slot.has-file .icon, .foto-slot.has-file .label { display: none; }
+    .foto-slot img { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .foto-slot.has-file img { display: block; }
 
-    .foto-slot:hover {
-        border-color: #0d6efd;
-        background: #e7f1ff;
+    .foto-remove {
+        position: absolute; top: 4px; right: 4px; width: 22px; height: 22px;
+        background: #dc3545; color: white; border: none; border-radius: 50%;
+        font-size: 0.7rem; display: flex; align-items: center; justify-content: center;
+        z-index: 10;
     }
+    .file-input-hidden { display: none; }
 
-    /* State sudah ada file */
-    .foto-slot.has-file {
-        border-style: solid;
-        border-color: #198754;
-        background: #f0fff4;
-    }
+    /* FOTO LAMA */
+    .foto-lama-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .foto-lama-item { position: relative; width: 70px; height: 70px; border-radius: 10px; overflow: hidden; border: 1px solid #ddd; }
+    .foto-lama-item img { width: 100%; height: 100%; object-fit: cover; }
 
-    .foto-slot.has-file:hover {
-        border-color: #dc3545;
-        background: #fff5f5;
-    }
-
-    /* Icon default */
-    .foto-slot .foto-slot-icon {
-        display: block;
-        font-size: 1.6rem;
-        color: #adb5bd;
-        margin-bottom: 4px;
-        line-height: 1;
-    }
-
-    /* Label default */
-    .foto-slot .foto-slot-label {
-        display: block;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 1px;
-    }
-
-    /* Hint default */
-    .foto-slot .foto-slot-hint {
-        display: block;
-        font-size: 0.62rem;
-        color: #adb5bd;
-    }
-
-    /* Saat sudah ada file — SEMBUNYIKAN icon/label/hint */
-    .foto-slot.has-file .foto-slot-icon,
-    .foto-slot.has-file .foto-slot-label,
-    .foto-slot.has-file .foto-slot-hint {
-        display: none !important;
-    }
-
-    /* Tampilkan nama file saja */
-    .foto-slot .file-name-display {
-        display: none;
-        padding: 6px 4px;
-        text-align: center;
-        width: 100%;
-    }
-
-    .foto-slot.has-file .file-name-display {
-        display: block;
-    }
-
-    .file-name-display .file-name-icon {
-        display: block;
-        font-size: 1.5rem;
-        color: #198754;
-        margin-bottom: 4px;
-    }
-
-    .file-name-display .file-name-text {
-        display: block;
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: #198754;
-        word-break: break-all;
-        line-height: 1.3;
-    }
-
-    .file-name-display .file-name-size {
-        display: block;
-        font-size: 0.6rem;
-        color: #6c757d;
-        margin-top: 2px;
-    }
-
-    /* Tombol hapus (❌) */
-    .foto-slot .foto-slot-remove {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: #dc3545;
-        color: #fff;
-        border: none;
-        font-size: 0.7rem;
-        line-height: 1;
-        padding: 0;
-        cursor: pointer;
-        z-index: 4;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.15s;
-    }
-
-    .foto-slot .foto-slot-remove:hover {
-        background: #b02a37;
-        transform: scale(1.1);
-    }
-
-    /* Foto lama */
-    .foto-item {
-        position: relative;
-        display: inline-block;
-    }
-    .btn-hapus-foto {
-        opacity: 0.75;
-        transition: all 0.2s;
-        border-radius: 50% !important;
-        width: 22px;
-        height: 22px;
-        padding: 0 !important;
-        line-height: 1 !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .btn-hapus-foto:hover {
-        opacity: 1;
-        transform: scale(1.15);
+    .btn-submit-pwa {
+        width: 100%; padding: 14px; border-radius: 14px; border: none;
+        background: #198754; color: white; font-size: 1rem; font-weight: 800;
+        display: flex; justify-content: center; align-items: center; gap: 8px;
+        margin-top: 10px; cursor: pointer;
     }
 </style>
 @endpush
 
 @section('content')
-<div class="row justify-content-center">
-<div class="col-12 col-md-8">
+<div class="app-container">
 
-    <div class="card shadow-sm mb-3 border-0">
-        <div class="card-body">
-            <h5 class="fw-bold mb-1">{{ $job->judul }}</h5>
-            <div class="small text-muted">
-                <span class="badge bg-light text-dark border">
-                    <i class="bi bi-hash"></i>{{ $job->kode_job }}
-                </span>
-                <span class="badge {{ $job->bidangBadgeClass() }} ms-1">
-                    <i class="bi {{ $job->bidangIcon() }}"></i> {{ $job->bidangLabel() }}
-                </span>
-                <span class="ms-2"><i class="bi bi-geo-alt"></i>
-                    {{ $job->lok_gedung ?? '-' }} / {{ $job->lokasi_ruang ?? '-' }}
-                </span>
-                <span class="ms-2"><i class="bi bi-calendar"></i>
-                    {{ $job->tanggal_tugas?->format('d M Y') }}
-                </span>
+    {{-- TOMBOL BACK --}}
+    <div class="header-back">
+        <a href="{{ route($rp . '.dashboard') }}">
+            <i class="bi bi-arrow-left-circle-fill"></i>
+        </a>
+        <div>
+            <div class="title">Kerjakan Tugas</div>
+            <div class="subtitle">Pastikan foto & hasil sudah benar</div>
+        </div>
+    </div>
+
+    {{-- INFO TUGAS --}}
+    <div class="job-info-card">
+        <div class="d-flex justify-content-between align-items-start">
+            <h5>{{ $job->judul }}</h5>
+            <span class="badge bg-light text-dark" style="font-size:0.65rem;"><i class="bi bi-hash"></i>{{ $job->kode_job }}</span>
+        </div>
+        <div class="meta">
+            <span><i class="bi bi-geo-alt-fill"></i> {{ $job->lok_gedung ?? '-' }} / {{ $job->lokasi_ruang ?? '-' }}</span>
+            <span><i class="bi bi-calendar3"></i> {{ $job->tanggal_tugas?->format('d M Y') }}</span>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ route($rp . '.selesai', $job) }}" enctype="multipart/form-data">
+        @csrf
+
+        <div class="form-card">
+            <label class="form-label">Hasil Pekerjaan <span style="color:red">*</span></label>
+            <textarea name="hasil_pekerjaan" class="form-control-pwa" rows="3" required
+                      placeholder="Tuliskan apa yang sudah diperbaiki...">{{ old('hasil_pekerjaan', $job->hasil_pekerjaan) }}</textarea>
+
+            <label class="form-label">Catatan Tambahan (opsional)</label>
+            <textarea name="catatan" class="form-control-pwa" rows="2"
+                      placeholder="Contoh: Ganti kabel LAN baru">{{ old('catatan', $job->catatan) }}</textarea>
+        </div>
+
+        <div class="form-card">
+            <label class="form-label"><i class="bi bi-image text-warning"></i> Foto Sebelum (Maks 3)</label>
+            <div class="foto-grid">
+                @for($i = 1; $i <= 3; $i++)
+                    <input type="file" class="file-input-hidden" name="foto_sebelum_{{ $i }}" id="inputSebelum{{ $i }}" accept="image/*" onchange="handleFile(this, 'Sebelum', {{ $i }})">
+                    <div class="foto-slot" id="slotSebelum{{ $i }}" onclick="document.getElementById('inputSebelum{{ $i }}').click()">
+                        <i class="bi bi-camera icon"></i>
+                        <div class="label">Foto {{ $i }}</div>
+                        <img id="previewSebelum{{ $i }}" src="">
+                        <button type="button" class="foto-remove" id="removeSebelum{{ $i }}" onclick="resetSlot(event, 'Sebelum', {{ $i }})" style="display:none;"><i class="bi bi-x"></i></button>
+                    </div>
+                @endfor
             </div>
-        </div>
-    </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-header {{ $isCctv ? 'bg-info text-dark' : 'bg-primary text-white' }}">
-            <h5 class="mb-0"><i class="bi bi-tools"></i> Kerjakan & Selesaikan Pekerjaan</h5>
-        </div>
-        <div class="card-body">
-            <form method="POST" action="{{ route($rp . '.selesai', $job) }}" enctype="multipart/form-data">
-                @csrf
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Hasil Pekerjaan <span class="text-danger">*</span></label>
-                    <textarea name="hasil_pekerjaan" class="form-control" rows="3" required
-                              placeholder="Contoh: {{ $isCctv ? 'Kamera CCTV sudah normal kembali' : 'Printer sudah bisa digunakan kembali' }}">{{ old('hasil_pekerjaan', $job->hasil_pekerjaan) }}</textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Catatan (opsional)</label>
-                    <textarea name="catatan" class="form-control" rows="2"
-                              placeholder="{{ $isCctv ? 'Contoh: Penggantian kabel BNC' : 'Contoh: Penggantian kabel LAN' }}">{{ old('catatan', $job->catatan) }}</textarea>
-                </div>
-
-                {{-- ============================================ --}}
-                {{-- FOTO SEBELUM --}}
-                {{-- ============================================ --}}
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">
-                        <i class="bi bi-image text-warning"></i> Foto Sebelum
-                        <span class="text-muted small">(max 3 foto — klik slot untuk pilih)</span>
-                    </label>
-
-                    <div class="row g-2">
-                        @for($i = 1; $i <= 3; $i++)
-                            <div class="col-4">
-                                {{-- Input file diberi class 'file-input-hidden' --}}
-                                <input type="file"
-                                       class="file-input-hidden"
-                                       name="foto_sebelum_{{ $i }}"
-                                       id="inputSebelum{{ $i }}"
-                                       accept="image/*"
-                                       onchange="handleFile(this, 'Sebelum', {{ $i }})">
-
-                                <div class="foto-slot" id="slotSebelum{{ $i }}" onclick="triggerFile('Sebelum', {{ $i }})">
-                                    <i class="bi bi-camera foto-slot-icon" id="iconSebelum{{ $i }}"></i>
-                                    <div class="foto-slot-label" id="labelSebelum{{ $i }}">Foto {{ $i }}</div>
-                                    <div class="foto-slot-hint" id="hintSebelum{{ $i }}">Klik untuk pilih</div>
-
-                                    <div class="file-name-display" id="fileNameSebelum{{ $i }}">
-                                        <i class="bi bi-file-image file-name-icon"></i>
-                                        <span class="file-name-text" id="fileNameTextSebelum{{ $i }}">-</span>
-                                        <span class="file-name-size" id="fileNameSizeSebelum{{ $i }}">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                        @endfor
-                    </div>
-
-                    @if($job->fotoSebelum->count() > 0)
-                        <div class="mt-3">
-                            <small class="text-muted d-block mb-2">
-                                <i class="bi bi-check-circle-fill text-success"></i>
-                                Foto sebelum yang sudah ada ({{ $job->fotoSebelum->count() }}):
-                            </small>
-                            <div class="d-flex flex-wrap gap-2" id="wrapperFotoSebelum">
-                                @foreach($job->fotoSebelum as $f)
-                                    <div class="foto-item" data-foto-id="{{ $f->id }}">
-                                        <a href="{{ asset($f->nama_file) }}" target="_blank">
-                                            <img src="{{ asset($f->nama_file) }}" class="rounded border" width="80">
-                                        </a>
-                                        <button type="button"
-                                                class="btn btn-danger btn-sm btn-hapus-foto position-absolute top-0 end-0 m-1"
-                                                data-foto-id="{{ $f->id }}"
-                                                data-foto-jenis="sebelum"
-                                                title="Hapus foto">
-                                            <i class="bi bi-x" style="font-size: .75rem;"></i>
-                                        </button>
-                                    </div>
-                                @endforeach
-                            </div>
+            @if($job->fotoSebelum->count() > 0)
+                <div style="font-size:0.75rem; color:#888; font-weight:bold; margin-top:10px;">Foto Tersimpan:</div>
+                <div class="foto-lama-grid">
+                    @foreach($job->fotoSebelum as $f)
+                        <div class="foto-lama-item">
+                            <img src="{{ asset($f->nama_file) }}">
                         </div>
-                    @endif
+                    @endforeach
                 </div>
-
-                {{-- ============================================ --}}
-                {{-- FOTO SESUDAH --}}
-                {{-- ============================================ --}}
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">
-                        <i class="bi bi-image text-success"></i> Foto Sesudah
-                        <span class="text-muted small">(max 3 foto — klik slot untuk pilih)</span>
-                    </label>
-
-                    <div class="row g-2">
-                        @for($i = 1; $i <= 3; $i++)
-                            <div class="col-4">
-                                {{-- Input file diberi class 'file-input-hidden' --}}
-                                <input type="file"
-                                       class="file-input-hidden"
-                                       name="foto_sesudah_{{ $i }}"
-                                       id="inputSesudah{{ $i }}"
-                                       accept="image/*"
-                                       onchange="handleFile(this, 'Sesudah', {{ $i }})">
-
-                                <div class="foto-slot" id="slotSesudah{{ $i }}" onclick="triggerFile('Sesudah', {{ $i }})">
-                                    <i class="bi bi-camera foto-slot-icon" id="iconSesudah{{ $i }}"></i>
-                                    <div class="foto-slot-label" id="labelSesudah{{ $i }}">Foto {{ $i }}</div>
-                                    <div class="foto-slot-hint" id="hintSesudah{{ $i }}">Klik untuk pilih</div>
-
-                                    <div class="file-name-display" id="fileNameSesudah{{ $i }}">
-                                        <i class="bi bi-file-image file-name-icon"></i>
-                                        <span class="file-name-text" id="fileNameTextSesudah{{ $i }}">-</span>
-                                        <span class="file-name-size" id="fileNameSizeSesudah{{ $i }}">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                        @endfor
-                    </div>
-
-                    @if($job->fotoSesudah->count() > 0)
-                        <div class="mt-3">
-                            <small class="text-muted d-block mb-2">
-                                <i class="bi bi-check-circle-fill text-success"></i>
-                                Foto sesudah yang sudah ada ({{ $job->fotoSesudah->count() }}):
-                            </small>
-                            <div class="d-flex flex-wrap gap-2" id="wrapperFotoSesudah">
-                                @foreach($job->fotoSesudah as $f)
-                                    <div class="foto-item" data-foto-id="{{ $f->id }}">
-                                        <a href="{{ asset($f->nama_file) }}" target="_blank">
-                                            <img src="{{ asset($f->nama_file) }}" class="rounded border border-success" width="80">
-                                        </a>
-                                        <button type="button"
-                                                class="btn btn-danger btn-sm btn-hapus-foto position-absolute top-0 end-0 m-1"
-                                                data-foto-id="{{ $f->id }}"
-                                                data-foto-jenis="sesudah"
-                                                title="Hapus foto">
-                                            <i class="bi bi-x" style="font-size: .75rem;"></i>
-                                        </button>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-                </div>
-
-                <div class="d-flex gap-2">
-                    <button class="btn btn-success flex-fill">
-                        <i class="bi bi-check-circle"></i> Simpan & Selesaikan
-                    </button>
-                    <a href="{{ route($rp . '.dashboard') }}" class="btn btn-secondary">Batal</a>
-                </div>
-            </form>
+            @endif
         </div>
-    </div>
 
-</div>
+        <div class="form-card">
+            <label class="form-label"><i class="bi bi-image text-success"></i> Foto Sesudah (Maks 3)</label>
+            <div class="foto-grid">
+                @for($i = 1; $i <= 3; $i++)
+                    <input type="file" class="file-input-hidden" name="foto_sesudah_{{ $i }}" id="inputSesudah{{ $i }}" accept="image/*" onchange="handleFile(this, 'Sesudah', {{ $i }})">
+                    <div class="foto-slot" id="slotSesudah{{ $i }}" onclick="document.getElementById('inputSesudah{{ $i }}').click()">
+                        <i class="bi bi-camera icon"></i>
+                        <div class="label">Foto {{ $i }}</div>
+                        <img id="previewSesudah{{ $i }}" src="">
+                        <button type="button" class="foto-remove" id="removeSesudah{{ $i }}" onclick="resetSlot(event, 'Sesudah', {{ $i }})" style="display:none;"><i class="bi bi-x"></i></button>
+                    </div>
+                @endfor
+            </div>
+
+            @if($job->fotoSesudah->count() > 0)
+                <div style="font-size:0.75rem; color:#888; font-weight:bold; margin-top:10px;">Foto Tersimpan:</div>
+                <div class="foto-lama-grid">
+                    @foreach($job->fotoSesudah as $f)
+                        <div class="foto-lama-item">
+                            <img src="{{ asset($f->nama_file) }}">
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        <button type="submit" class="btn-submit-pwa">
+            <i class="bi bi-check-circle"></i> Simpan & Selesaikan
+        </button>
+        <a href="{{ route($rp . '.dashboard') }}" style="display:block; text-align:center; color:#888; text-decoration:none; margin-top:12px; font-size:0.9rem;">Batal</a>
+    </form>
+
 </div>
 @endsection
 
 @push('scripts')
 <script>
-    function triggerFile(section, index) {
-        const input = document.getElementById('input' + section + index);
-        if (input) input.click();
-    }
-
     function handleFile(input, section, index) {
-        const slot = document.getElementById('slot' + section + index);
-
         if (input.files && input.files[0]) {
             const file = input.files[0];
-
-            // Validasi size max 10 MB
             if (file.size > 10 * 1024 * 1024) {
-                alert('❌ Ukuran foto max 10 MB. File: ' + (file.size / 1024 / 1024).toFixed(2) + ' MB');
+                alert('Maksimal ukuran file 10MB');
                 input.value = '';
                 return;
             }
 
-            // Validasi format
-            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-            if (!validTypes.includes(file.type)) {
-                alert('❌ Format harus JPG, JPEG, PNG, atau WEBP.');
-                input.value = '';
-                return;
-            }
-
-            // Update UI — tampilkan nama file
-            slot.classList.add('has-file');
-
-            const fileNameText = document.getElementById('fileNameText' + section + index);
-            const fileNameSize = document.getElementById('fileNameSize' + section + index);
-
-            if (fileNameText) fileNameText.textContent = file.name;
-
-            if (fileNameSize) {
-                const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-                fileNameSize.textContent = sizeMB + ' MB';
-            }
-
-            // Hapus tombol lama
-            const existingRemove = slot.querySelector('.foto-slot-remove');
-            if (existingRemove) existingRemove.remove();
-
-            // Tombol hapus (❌)
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.className = 'foto-slot-remove';
-            removeBtn.innerHTML = '<i class="bi bi-x"></i>';
-            removeBtn.onclick = function(e) {
-                e.stopPropagation();
-                resetSlot(section, index);
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const slot = document.getElementById('slot' + section + index);
+                const img = document.getElementById('preview' + section + index);
+                const removeBtn = document.getElementById('remove' + section + index);
+                
+                slot.classList.add('has-file');
+                img.src = e.target.result;
+                removeBtn.style.display = 'flex';
             };
-            slot.appendChild(removeBtn);
+            reader.readAsDataURL(file);
         }
     }
 
-    function resetSlot(section, index) {
+    function resetSlot(e, section, index) {
+        e.stopPropagation();
         const input = document.getElementById('input' + section + index);
-        const slot  = document.getElementById('slot' + section + index);
+        const slot = document.getElementById('slot' + section + index);
+        const img = document.getElementById('preview' + section + index);
+        const removeBtn = document.getElementById('remove' + section + index);
 
         input.value = '';
         slot.classList.remove('has-file');
-
-        const fileNameText = document.getElementById('fileNameText' + section + index);
-        const fileNameSize = document.getElementById('fileNameSize' + section + index);
-        if (fileNameText) fileNameText.textContent = '-';
-        if (fileNameSize) fileNameSize.textContent = '-';
-
-        const removeBtn = slot.querySelector('.foto-slot-remove');
-        if (removeBtn) removeBtn.remove();
+        img.src = '';
+        removeBtn.style.display = 'none';
     }
-
-    // Hapus foto lama
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.btn-hapus-foto').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const fotoId    = this.dataset.fotoId;
-                const fotoJenis = this.dataset.fotoJenis;
-
-                if (!confirm('Yakin hapus foto ini?')) return;
-
-                const originalHtml = this.innerHTML;
-                this.disabled = true;
-                this.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.7rem;height:.7rem;"></span>';
-
-                const urlPrefix = '{{ $rp === "teknisi_cctv" ? "teknisi-cctv" : "teknisi" }}';
-                const url = '/' + urlPrefix + '/photo/' + fotoId;
-
-                fetch(url, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const wrapper = document.querySelector(`.foto-item[data-foto-id="${fotoId}"]`);
-                        if (wrapper) wrapper.remove();
-
-                        const container = fotoJenis === 'sebelum'
-                            ? document.getElementById('wrapperFotoSebelum')
-                            : document.getElementById('wrapperFotoSesudah');
-
-                        if (container && container.querySelectorAll('.foto-item').length === 0) {
-                            container.innerHTML = '<span class="text-muted small">Semua foto sudah dihapus</span>';
-                        }
-
-                        tampilkanToast('✅ Foto berhasil dihapus', 'success');
-                    } else {
-                        tampilkanToast('❌ ' + (data.message || 'Gagal hapus foto'), 'danger');
-                        this.disabled = false;
-                        this.innerHTML = originalHtml;
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    tampilkanToast('❌ Gagal hapus foto', 'danger');
-                    this.disabled = false;
-                    this.innerHTML = originalHtml;
-                });
-            });
-        });
-
-        function tampilkanToast(msg, type) {
-            const toast = document.createElement('div');
-            toast.className = `alert alert-${type} position-fixed top-0 start-50 translate-middle-x mt-3 shadow`;
-            toast.style.zIndex = '9999';
-            toast.style.minWidth = '300px';
-            toast.innerHTML = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2500);
-        }
-    });
 </script>
 @endpush

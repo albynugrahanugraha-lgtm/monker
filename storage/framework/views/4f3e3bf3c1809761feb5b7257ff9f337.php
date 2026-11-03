@@ -4,309 +4,200 @@
 <?php
     $rp = $routePrefix ?? 'teknisi';
     $isCctv = ($bidang ?? 'komputer') === 'cctv';
+    $primaryColor = $isCctv ? '#0dcaf0' : '#0d6efd';
 ?>
 
 <?php $__env->startPush('styles'); ?>
 <style>
-    .foto-item {
-        position: relative;
-        display: inline-block;
+    .app-container { max-width: 600px; margin: 0 auto; padding: 16px; padding-bottom: 100px; }
+
+    /* TOMBOL BACK */
+    .header-back {
+        display: flex; align-items: center; margin-bottom: 20px;
     }
+    .header-back a {
+        color: #333; font-size: 1.5rem; margin-right: 12px; text-decoration: none;
+    }
+    .header-back .title { font-size: 1.1rem; font-weight: 800; color: #1a1a1a; }
+    .header-back .subtitle { font-size: 0.8rem; color: #888; }
+
+    .header-detail {
+        background: linear-gradient(135deg, <?php echo e($primaryColor); ?>, <?php echo e($isCctv ? '#0aa2c0' : '#0a58ca'); ?>);
+        border-radius: 20px; padding: 20px; color: white; margin-bottom: 20px;
+        box-shadow: 0 8px 20px rgba(<?php echo e($isCctv ? '13, 202, 240' : '13, 110, 253'); ?>, 0.3);
+    }
+    .header-detail h5 { font-size: 1.2rem; font-weight: 800; margin: 0 0 8px 0; }
+    
+    .detail-card {
+        background: white; border-radius: 20px; padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 16px;
+    }
+    .detail-card h6 { font-size: 0.9rem; font-weight: 800; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    
+    .detail-row { display: flex; margin-bottom: 12px; font-size: 0.85rem; }
+    .detail-row .lbl { width: 40%; color: #888; font-weight: 600; }
+    .detail-row .val { width: 60%; font-weight: 700; color: #1a1a1a; word-break: break-word; }
+
+    .foto-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .foto-item { position: relative; width: 80px; height: 80px; border-radius: 10px; overflow: hidden; border: 2px solid #ddd; }
+    .foto-item img { width: 100%; height: 100%; object-fit: cover; }
+
+    .btn-action {
+        display: block; width: 100%; padding: 14px; border-radius: 14px; text-align: center;
+        font-weight: 800; text-decoration: none; font-size: 0.95rem; margin-bottom: 10px;
+    }
+
+    .timeline { border-left: 2px solid <?php echo e($primaryColor); ?>; padding-left: 16px; margin-left: 8px; }
+    .timeline-item { position: relative; margin-bottom: 16px; }
+    .timeline-item::before {
+        content: ''; position: absolute; left: -21px; top: 4px;
+        width: 10px; height: 10px; border-radius: 50%; background: <?php echo e($primaryColor); ?>; border: 2px solid white;
+    }
+    .timeline-date { font-size: 0.7rem; color: #888; font-weight: bold; margin-bottom: 2px; }
+    .timeline-text { font-size: 0.85rem; color: #333; }
+
+    /* Tombol Hapus Foto */
     .btn-hapus-foto {
-        opacity: 0.75;
-        transition: all 0.2s;
-        border-radius: 50% !important;
-        width: 24px;
-        height: 24px;
-        padding: 0 !important;
-        line-height: 1 !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        opacity: 0.85; transition: all 0.2s; border-radius: 50% !important;
+        width: 24px; height: 24px; padding: 0 !important; line-height: 1 !important;
+        display: flex; align-items: center; justify-content: center;
     }
-    .btn-hapus-foto:hover {
-        opacity: 1;
-        transform: scale(1.15);
-    }
-    .detail-row {
-        padding: 8px 0;
-        border-bottom: 1px dashed #e9ecef;
-    }
-    .detail-row:last-child {
-        border-bottom: none;
-    }
-    .detail-row .label {
-        color: #6c757d;
-        font-weight: 500;
-        font-size: .85rem;
-    }
-    .detail-row .value {
-        font-weight: 600;
-        font-size: .9rem;
-    }
+    .btn-hapus-foto:hover { opacity: 1; transform: scale(1.15); }
 </style>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
-<div class="row justify-content-center">
-<div class="col-12 col-md-10">
+<div class="app-container">
 
     
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="header-back">
+        <a href="<?php echo e(route($rp . '.dashboard')); ?>">
+            <i class="bi bi-arrow-left-circle-fill"></i>
+        </a>
         <div>
-            <h5 class="mb-0 fw-bold">
-                <i class="bi <?php echo e($isCctv ? 'bi-camera-video' : 'bi-pc-display'); ?>"></i>
-                Detail Pekerjaan
-            </h5>
-            <small class="text-muted" style="font-size: .75rem;">
-                Kode: <code><?php echo e($job->kode_job); ?></code>
-            </small>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="<?php echo e(route($rp . '.dashboard')); ?>" class="btn btn-sm btn-secondary">
-                <i class="bi bi-arrow-left"></i> Kembali
-            </a>
-            <a href="<?php echo e(route($rp . '.cetak', $job)); ?>" target="_blank" class="btn btn-sm btn-outline-dark">
-                <i class="bi bi-printer"></i> Cetak
-            </a>
-            <?php if($job->bisaDiselesaikan()): ?>
-                <a href="<?php echo e(route($rp . '.kerjakan', $job)); ?>" class="btn btn-sm btn-success">
-                    <i class="bi bi-play-circle"></i> Kerjakan
-                </a>
-            <?php endif; ?>
+            <div class="title">Detail Pekerjaan</div>
+            <div class="subtitle">Kode: <?php echo e($job->kode_job); ?></div>
         </div>
     </div>
 
     
-    <?php if(session('success')): ?>
-        <div class="alert alert-success alert-dismissible fade show">
-            <i class="bi bi-check-circle-fill"></i> <?php echo e(session('success')); ?>
+    <div class="header-detail">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <span style="font-family: monospace; font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px;"><i class="bi bi-hash"></i><?php echo e($job->kode_job); ?></span>
+            <span class="badge <?php echo e($job->statusBadgeClass()); ?>"><?php echo e($job->statusLabel()); ?></span>
+        </div>
+        <h5><?php echo e($job->judul); ?></h5>
+        <div style="font-size: 0.8rem; opacity: 0.9;">
+            <i class="bi bi-geo-alt-fill"></i> <?php echo e($job->lok_gedung ?? '-'); ?> / <?php echo e($job->lokasi_ruang ?? '-'); ?>
 
-            <button class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
+    
+    <?php if($job->bisaDiselesaikan()): ?>
+        <a href="<?php echo e(route($rp . '.kerjakan', $job)); ?>" class="btn-action" style="background:#198754; color:white;">
+            <i class="bi bi-play-circle"></i> Kerjakan Tugas Ini
+        </a>
+    <?php endif; ?>
+    <a href="<?php echo e(route($rp . '.cetak', $job)); ?>" target="_blank" class="btn-action" style="background:#e9ecef; color:#333;">
+        <i class="bi bi-printer"></i> Cetak Laporan
+    </a>
+
+    
+    <div class="detail-card">
+        <h6><i class="bi bi-info-circle"></i> Informasi Tugas</h6>
+        <div class="detail-row"><div class="lbl">Bidang</div><div class="val"><?php echo e($job->bidangLabel()); ?></div></div>
+        <div class="detail-row"><div class="lbl">Kategori</div><div class="val"><?php echo e($job->kategori ?? '-'); ?></div></div>
+        <div class="detail-row"><div class="lbl">Perangkat</div><div class="val"><?php echo e($job->computer_name ?? '-'); ?> (<?php echo e($job->merk ?? '-'); ?>)</div></div>
+        <div class="detail-row"><div class="lbl">Teknisi</div><div class="val"><?php echo e($job->teknisi->display_name ?? 'Belum di-assign'); ?></div></div>
+        <div class="detail-row"><div class="lbl">Tanggal</div><div class="val"><?php echo e($job->tanggal_tugas?->format('d F Y') ?? '-'); ?></div></div>
+        <?php if($job->deskripsi): ?>
+            <div class="detail-row"><div class="lbl">Deskripsi</div><div class="val"><?php echo e($job->deskripsi); ?></div></div>
+        <?php endif; ?>
+    </div>
+
+    
+    <?php if($job->hasil_pekerjaan): ?>
+        <div class="detail-card" style="border-left: 5px solid #198754;">
+            <h6 style="color:#198754;"><i class="bi bi-check-circle-fill"></i> Hasil Pekerjaan</h6>
+            <div style="font-size:0.9rem; font-weight:600; margin-bottom:8px;"><?php echo e($job->hasil_pekerjaan); ?></div>
+            <?php if($job->catatan): ?>
+                <div style="font-size:0.8rem; color:#666;"><em>Catatan: <?php echo e($job->catatan); ?></em></div>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 
     
-    <div class="card shadow-sm border-0 mb-3">
-        <div class="card-header <?php echo e($isCctv ? 'bg-info text-dark' : 'bg-primary text-white'); ?> d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold">
-                <i class="bi bi-info-circle"></i> <?php echo e($job->judul); ?>
-
-            </h6>
-            <span class="badge <?php echo e($job->statusBadgeClass()); ?>"><?php echo e($job->statusLabel()); ?></span>
-        </div>
-        <div class="card-body">
-
-            <div class="detail-row row">
-                <div class="col-md-3 label">Bidang</div>
-                <div class="col-md-9 value">
-                    <span class="badge <?php echo e($job->bidangBadgeClass()); ?>">
-                        <i class="bi <?php echo e($job->bidangIcon()); ?>"></i> <?php echo e($job->bidangLabel()); ?>
-
-                    </span>
+    <div class="detail-card">
+        <h6><i class="bi bi-image" style="color:#ffc107;"></i> Foto Sebelum (<?php echo e($job->fotoSebelum->count()); ?>)</h6>
+        <div class="foto-grid" id="wrapperFotoSebelum">
+            <?php $__empty_1 = true; $__currentLoopData = $job->fotoSebelum; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $f): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <div class="foto-item" data-foto-id="<?php echo e($f->id); ?>">
+                    <a href="<?php echo e(asset($f->nama_file)); ?>" target="_blank"><img src="<?php echo e(asset($f->nama_file)); ?>"></a>
+                    <button type="button"
+                            class="btn btn-danger btn-sm btn-hapus-foto position-absolute top-0 end-0 m-1"
+                            data-foto-id="<?php echo e($f->id); ?>"
+                            data-foto-jenis="sebelum"
+                            title="Hapus foto">
+                        <i class="bi bi-x" style="font-size: .85rem;"></i>
+                    </button>
                 </div>
-            </div>
-
-            <div class="detail-row row">
-                <div class="col-md-3 label">Kategori</div>
-                <div class="col-md-9 value"><?php echo e($job->kategori ?? '-'); ?></div>
-            </div>
-
-            <div class="detail-row row">
-                <div class="col-md-3 label">Prioritas</div>
-                <div class="col-md-9 value">
-                    <?php
-                        $pc = match($job->prioritas) {
-                            'Tinggi' => 'danger',
-                            'Sedang' => 'warning',
-                            default  => 'secondary',
-                        };
-                    ?>
-                    <span class="badge bg-<?php echo e($pc); ?>"><?php echo e($job->prioritas); ?></span>
-                </div>
-            </div>
-
-            <div class="detail-row row">
-                <div class="col-md-3 label">Teknisi</div>
-                <div class="col-md-9 value">
-                    <i class="bi bi-person-circle text-primary"></i>
-                    <?php echo e($job->teknisi->display_name ?? 'Belum di-assign'); ?>
-
-                </div>
-            </div>
-
-            <div class="detail-row row">
-                <div class="col-md-3 label">Lokasi</div>
-                <div class="col-md-9 value">
-                    <i class="bi bi-geo-alt-fill text-danger"></i>
-                    <?php echo e($job->lok_gedung ?? '-'); ?> / <?php echo e($job->lokasi_ruang ?? '-'); ?>
-
-                </div>
-            </div>
-
-            <div class="detail-row row">
-                <div class="col-md-3 label">Perangkat</div>
-                <div class="col-md-9 value">
-                    <?php echo e($job->computer_name ?? '-'); ?>
-
-                    <?php if($job->merk): ?> (<?php echo e($job->merk); ?>) <?php endif; ?>
-                </div>
-            </div>
-
-            <div class="detail-row row">
-                <div class="col-md-3 label">Tanggal Tugas</div>
-                <div class="col-md-9 value">
-                    <i class="bi bi-calendar-event"></i>
-                    <?php echo e($job->tanggal_tugas?->format('d F Y') ?? '-'); ?>
-
-                </div>
-            </div>
-
-            <?php if($job->tanggal_selesai): ?>
-            <div class="detail-row row">
-                <div class="col-md-3 label">Tanggal Selesai</div>
-                <div class="col-md-9 value">
-                    <i class="bi bi-calendar-check text-success"></i>
-                    <?php echo e($job->tanggal_selesai->format('d F Y, H:i')); ?>
-
-                </div>
-            </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                <div style="font-size:0.8rem; color:#888; padding:10px;">Belum ada foto</div>
             <?php endif; ?>
-
-            <?php if($job->deskripsi): ?>
-            <div class="detail-row row">
-                <div class="col-md-3 label">Deskripsi</div>
-                <div class="col-md-9 value"><?php echo e($job->deskripsi); ?></div>
-            </div>
-            <?php endif; ?>
-
-            <?php if($job->hasil_pekerjaan): ?>
-            <div class="detail-row row">
-                <div class="col-md-3 label">Hasil Pekerjaan</div>
-                <div class="col-md-9 value">
-                    <div class="alert alert-success mb-0 py-2 px-3">
-                        <i class="bi bi-check-circle-fill"></i> <?php echo e($job->hasil_pekerjaan); ?>
-
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <?php if($job->catatan): ?>
-            <div class="detail-row row">
-                <div class="col-md-3 label">Catatan</div>
-                <div class="col-md-9 value"><?php echo e($job->catatan); ?></div>
-            </div>
-            <?php endif; ?>
-
         </div>
     </div>
 
     
-    <div class="card shadow-sm border-0 mb-3">
-        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold">
-                <i class="bi bi-image"></i> Foto Sebelum
-                <span class="badge bg-dark text-white"><?php echo e($job->fotoSebelum->count()); ?></span>
-            </h6>
-            <small style="font-size: .7rem;">
-                <i class="bi bi-info-circle"></i> Klik <span class="text-danger">×</span> di pojok foto untuk hapus
-            </small>
-        </div>
-        <div class="card-body">
-            <div class="d-flex flex-wrap gap-2" id="wrapperFotoSebelum">
-                <?php $__empty_1 = true; $__currentLoopData = $job->fotoSebelum; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $f): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                    <div class="foto-item" data-foto-id="<?php echo e($f->id); ?>">
-                        <a href="<?php echo e(asset($f->nama_file)); ?>" target="_blank">
-                            <img src="<?php echo e(asset($f->nama_file)); ?>" class="rounded border" width="130">
-                        </a>
-                        <button type="button"
-                                class="btn btn-danger btn-sm btn-hapus-foto position-absolute top-0 end-0 m-1"
-                                data-foto-id="<?php echo e($f->id); ?>"
-                                data-foto-jenis="sebelum"
-                                title="Hapus foto">
-                            <i class="bi bi-x" style="font-size: .85rem;"></i>
-                        </button>
-                    </div>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                    <div class="text-muted small p-3">
-                        <i class="bi bi-image"></i> Belum ada foto sebelum
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-
-    
-    <div class="card shadow-sm border-0 mb-3">
-        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold">
-                <i class="bi bi-image"></i> Foto Sesudah
-                <span class="badge bg-light text-dark"><?php echo e($job->fotoSesudah->count()); ?></span>
-            </h6>
-            <small style="font-size: .7rem;">
-                <i class="bi bi-info-circle"></i> Klik <span class="text-danger">×</span> di pojok foto untuk hapus
-            </small>
-        </div>
-        <div class="card-body">
-            <div class="d-flex flex-wrap gap-2" id="wrapperFotoSesudah">
-                <?php $__empty_1 = true; $__currentLoopData = $job->fotoSesudah; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $f): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                    <div class="foto-item" data-foto-id="<?php echo e($f->id); ?>">
-                        <a href="<?php echo e(asset($f->nama_file)); ?>" target="_blank">
-                            <img src="<?php echo e(asset($f->nama_file)); ?>" class="rounded border border-success" width="130">
-                        </a>
-                        <button type="button"
-                                class="btn btn-danger btn-sm btn-hapus-foto position-absolute top-0 end-0 m-1"
-                                data-foto-id="<?php echo e($f->id); ?>"
-                                data-foto-jenis="sesudah"
-                                title="Hapus foto">
-                            <i class="bi bi-x" style="font-size: .85rem;"></i>
-                        </button>
-                    </div>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                    <div class="text-muted small p-3">
-                        <i class="bi bi-image"></i> Belum ada foto sesudah
-                    </div>
-                <?php endif; ?>
-            </div>
+    <div class="detail-card">
+        <h6><i class="bi bi-image" style="color:#198754;"></i> Foto Sesudah (<?php echo e($job->fotoSesudah->count()); ?>)</h6>
+        <div class="foto-grid" id="wrapperFotoSesudah">
+            <?php $__empty_1 = true; $__currentLoopData = $job->fotoSesudah; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $f): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <div class="foto-item" data-foto-id="<?php echo e($f->id); ?>">
+                    <a href="<?php echo e(asset($f->nama_file)); ?>" target="_blank"><img src="<?php echo e(asset($f->nama_file)); ?>"></a>
+                    <button type="button"
+                            class="btn btn-danger btn-sm btn-hapus-foto position-absolute top-0 end-0 m-1"
+                            data-foto-id="<?php echo e($f->id); ?>"
+                            data-foto-jenis="sesudah"
+                            title="Hapus foto">
+                        <i class="bi bi-x" style="font-size: .85rem;"></i>
+                    </button>
+                </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                <div style="font-size:0.8rem; color:#888; padding:10px;">Belum ada foto</div>
+            <?php endif; ?>
         </div>
     </div>
 
     
     <?php if($job->histories->count() > 0): ?>
-    <div class="card shadow-sm border-0 mb-3">
-        <div class="card-header bg-light">
-            <h6 class="mb-0 fw-bold">
-                <i class="bi bi-clock-history"></i> Riwayat Pekerjaan
-            </h6>
-        </div>
-        <div class="card-body p-2">
-            <ul class="list-group list-group-flush mb-0">
+        <div class="detail-card">
+            <h6><i class="bi bi-clock-history"></i> Riwayat Aktivitas</h6>
+            <div class="timeline">
                 <?php $__currentLoopData = $job->histories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $h): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <li class="list-group-item px-2 py-1" style="font-size: .85rem;">
-                        <small class="text-muted"><?php echo e($h->created_at->format('d-m-Y H:i')); ?></small> —
-                        <strong><?php echo e($h->user->display_name ?? 'System'); ?></strong>:
-                        <?php echo e($h->status_lama ?? '-'); ?> → <?php echo e($h->status_baru); ?>
+                    <div class="timeline-item">
+                        <div class="timeline-date"><?php echo e($h->created_at->format('d M Y - H:i')); ?></div>
+                        <div class="timeline-text">
+                            <strong><?php echo e($h->user->display_name ?? 'System'); ?></strong><br>
+                            <?php echo e($h->keterangan ?? 'Update status'); ?>
 
-                        <?php if($h->keterangan): ?>
-                            <br><small class="text-muted"><?php echo e($h->keterangan); ?></small>
-                        <?php endif; ?>
-                    </li>
+                        </div>
+                    </div>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </ul>
+            </div>
         </div>
-    </div>
     <?php endif; ?>
 
-</div>
 </div>
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Logika Hapus Foto via AJAX
         document.querySelectorAll('.btn-hapus-foto').forEach(function(btn) {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
                 const fotoId    = this.dataset.fotoId;
                 const fotoJenis = this.dataset.fotoJenis;
 
@@ -338,7 +229,7 @@
                             : document.getElementById('wrapperFotoSesudah');
 
                         if (container && container.querySelectorAll('.foto-item').length === 0) {
-                            container.innerHTML = '<div class="text-muted small p-3"><i class="bi bi-image"></i> Semua foto sudah dihapus</div>';
+                            container.innerHTML = '<div style="font-size:0.8rem; color:#888; padding:10px;">Semua foto sudah dihapus</div>';
                         }
 
                         tampilkanToast('✅ Foto berhasil dihapus', 'success');
@@ -359,9 +250,14 @@
 
         function tampilkanToast(msg, type) {
             const toast = document.createElement('div');
-            toast.className = `alert alert-${type} position-fixed top-0 start-50 translate-middle-x mt-3 shadow`;
-            toast.style.zIndex = '9999';
-            toast.style.minWidth = '300px';
+            // Menggunakan style PWA untuk toast
+            toast.style.cssText = `
+                position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+                background: ${type === 'success' ? '#198754' : '#dc3545'};
+                color: white; padding: 10px 20px; border-radius: 30px;
+                font-size: 0.85rem; font-weight: bold; z-index: 9999;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center;
+            `;
             toast.innerHTML = msg;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 2500);
@@ -369,4 +265,4 @@
     });
 </script>
 <?php $__env->stopPush(); ?>
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\CHATBOT LARAVEL\monitoring-teknisi\resources\views/teknisi/detail_pekerjaan.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app_pwa', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\CHATBOT LARAVEL\monitoring-teknisi\resources\views/teknisi/detail_pekerjaan.blade.php ENDPATH**/ ?>

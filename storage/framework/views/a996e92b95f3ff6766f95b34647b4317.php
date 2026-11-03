@@ -5,425 +5,284 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <?php $__env->stopPush(); ?>
 
-<?php $__env->startPush('styles'); ?>
+<?php $__env->startSection('content'); ?>
 <style>
-    @keyframes lampuBlink {
-        0%, 100% { background-color: #ffeb3b; }
-        50%      { background-color: #ffffff; }
+    /* ============================================
+       PWA STYLES & ANTI-GAGAL
+       ============================================ */
+    body { background-color: #f2f4f8 !important; }
+    
+    /* Mematikan gaya link biru bawaan Bootstrap */
+    .app-header a, .admin-panel a, .stat-card-modern a { text-decoration: none !important; }
+
+    /* HEADER */
+    .app-header {
+        background: linear-gradient(135deg, #0d6efd, #0a58ca) !important;
+        border-radius: 24px; padding: 24px; color: white !important;
+        box-shadow: 0 10px 25px rgba(13, 110, 253, 0.3);
+        margin-bottom: 24px; position: relative; overflow: hidden;
     }
-    @keyframes lampuBlinkMerah {
-        0%, 100% { background-color: #ffcdd2; }
-        50%      { background-color: #ffffff; }
+    .app-header h1 { font-size: 1.5rem; font-weight: 800; margin: 0; color: white !important; }
+    .app-header p { font-size: 0.85rem; opacity: 0.9; margin: 4px 0 0 0; color: white !important; }
+
+    .btn-header-action {
+        background: rgba(255, 255, 255, 0.2) !important; border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        color: white !important; border-radius: 12px; padding: 8px 16px;
+        font-size: 0.85rem; font-weight: 700; transition: all 0.2s;
     }
-    @keyframes lampuPulse {
-        0%, 100% { transform: scale(1); opacity: 1; background: #dc3545; box-shadow: 0 0 10px #dc3545; }
-        50% { transform: scale(1.4); opacity: 0.6; background: #ffc107; box-shadow: 0 0 20px #ffc107; }
+    .btn-header-action:hover { background: rgba(255, 255, 255, 0.3) !important; }
+
+    /* FILTER CARD */
+    .filter-card {
+        background: white !important; border-radius: 20px; padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 24px;
+    }
+    .filter-group label { font-size: 0.75rem; font-weight: 700; color: #666 !important; margin-bottom: 6px; display: block; }
+    .filter-control {
+        width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #e0e0e0 !important;
+        background: #f9f9f9 !important; font-size: 0.9rem; color: #1a1a1a !important; font-weight: 600;
+    }
+    .btn-filter {
+        width: 100%; padding: 12px; border-radius: 10px; background: #0d6efd !important;
+        color: white !important; border: none; font-weight: 700; font-size: 0.9rem;
     }
 
-    tr.row-lampu, tr.row-lampu td {
-        animation: lampuBlink 1s infinite ease-in-out !important;
-        font-weight: 600 !important;
+    /* STATISTIK CARD */
+    .stat-card-modern {
+        background: white !important; border-radius: 20px; padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 16px; height: 100%;
     }
-    tr.row-lampu { border-left: 5px solid #dc3545 !important; }
-
-    tr.row-lampu-merah, tr.row-lampu-merah td {
-        animation: lampuBlinkMerah 0.9s infinite ease-in-out !important;
-        font-weight: 700 !important;
+    .stat-icon-box {
+        width: 54px; height: 54px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
     }
-    tr.row-lampu-merah { border-left: 5px solid #b71c1c !important; }
+    .stat-card-modern .value { font-size: 1.8rem; font-weight: 800; line-height: 1; color: #1a1a1a !important; margin-bottom: 4px; }
+    .stat-card-modern .label { font-size: 0.75rem; font-weight: 700; color: #888 !important; text-transform: uppercase; }
 
-    tr.tugas-sudah-kerja { border-left: 5px solid #198754 !important; }
-
-    .lampu-indicator {
-        display: inline-block;
-        width: 12px; height: 12px;
-        border-radius: 50%;
-        background: #dc3545;
-        box-shadow: 0 0 10px #dc3545;
-        animation: lampuPulse 0.8s infinite;
-        margin-right: 6px;
-        vertical-align: middle;
+    /* ADMIN PANEL */
+    .admin-panel {
+        background: white !important; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        margin-bottom: 24px; overflow: hidden; border: none !important;
     }
+    .admin-panel .accordion-item { border: none; border-bottom: 1px solid #f0f0f0; background: white !important; }
+    .admin-panel .accordion-button { background: white !important; font-weight: 800; color: #1a1a1a !important; box-shadow: none; padding: 16px 20px; }
+    .admin-panel .accordion-button:not(.collapsed) { background: #f8f9fa !important; color: #0d6efd !important; }
+    
+    /* TABEL */
+    .table-modern { margin-bottom: 0; font-size: 0.85rem; width: 100%; }
+    .table-modern th {
+        background: #f8f9fa !important; color: #666 !important; font-weight: 700; font-size: 0.75rem;
+        text-transform: uppercase; border-bottom: 1px solid #eaeaea; padding: 12px 16px; white-space: nowrap;
+    }
+    .table-modern td { padding: 12px 16px; vertical-align: middle; border-bottom: 1px solid #f8f9fa; color: #333 !important; }
+    
+    /* Animasi Blink */
+    @keyframes lampuBlink { 0%, 100% { background-color: #fff3cd !important; } 50% { background-color: #ffffff !important; } }
+    @keyframes lampuBlinkMerah { 0%, 100% { background-color: #f8d7da !important; } 50% { background-color: #ffffff !important; } }
+    tr.row-lampu, tr.row-lampu td { animation: lampuBlink 1.5s infinite ease-in-out !important; font-weight: 700 !important; }
+    tr.row-lampu-merah, tr.row-lampu-merah td { animation: lampuBlinkMerah 1.5s infinite ease-in-out !important; font-weight: 700 !important; }
+    
+    .lampu-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #dc3545 !important; box-shadow: 0 0 8px #dc3545; margin-right: 6px; }
 
-    .badge-belum-diambil { animation: lampuBlinkMerah 0.9s infinite ease-in-out !important; }
+    /* HEADER ACCORDION */
+    .header-komputer { background: #e7f1ff !important; color: #0d6efd !important; border-radius: 12px; padding: 12px 16px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .header-cctv { background: #e0f7fa !important; color: #0aa2c0 !important; border-radius: 12px; padding: 12px 16px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+    /* TOP TEKNISI */
+    .top-header-komputer { background: linear-gradient(135deg, #0d6efd, #0a58ca) !important; color: white !important; padding: 16px 20px; border-radius: 20px 20px 0 0; }
+    .top-header-cctv { background: linear-gradient(135deg, #0dcaf0, #0aa2c0) !important; color: #000 !important; padding: 16px 20px; border-radius: 20px 20px 0 0; }
 
     .chart-wrapper { position: relative; width: 100%; min-height: 280px; }
-    .chart-empty { text-align: center; padding: 50px 20px; color: #adb5bd; }
-    .chart-empty i { font-size: 3rem; opacity: 0.4; display: block; margin-bottom: 10px; }
 
-    .section-header {
-        padding: 10px 15px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 700;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-        font-size: .9rem;
-    }
-    .section-header.komputer { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); }
-    .section-header.cctv { background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%); color: #000; }
-
-    .card-header.header-komputer {
-        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
-        color: white !important;
-    }
-    .card-header.header-cctv {
-        background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%) !important;
-        color: #000 !important;
+    /* LAPTOP GRID */
+    @media (min-width: 768px) {
+        .filter-form { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: end; }
+        .btn-filter { grid-column: span 3; width: 200px; justify-self: start; }
+        .table-modern th, .table-modern td { white-space: normal; }
     }
 
-    /* Styling Accordion agar lebih rapi */
-    .accordion-button:not(.collapsed) {
-        background-color: rgba(13, 110, 253, 0.05);
-        color: inherit;
-        box-shadow: none;
+    /* ============================================
+       BOTTOM NAVIGATION (HANYA UNTUK HP)
+       ============================================ */
+    .pwa-bottom-nav {
+        display: none; /* Disembunyikan di Laptop */
+        position: fixed; bottom: 0; left: 0; right: 0; background: white;
+        border-top: 1px solid #f0f0f0; justify-content: space-around;
+        padding: 10px 0 max(10px, env(safe-area-inset-bottom)); z-index: 1050;
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
     }
-    .accordion-button:focus {
-        box-shadow: none;
-        border-color: rgba(0,0,0,.125);
+    .pwa-bottom-nav .nav-item {
+        flex: 1; text-align: center; padding: 6px 0; color: #adb5bd;
+        text-decoration: none !important; font-size: 0.65rem; font-weight: 700;
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
     }
-    .table-scroll { max-height: 300px; overflow-y: auto; }
-    .table-scroll::-webkit-scrollbar { width: 6px; }
-    .table-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
-    .table-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    .pwa-bottom-nav .nav-item i { font-size: 1.4rem; }
+    .pwa-bottom-nav .nav-item.active { color: #0d6efd; }
 
-    .date-filter-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 10px;
-    }
-    .date-filter-card input[type="date"] {
-        background: rgba(255,255,255,.95);
-        border: 2px solid rgba(255,255,255,.5);
-        color: #212529;
-        font-weight: 600;
-    }
-    .date-filter-card input[type="date"]:focus {
-        background: white;
-        border-color: white;
-        box-shadow: 0 0 0 3px rgba(255,255,255,.3);
+    @media (max-width: 767.98px) {
+        .pwa-bottom-nav { display: flex; }
+        body { padding-bottom: 85px !important; } /* Jarak agar konten tidak tertutup menu */
     }
 </style>
-<?php $__env->stopPush(); ?>
 
-<?php $__env->startSection('content'); ?>
-
-
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <h5 class="mb-0 fw-bold">
-        <i class="bi bi-speedometer2"></i> Monitoring Pekerjaan Teknisi
-    </h5>
-    <div class="d-flex gap-2 flex-wrap">
-        <a href="<?php echo e(route('admin.buat')); ?>" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-circle"></i> Buat Tugas
-        </a>
-        <a href="<?php echo e(route('admin.import.index')); ?>" class="btn btn-success btn-sm">
-            <i class="bi bi-file-earmark-excel"></i> Import Excel
-        </a>
-        <a href="<?php echo e(route('admin.belum-dikerjakan')); ?>" class="btn btn-warning btn-sm">
-            <i class="bi bi-hourglass-split"></i> Belum Dikerjakan
-        </a>
-    </div>
-</div>
-
-
-<div class="date-filter-card p-3 mb-4 shadow-sm">
-    <form method="GET" action="<?php echo e(route('admin.dashboard')); ?>" class="row g-2 align-items-end">
-        <div class="col-md-3 col-12">
-            <label class="form-label mb-1 small fw-bold">
-                <i class="bi bi-calendar-event"></i> Pilih Tanggal Monitoring
-            </label>
-            <input type="date"
-                   name="tanggal"
-                   class="form-control"
-                   value="<?php echo e($tanggalObj->format('Y-m-d')); ?>"
-                   max="<?php echo e(now()->addYear()->format('Y-m-d')); ?>">
-        </div>
-
-        <div class="col-md-3 col-12">
-            <label class="form-label mb-1 small fw-bold">
-                <i class="bi bi-trophy-fill"></i> Periode Rating
-            </label>
-            <select name="periode" class="form-select fw-bold text-dark">
-                <option value="harian" <?php if($periode === 'harian'): echo 'selected'; endif; ?>>📅 Harian</option>
-                <option value="mingguan" <?php if($periode === 'mingguan'): echo 'selected'; endif; ?>>📆 Mingguan</option>
-                <option value="bulanan" <?php if($periode === 'bulanan'): echo 'selected'; endif; ?>>🗓 Bulanan</option>
-                <option value="semua" <?php if($periode === 'semua'): echo 'selected'; endif; ?>>🏆 Semua Waktu</option>
-            </select>
-        </div>
-
-        <div class="col-md-6 col-12 d-flex gap-2 flex-wrap align-items-end">
-            <button type="submit" class="btn btn-light fw-bold">
-                <i class="bi bi-search"></i> Tampilkan
-            </button>
-            <a href="<?php echo e(route('admin.dashboard', ['tanggal' => now()->format('Y-m-d'), 'periode' => 'harian'])); ?>"
-               class="btn btn-outline-light btn-sm">
-                📅 Hari Ini
-            </a>
-            <a href="<?php echo e(route('admin.dashboard', ['tanggal' => now()->subDay()->format('Y-m-d'), 'periode' => 'harian'])); ?>"
-               class="btn btn-outline-light btn-sm">
-                ⏮️ Kemarin
-            </a>
-            <a href="<?php echo e(route('admin.dashboard', ['tanggal' => now()->addDay()->format('Y-m-d'), 'periode' => 'harian'])); ?>"
-               class="btn btn-outline-light btn-sm">
-                ⏭️ Besok
-            </a>
-        </div>
-    </form>
-
-    <div class="mt-2 small">
-        <i class="bi bi-info-circle"></i>
-        Menampilkan data untuk tanggal:
-        <strong><?php echo e($tanggalObj->translatedFormat('l, d F Y')); ?></strong>
-        <?php if($tanggalObj->isToday()): ?>
-            <span class="badge bg-success ms-1">Hari Ini</span>
-        <?php elseif($tanggalObj->isYesterday()): ?>
-            <span class="badge bg-secondary ms-1">Kemarin</span>
-        <?php elseif($tanggalObj->isTomorrow()): ?>
-            <span class="badge bg-info text-dark ms-1">Besok</span>
-        <?php elseif($tanggalObj->isFuture()): ?>
-            <span class="badge bg-warning text-dark ms-1">Masa Depan</span>
-        <?php else: ?>
-            <span class="badge bg-dark ms-1">Masa Lalu</span>
-        <?php endif; ?>
-    </div>
-</div>
-
-
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-4">
-        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <small style="opacity: 0.9; font-size: .75rem;">📥 Total Tugas</small>
-                        <h2 class="mb-0 fw-bold mt-2"><?php echo e($hariIni['total']); ?></h2>
-                    </div>
-                    <i class="bi bi-calendar-day" style="font-size: 2.5rem; opacity: 0.3;"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4">
-        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <small style="opacity: 0.9; font-size: .75rem;">✅ Sudah Dikerjakan</small>
-                        <h2 class="mb-0 fw-bold mt-2"><?php echo e($hariIni['selesai']); ?></h2>
-                    </div>
-                    <i class="bi bi-check-circle" style="font-size: 2.5rem; opacity: 0.3;"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4">
-        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <small style="opacity: 0.9; font-size: .75rem;">⏳ Belum Dikerjakan</small>
-                        <h2 class="mb-0 fw-bold mt-2"><?php echo e($hariIni['belum']); ?></h2>
-                    </div>
-                    <i class="bi bi-hourglass-split" style="font-size: 2.5rem; opacity: 0.3;"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<div class="row g-3 mb-4">
+<div class="container-fluid px-0">
 
     
-    <div class="col-md-6">
-        <div class="section-header komputer shadow-sm">
-            <span><i class="bi bi-pc-display"></i> PEKERJAAN KOMPUTER</span>
-            <span class="badge bg-light text-dark">
-                <?php echo e($kerjaanHariIniKomputer->count() + $kerjaanKemarinKomputer->count()); ?> total
-            </span>
+    <div class="app-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative; z-index:1;">
+            <div>
+                <h1><i class="bi bi-speedometer2"></i> Monitoring Pekerjaan</h1>
+                <p>Pantau aktivitas teknisi secara real-time</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="<?php echo e(route('admin.buat')); ?>" class="btn-header-action"><i class="bi bi-plus-circle"></i> Buat Tugas</a>
+                <a href="<?php echo e(route('admin.import.index')); ?>" class="btn-header-action"><i class="bi bi-file-earmark-excel"></i> Import</a>
+                <a href="<?php echo e(route('admin.belum-dikerjakan')); ?>" class="btn-header-action"><i class="bi bi-hourglass-split"></i> Belum</a>
+            </div>
         </div>
+    </div>
 
-        <div class="accordion shadow-sm" id="accordionKomputer">
-            
-            <div class="accordion-item border-0 mb-2">
-                <h2 class="accordion-header" id="headingHariIniKmpt">
-                    <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" 
-                            data-bs-target="#collapseHariIniKmpt" aria-expanded="true" aria-controls="collapseHariIniKmpt">
-                        <i class="bi bi-calendar-day text-primary me-2"></i>
-                        <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
+    
+    <div class="filter-card">
+        <form method="GET" action="<?php echo e(route('admin.dashboard')); ?>" class="filter-form">
+            <div class="filter-group">
+                <label><i class="bi bi-calendar-event"></i> Pilih Tanggal</label>
+                <input type="date" name="tanggal" class="filter-control" value="<?php echo e($tanggalObj->format('Y-m-d')); ?>" max="<?php echo e(now()->addYear()->format('Y-m-d')); ?>">
+            </div>
+            <div class="filter-group">
+                <label><i class="bi bi-trophy-fill"></i> Periode Rating</label>
+                <select name="periode" class="filter-control">
+                    <option value="harian" <?php if($periode === 'harian'): echo 'selected'; endif; ?>>📅 Harian</option>
+                    <option value="mingguan" <?php if($periode === 'mingguan'): echo 'selected'; endif; ?>>📆 Mingguan</option>
+                    <option value="bulanan" <?php if($periode === 'bulanan'): echo 'selected'; endif; ?>>🗓 Bulanan</option>
+                    <option value="semua" <?php if($periode === 'semua'): echo 'selected'; endif; ?>>🏆 Semua Waktu</option>
+                </select>
+            </div>
+            <div class="filter-group d-flex gap-2">
+                <button type="submit" class="btn-filter flex-fill"><i class="bi bi-search"></i> Tampilkan</button>
+                <a href="<?php echo e(route('admin.dashboard', ['tanggal' => now()->format('Y-m-d'), 'periode' => 'harian'])); ?>" class="btn btn-light border fw-bold" style="border-radius:10px; display:flex; align-items:center; color: #333 !important;">Hari Ini</a>
+            </div>
+        </form>
+    </div>
 
-                        <span class="badge bg-primary ms-2"><?php echo e($kerjaanHariIniKomputer->count()); ?></span>
-                    </button>
-                </h2>
-                <div id="collapseHariIniKmpt" class="accordion-collapse collapse show" 
-                     aria-labelledby="headingHariIniKmpt" data-bs-parent="#accordionKomputer">
-                    <div class="accordion-body p-0">
-                        <div class="table-responsive table-scroll">
-                            <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
-                                <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
-                                    <tr>
-                                        <th style="width: 22%;">Kode</th>
-                                        <th style="width: 43%;">Pekerjaan</th>
-                                        <th style="width: 18%;">Teknisi</th>
-                                        <th style="width: 17%;">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                <?php $__empty_1 = true; $__currentLoopData = $kerjaanHariIniKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                    <?php
-                                        $badgeClass = $j->statusBadgeClass();
-                                        $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
-                                        $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
-                                        if ($belumDiambil) {
-                                            $rowClass = 'row-lampu-merah';
-                                        } elseif ($belumDikerjakan) {
-                                            $rowClass = 'row-lampu';
-                                        } else {
-                                            $rowClass = 'tugas-sudah-kerja';
-                                        }
-                                    ?>
-                                    <tr class="<?php echo e($rowClass); ?>">
-                                        <td>
-                                            <?php if($belumDikerjakan || $belumDiambil): ?>
-                                                <span class="lampu-indicator"></span>
-                                            <?php endif; ?>
-                                            <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
-                                        </td>
-                                        <td>
-                                            <div class="fw-semibold"><?php echo e($j->judul); ?></div>
-                                            <small class="text-muted" style="font-size: .7rem;">
-                                                <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
+    
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-12">
+            <div class="stat-card-modern">
+                <div class="stat-icon-box bg-primary bg-opacity-10 text-primary"><i class="bi bi-calendar-day"></i></div>
+                <div>
+                    <div class="value"><?php echo e($hariIni['total']); ?></div>
+                    <div class="label">Total Tugas</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-12">
+            <div class="stat-card-modern">
+                <div class="stat-icon-box bg-success bg-opacity-10 text-success"><i class="bi bi-check-circle"></i></div>
+                <div>
+                    <div class="value"><?php echo e($hariIni['selesai']); ?></div>
+                    <div class="label">Sudah Dikerjakan</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-12">
+            <div class="stat-card-modern">
+                <div class="stat-icon-box bg-warning bg-opacity-10 text-warning"><i class="bi bi-hourglass-split"></i></div>
+                <div>
+                    <div class="value"><?php echo e($hariIni['belum']); ?></div>
+                    <div class="label">Belum Dikerjakan</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <?php $penyelesai = $j->penyelesai(); ?>
-                                            <?php if($j->status === 'SELESAI'): ?>
-                                                <?php if($penyelesai): ?>
-                                                    <span class="badge bg-success">
-                                                        <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="header-komputer">
+                <span><i class="bi bi-pc-display"></i> PEKERJAAN KOMPUTER</span>
+                <span class="badge bg-primary text-white"><?php echo e($kerjaanHariIniKomputer->count() + $kerjaanKemarinKomputer->count()); ?> total</span>
+            </div>
+            <div class="accordion" id="accordionKomputer">
+                <div class="admin-panel">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingHariIniKmpt">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHariIniKmpt" aria-expanded="true">
+                                <i class="bi bi-calendar-day text-primary me-2"></i> <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
 
-                                                    </span>
-                                                <?php else: ?>
-                                                    <span class="badge bg-success">
-                                                        <i class="bi bi-check-circle"></i> Selesai
-                                                    </span>
-                                                <?php endif; ?>
-                                            <?php elseif($j->teknisi): ?>
-                                                <span class="badge bg-primary">
-                                                    <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
-
-                                                </span>
-                                            <?php elseif($j->status === 'DIKERJAKAN'): ?>
-                                                <span class="badge bg-warning text-dark">
-                                                    <i class="bi bi-tools"></i> Sedang dikerjakan
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="badge bg-danger badge-belum-diambil">
-                                                    <i class="bi bi-exclamation-triangle"></i> Belum diambil
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e($j->statusLabel()); ?></span></td>
-                                    </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                    <tr><td colspan="4" class="text-center text-muted py-3">
-                                        Tidak ada pekerjaan komputer pada <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
-
-                                    </td></tr>
-                                <?php endif; ?>
-                                </tbody>
-                            </table>
+                                <span class="badge bg-primary ms-2"><?php echo e($kerjaanHariIniKomputer->count()); ?></span>
+                            </button>
+                        </h2>
+                        <div id="collapseHariIniKmpt" class="accordion-collapse collapse show" data-bs-parent="#accordionKomputer">
+                            <div class="accordion-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-modern">
+                                        <thead><tr><th>Kode</th><th>Pekerjaan</th><th>Teknisi</th><th>Status</th></tr></thead>
+                                        <tbody>
+                                        <?php $__empty_1 = true; $__currentLoopData = $kerjaanHariIniKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                            <?php
+                                                $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                                                $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                                                $rowClass = $belumDiambil ? 'row-lampu-merah' : ($belumDikerjakan ? 'row-lampu' : '');
+                                            ?>
+                                            <tr class="<?php echo e($rowClass); ?>">
+                                                <td><?php if($belumDikerjakan): ?> <span class="lampu-indicator"></span> <?php endif; ?><code><?php echo e($j->kode_job); ?></code></td>
+                                                <td><div class="fw-bold"><?php echo e($j->judul); ?></div></td>
+                                                <td><?php if($j->teknisi): ?><span class="badge bg-primary"><?php echo e($j->teknisi->display_name); ?></span><?php else: ?><span class="badge bg-danger">Belum</span><?php endif; ?></td>
+                                                <td><span class="badge <?php echo e($j->statusBadgeClass()); ?>"><?php echo e($j->statusLabel()); ?></span></td>
+                                            </tr>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                            <tr><td colspan="4" class="text-center text-muted py-4">Tidak ada pekerjaan</td></tr>
+                                        <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            
-            <div class="accordion-item border-0">
-                <h2 class="accordion-header" id="headingKemarinKmpt">
-                    <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" 
-                            data-bs-target="#collapseKemarinKmpt" aria-expanded="false" aria-controls="collapseKemarinKmpt">
-                        <i class="bi bi-calendar-check text-secondary me-2"></i>
-                        <?php echo e($tanggalObj->copy()->subDay()->translatedFormat('d F Y')); ?>
+        <div class="col-lg-6">
+            <div class="header-cctv">
+                <span><i class="bi bi-camera-video"></i> PEKERJAAN CCTV</span>
+                <span class="badge bg-dark text-white"><?php echo e($kerjaanHariIniCctv->count() + $kerjaanKemarinCctv->count()); ?> total</span>
+            </div>
+            <div class="accordion" id="accordionCctv">
+                <div class="admin-panel">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingHariIniCctv">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHariIniCctv" aria-expanded="true">
+                                <i class="bi bi-calendar-day text-info me-2"></i> <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
 
-                        <span class="badge bg-secondary ms-2"><?php echo e($kerjaanKemarinKomputer->count()); ?></span>
-                    </button>
-                </h2>
-                <div id="collapseKemarinKmpt" class="accordion-collapse collapse" 
-                     aria-labelledby="headingKemarinKmpt" data-bs-parent="#accordionKomputer">
-                    <div class="accordion-body p-0">
-                        <div class="table-responsive table-scroll">
-                            <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
-                                <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
-                                    <tr>
-                                        <th style="width: 22%;">Kode</th>
-                                        <th style="width: 43%;">Pekerjaan</th>
-                                        <th style="width: 18%;">Teknisi</th>
-                                        <th style="width: 17%;">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                <?php $__empty_1 = true; $__currentLoopData = $kerjaanKemarinKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                    <?php
-                                        $badgeClass = $j->statusBadgeClass();
-                                        $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
-                                        $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
-                                        
-                                        if ($belumDiambil) {
-                                            $rowClass = 'row-lampu-merah';
-                                        } elseif ($belumDikerjakan) {
-                                            $rowClass = 'row-lampu';
-                                        } else {
-                                            $rowClass = 'tugas-sudah-kerja';
-                                        }
-                                    ?>
-                                    <tr class="<?php echo e($rowClass); ?>">
-                                        <td>
-                                            <?php if($belumDikerjakan || $belumDiambil): ?>
-                                                <span class="lampu-indicator"></span>
-                                            <?php endif; ?>
-                                            <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
-                                        </td>
-                                        <td>
-                                            <div class="fw-semibold"><?php echo e($j->judul); ?></div>
-                                            <small class="text-muted" style="font-size: .7rem;">
-                                                <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
-
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <?php $penyelesai = $j->penyelesai(); ?>
-                                            <?php if($j->status === 'SELESAI' && $penyelesai): ?>
-                                                <span class="badge bg-success">
-                                                    <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
-
-                                                </span>
-                                            <?php elseif($j->teknisi): ?>
-                                                <span class="badge bg-primary">
-                                                    <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
-
-                                                </span>
-                                            <?php elseif($j->status === 'DIKERJAKAN'): ?>
-                                                <span class="badge bg-warning text-dark">
-                                                    <i class="bi bi-tools"></i> Sedang dikerjakan
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="badge bg-danger badge-belum-diambil">
-                                                    <i class="bi bi-exclamation-triangle"></i> Belum diambil
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><span class="badge <?php echo e($j->statusBadgeClass()); ?>"><?php echo e($j->statusLabel()); ?></span></td>
-                                    </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                    <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan komputer</td></tr>
-                                <?php endif; ?>
-                                </tbody>
-                            </table>
+                                <span class="badge bg-info text-dark ms-2"><?php echo e($kerjaanHariIniCctv->count()); ?></span>
+                            </button>
+                        </h2>
+                        <div id="collapseHariIniCctv" class="accordion-collapse collapse show" data-bs-parent="#accordionCctv">
+                            <div class="accordion-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-modern">
+                                        <thead><tr><th>Kode</th><th>Pekerjaan</th><th>Teknisi</th><th>Status</th></tr></thead>
+                                        <tbody>
+                                        <?php $__empty_1 = true; $__currentLoopData = $kerjaanHariIniCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                            <?php
+                                                $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
+                                                $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
+                                                $rowClass = $belumDiambil ? 'row-lampu-merah' : ($belumDikerjakan ? 'row-lampu' : '');
+                                            ?>
+                                            <tr class="<?php echo e($rowClass); ?>">
+                                                <td><?php if($belumDikerjakan): ?> <span class="lampu-indicator"></span> <?php endif; ?><code><?php echo e($j->kode_job); ?></code></td>
+                                                <td><div class="fw-bold"><?php echo e($j->judul); ?></div></td>
+                                                <td><?php if($j->teknisi): ?><span class="badge bg-info text-dark"><?php echo e($j->teknisi->display_name); ?></span><?php else: ?><span class="badge bg-danger">Belum</span><?php endif; ?></td>
+                                                <td><span class="badge <?php echo e($j->statusBadgeClass()); ?>"><?php echo e($j->statusLabel()); ?></span></td>
+                                            </tr>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                            <tr><td colspan="4" class="text-center text-muted py-4">Tidak ada pekerjaan</td></tr>
+                                        <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -432,194 +291,84 @@
     </div>
 
     
-    <div class="col-md-6">
-        <div class="section-header cctv shadow-sm">
-            <span><i class="bi bi-camera-video"></i> PEKERJAAN CCTV</span>
-            <span class="badge bg-dark text-white">
-                <?php echo e($kerjaanHariIniCctv->count() + $kerjaanKemarinCctv->count()); ?> total
-            </span>
-        </div>
-
-        <div class="accordion shadow-sm" id="accordionCctv">
-            
-            <div class="accordion-item border-0 mb-2">
-                <h2 class="accordion-header" id="headingHariIniCctv">
-                    <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" 
-                            data-bs-target="#collapseHariIniCctv" aria-expanded="true" aria-controls="collapseHariIniCctv">
-                        <i class="bi bi-calendar-day text-info me-2"></i>
-                        <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
-
-                        <span class="badge bg-info text-dark ms-2"><?php echo e($kerjaanHariIniCctv->count()); ?></span>
-                    </button>
-                </h2>
-                <div id="collapseHariIniCctv" class="accordion-collapse collapse show" 
-                     aria-labelledby="headingHariIniCctv" data-bs-parent="#accordionCctv">
-                    <div class="accordion-body p-0">
-                        <div class="table-responsive table-scroll">
-                            <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
-                                <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
-                                    <tr>
-                                        <th style="width: 22%;">Kode</th>
-                                        <th style="width: 43%;">Pekerjaan</th>
-                                        <th style="width: 18%;">Teknisi</th>
-                                        <th style="width: 17%;">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                <?php $__empty_1 = true; $__currentLoopData = $kerjaanHariIniCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                    <?php
-                                        $badgeClass = $j->statusBadgeClass();
-                                        $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
-                                        $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
-                                        if ($belumDiambil) {
-                                            $rowClass = 'row-lampu-merah';
-                                        } elseif ($belumDikerjakan) {
-                                            $rowClass = 'row-lampu';
-                                        } else {
-                                            $rowClass = 'tugas-sudah-kerja';
-                                        }
-                                    ?>
-                                    <tr class="<?php echo e($rowClass); ?>">
-                                        <td>
-                                            <?php if($belumDikerjakan || $belumDiambil): ?>
-                                                <span class="lampu-indicator"></span>
-                                            <?php endif; ?>
-                                            <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
-                                        </td>
-                                        <td>
-                                            <div class="fw-semibold"><?php echo e($j->judul); ?></div>
-                                            <small class="text-muted" style="font-size: .7rem;">
-                                                <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
-
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <?php $penyelesai = $j->penyelesai(); ?>
-                                            <?php if($j->status === 'SELESAI'): ?>
-                                                <?php if($penyelesai): ?>
-                                                    <span class="badge bg-success">
-                                                        <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
-
-                                                    </span>
-                                                <?php else: ?>
-                                                    <span class="badge bg-success">
-                                                        <i class="bi bi-check-circle"></i> Selesai
-                                                    </span>
-                                                <?php endif; ?>
-                                            <?php elseif($j->teknisi): ?>
-                                                <span class="badge bg-info text-dark">
-                                                    <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
-
-                                                </span>
-                                            <?php elseif($j->status === 'DIKERJAKAN'): ?>
-                                                <span class="badge bg-warning text-dark">
-                                                    <i class="bi bi-tools"></i> Sedang dikerjakan
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="badge bg-danger badge-belum-diambil">
-                                                    <i class="bi bi-exclamation-triangle"></i> Belum diambil
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><span class="badge <?php echo e($badgeClass); ?>"><?php echo e($j->statusLabel()); ?></span></td>
-                                    </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                    <tr><td colspan="4" class="text-center text-muted py-3">
-                                        Tidak ada pekerjaan CCTV pada <?php echo e($tanggalObj->translatedFormat('d F Y')); ?>
-
-                                    </td></tr>
-                                <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="admin-panel">
+                <div class="top-header-komputer">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-trophy-fill"></i> Top Teknisi Komputer (<?php echo e(ucfirst($periode)); ?>)</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-modern">
+                        <thead><tr><th class="text-center">#</th><th>Teknisi</th><th class="text-center">Selesai</th><th class="text-center">Belum</th></tr></thead>
+                        <tbody>
+                        <?php $__empty_1 = true; $__currentLoopData = $ratingHariIniKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            <tr class="<?php echo e($i == 0 ? 'table-warning' : ''); ?>">
+                                <td class="text-center fw-bold"><?php echo e($i == 0 ? '🥇' : ($i == 1 ? '🥈' : ($i == 2 ? '🥉' : $i+1))); ?></td>
+                                <td><i class="bi bi-person-circle text-primary"></i> <strong><?php echo e($t->display_name); ?></strong></td>
+                                <td class="text-center"><span class="badge bg-success"><?php echo e($t->hari_ini_selesai); ?></span></td>
+                                <td class="text-center"><span class="badge bg-warning text-dark"><?php echo e($t->hari_ini_belum); ?></span></td>
+                            </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                            <tr><td colspan="4" class="text-center text-muted py-4">Belum ada data</td></tr>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="admin-panel">
+                <div class="top-header-cctv">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-trophy-fill"></i> Top Teknisi CCTV (<?php echo e(ucfirst($periode)); ?>)</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-modern">
+                        <thead><tr><th class="text-center">#</th><th>Teknisi</th><th class="text-center">Selesai</th><th class="text-center">Belum</th></tr></thead>
+                        <tbody>
+                        <?php $__empty_1 = true; $__currentLoopData = $ratingHariIniCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            <tr class="<?php echo e($i == 0 ? 'table-warning' : ''); ?>">
+                                <td class="text-center fw-bold"><?php echo e($i == 0 ? '🥇' : ($i == 1 ? '🥈' : ($i == 2 ? '🥉' : $i+1))); ?></td>
+                                <td><i class="bi bi-person-circle text-info"></i> <strong><?php echo e($t->display_name); ?></strong></td>
+                                <td class="text-center"><span class="badge bg-success"><?php echo e($t->hari_ini_selesai); ?></span></td>
+                                <td class="text-center"><span class="badge bg-warning text-dark"><?php echo e($t->hari_ini_belum); ?></span></td>
+                            </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                            <tr><td colspan="4" class="text-center text-muted py-4">Belum ada data</td></tr>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            
-            <div class="accordion-item border-0">
-                <h2 class="accordion-header" id="headingKemarinCctv">
-                    <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" 
-                            data-bs-target="#collapseKemarinCctv" aria-expanded="false" aria-controls="collapseKemarinCctv">
-                        <i class="bi bi-calendar-check text-secondary me-2"></i>
-                        <?php echo e($tanggalObj->copy()->subDay()->translatedFormat('d F Y')); ?>
-
-                        <span class="badge bg-secondary ms-2"><?php echo e($kerjaanKemarinCctv->count()); ?></span>
-                    </button>
-                </h2>
-                <div id="collapseKemarinCctv" class="accordion-collapse collapse" 
-                     aria-labelledby="headingKemarinCctv" data-bs-parent="#accordionCctv">
-                    <div class="accordion-body p-0">
-                        <div class="table-responsive table-scroll">
-                            <table class="table table-hover align-middle mb-0" style="font-size: .8rem;">
-                                <thead class="table-light" style="position: sticky; top: 0; z-index: 5;">
-                                    <tr>
-                                        <th style="width: 22%;">Kode</th>
-                                        <th style="width: 43%;">Pekerjaan</th>
-                                        <th style="width: 18%;">Teknisi</th>
-                                        <th style="width: 17%;">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                <?php $__empty_1 = true; $__currentLoopData = $kerjaanKemarinCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                    <?php
-                                        $badgeClass = $j->statusBadgeClass();
-                                        $belumDikerjakan = in_array($j->status, ['DITUGASKAN', 'DIKERJAKAN']);
-                                        $belumDiambil = is_null($j->teknisi_id) && $j->status === 'DITUGASKAN';
-                                        
-                                        if ($belumDiambil) {
-                                            $rowClass = 'row-lampu-merah';
-                                        } elseif ($belumDikerjakan) {
-                                            $rowClass = 'row-lampu';
-                                        } else {
-                                            $rowClass = 'tugas-sudah-kerja';
-                                        }
-                                    ?>
-                                    <tr class="<?php echo e($rowClass); ?>">
-                                        <td>
-                                            <?php if($belumDikerjakan || $belumDiambil): ?>
-                                                <span class="lampu-indicator"></span>
-                                            <?php endif; ?>
-                                            <code style="font-size: .7rem;"><?php echo e($j->kode_job); ?></code>
-                                        </td>
-                                        <td>
-                                            <div class="fw-semibold"><?php echo e($j->judul); ?></div>
-                                            <small class="text-muted" style="font-size: .7rem;">
-                                                <i class="bi bi-geo-alt-fill"></i> <?php echo e($j->lok_gedung ?? '-'); ?> / <?php echo e($j->lokasi_ruang ?? '-'); ?>
-
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <?php $penyelesai = $j->penyelesai(); ?>
-                                            <?php if($j->status === 'SELESAI' && $penyelesai): ?>
-                                                <span class="badge bg-success">
-                                                    <i class="bi bi-check-circle"></i> <?php echo e($penyelesai->display_name); ?>
-
-                                                </span>
-                                            <?php elseif($j->teknisi): ?>
-                                                <span class="badge bg-info text-dark">
-                                                    <i class="bi bi-person-circle"></i> <?php echo e($j->teknisi->display_name); ?>
-
-                                                </span>
-                                            <?php elseif($j->status === 'DIKERJAKAN'): ?>
-                                                <span class="badge bg-warning text-dark">
-                                                    <i class="bi bi-tools"></i> Sedang dikerjakan
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="badge bg-danger badge-belum-diambil">
-                                                    <i class="bi bi-exclamation-triangle"></i> Belum diambil
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><span class="badge <?php echo e($j->statusBadgeClass()); ?>"><?php echo e($j->statusLabel()); ?></span></td>
-                                    </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                    <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada pekerjaan CCTV</td></tr>
-                                <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="admin-panel h-100">
+                <div class="p-3 border-bottom">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-pc-display text-primary"></i> Statistik Komputer</h6>
+                </div>
+                <div class="p-3">
+                    <?php if(count($rekapTeknisiKomputer) > 0): ?>
+                        <div class="chart-wrapper" style="height: <?php echo e(max(280, count($rekapTeknisiKomputer) * 70)); ?>px;"><canvas id="chartKomputer"></canvas></div>
+                    <?php else: ?>
+                        <div class="text-center text-muted py-5"><i class="bi bi-bar-chart" style="font-size: 3rem; opacity: 0.3;"></i><p class="mt-2 mb-0">Belum ada data</p></div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="admin-panel h-100">
+                <div class="p-3 border-bottom">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-camera-video text-info"></i> Statistik CCTV</h6>
+                </div>
+                <div class="p-3">
+                    <?php if(count($rekapTeknisiCctv) > 0): ?>
+                        <div class="chart-wrapper" style="height: <?php echo e(max(280, count($rekapTeknisiCctv) * 70)); ?>px;"><canvas id="chartCctv"></canvas></div>
+                    <?php else: ?>
+                        <div class="text-center text-muted py-5"><i class="bi bi-bar-chart" style="font-size: 3rem; opacity: 0.3;"></i><p class="mt-2 mb-0">Belum ada data</p></div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -628,199 +377,23 @@
 </div>
 
 
-<div class="row g-3 mb-4">
-
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header header-komputer py-2">
-                <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-trophy-fill"></i>
-                    Top Teknisi Komputer — <?php echo e(ucfirst($periode)); ?>
-
-                </h6>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="font-size: .85rem;">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 8%;" class="text-center">#</th>
-                            <th style="width: 42%;">Teknisi</th>
-                            <th style="width: 16%;" class="text-center">✅</th>
-                            <th style="width: 16%;" class="text-center">⏳</th>
-                            <th style="width: 18%;" class="text-center">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php $__empty_1 = true; $__currentLoopData = $ratingHariIniKomputer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <tr class="<?php echo e($i == 0 ? 'table-warning' : ''); ?>">
-                            <td class="text-center fw-bold" style="font-size: 1.1rem;">
-                                <?php if($i == 0): ?> 🥇
-                                <?php elseif($i == 1): ?> 🥈
-                                <?php elseif($i == 2): ?> 🥉
-                                <?php else: ?> <?php echo e($i + 1); ?>
-
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <i class="bi bi-person-circle text-primary"></i>
-                                <strong><?php echo e($t->display_name); ?></strong>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-success" style="font-size: .85rem; padding: 6px 12px;">
-                                    <?php echo e($t->hari_ini_selesai); ?>
-
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-warning text-dark" style="font-size: .85rem; padding: 6px 12px;">
-                                    <?php echo e($t->hari_ini_belum); ?>
-
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-secondary" style="font-size: .85rem; padding: 6px 12px;">
-                                    <?php echo e($t->hari_ini_total); ?>
-
-                                </span>
-                            </td>
-                        </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
-                                <i class="bi bi-inbox" style="font-size: 2rem; opacity: .3;"></i>
-                                <div class="mt-2 small">Belum ada teknisi komputer yang aktif</div>
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header header-cctv py-2">
-                <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-trophy-fill"></i>
-                    Top Teknisi CCTV — <?php echo e(ucfirst($periode)); ?>
-
-                </h6>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="font-size: .85rem;">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 8%;" class="text-center">#</th>
-                            <th style="width: 42%;">Teknisi</th>
-                            <th style="width: 16%;" class="text-center">✅</th>
-                            <th style="width: 16%;" class="text-center">⏳</th>
-                            <th style="width: 18%;" class="text-center">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php $__empty_1 = true; $__currentLoopData = $ratingHariIniCctv; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <tr class="<?php echo e($i == 0 ? 'table-warning' : ''); ?>">
-                            <td class="text-center fw-bold" style="font-size: 1.1rem;">
-                                <?php if($i == 0): ?> 🥇
-                                <?php elseif($i == 1): ?> 🥈
-                                <?php elseif($i == 2): ?> 🥉
-                                <?php else: ?> <?php echo e($i + 1); ?>
-
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <i class="bi bi-person-circle text-info"></i>
-                                <strong><?php echo e($t->display_name); ?></strong>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-success" style="font-size: .85rem; padding: 6px 12px;">
-                                    <?php echo e($t->hari_ini_selesai); ?>
-
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-warning text-dark" style="font-size: .85rem; padding: 6px 12px;">
-                                    <?php echo e($t->hari_ini_belum); ?>
-
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-secondary" style="font-size: .85rem; padding: 6px 12px;">
-                                    <?php echo e($t->hari_ini_total); ?>
-
-                                </span>
-                            </td>
-                        </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
-                                <i class="bi bi-inbox" style="font-size: 2rem; opacity: .3;"></i>
-                                <div class="mt-2 small">Belum ada teknisi CCTV yang aktif</div>
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-
-<div class="row g-3 mb-4">
-
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white border-bottom py-2">
-                <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-pc-display text-primary"></i>
-                    Top Teknisi Komputer (Keseluruhan) — <?php echo e(ucfirst($periode)); ?>
-
-                </h6>
-            </div>
-            <div class="card-body">
-                <?php if(count($rekapTeknisiKomputer) > 0): ?>
-                    <div class="chart-wrapper" style="height: <?php echo e(max(280, count($rekapTeknisiKomputer) * 70)); ?>px;">
-                        <canvas id="chartKomputer"></canvas>
-                    </div>
-                <?php else: ?>
-                    <div class="chart-empty">
-                        <i class="bi bi-bar-chart"></i>
-                        <h5>Belum Ada Data</h5>
-                        <p class="mb-0">Belum ada teknisi komputer yang menyelesaikan tugas</p>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white border-bottom py-2">
-                <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-camera-video text-info"></i>
-                    Top Teknisi CCTV (Keseluruhan) — <?php echo e(ucfirst($periode)); ?>
-
-                </h6>
-            </div>
-            <div class="card-body">
-                <?php if(count($rekapTeknisiCctv) > 0): ?>
-                    <div class="chart-wrapper" style="height: <?php echo e(max(280, count($rekapTeknisiCctv) * 70)); ?>px;">
-                        <canvas id="chartCctv"></canvas>
-                    </div>
-                <?php else: ?>
-                    <div class="chart-empty">
-                        <i class="bi bi-bar-chart"></i>
-                        <h5>Belum Ada Data</h5>
-                        <p class="mb-0">Belum ada teknisi CCTV yang menyelesaikan tugas</p>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-
+<div class="pwa-bottom-nav">
+    <a href="<?php echo e(route('admin.dashboard')); ?>" class="nav-item active">
+        <i class="bi bi-house-door-fill"></i>
+        <span>Beranda</span>
+    </a>
+    <a href="<?php echo e(route('admin.buat')); ?>" class="nav-item">
+        <i class="bi bi-plus-square"></i>
+        <span>Buat</span>
+    </a>
+    <a href="<?php echo e(route('admin.belum-dikerjakan')); ?>" class="nav-item">
+        <i class="bi bi-hourglass-split"></i>
+        <span>Belum</span>
+    </a>
+    <a href="<?php echo e(route('laporan.index')); ?>" class="nav-item">
+        <i class="bi bi-bar-chart-fill"></i>
+        <span>Laporan</span>
+    </a>
 </div>
 
 <?php $__env->startPush('scripts'); ?>
@@ -892,16 +465,7 @@
                     }
                 },
                 scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1, precision: 0 },
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        title: {
-                            display: true,
-                            text: '📊 Jumlah Tugas Selesai',
-                            font: { size: 11, weight: 'bold' }
-                        }
-                    },
+                    x: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: 'rgba(0,0,0,0.05)' } },
                     y: { grid: { display: false } }
                 },
                 animation: {
@@ -909,7 +473,6 @@
                     onComplete: function() {
                         const chart = this;
                         const c = chart.ctx;
-
                         c.save();
                         c.textAlign = 'left';
                         c.textBaseline = 'middle';
@@ -918,11 +481,9 @@
                             const meta = chart.getDatasetMeta(i);
                             meta.data.forEach(function(bar, index) {
                                 const t = rekapData[index];
-
                                 c.font = 'bold 15px Arial';
                                 c.fillStyle = '#212529';
                                 c.fillText(t.selesai, bar.x + 10, bar.y - 6);
-
                                 c.font = '10px Arial';
                                 c.fillStyle = '#6c757d';
                                 c.fillText('dari ' + t.total + ' tugas', bar.x + 10, bar.y + 9);
@@ -945,23 +506,21 @@
         let state = false;
         setInterval(function() {
             state = !state;
-
             document.querySelectorAll('tr.row-lampu-merah').forEach(function(row) {
                 row.querySelectorAll('td').forEach(function(td) {
                     td.style.transition = 'background-color 0.3s ease';
-                    td.style.backgroundColor = state ? '#ffcdd2' : '#ffffff';
+                    td.style.backgroundColor = state ? '#f8d7da' : '#ffffff';
                 });
             });
-
             document.querySelectorAll('tr.row-lampu').forEach(function(row) {
                 row.querySelectorAll('td').forEach(function(td) {
                     td.style.transition = 'background-color 0.3s ease';
-                    td.style.backgroundColor = state ? '#ffeb3b' : '#ffffff';
+                    td.style.backgroundColor = state ? '#fff3cd' : '#ffffff';
                 });
             });
-        }, 500);
+        }, 1500);
     })();
 </script>
 <?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\CHATBOT LARAVEL\monitoring-teknisi\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app_admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\CHATBOT LARAVEL\monitoring-teknisi\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>
