@@ -214,9 +214,15 @@ abstract class BaseTugasController extends Controller
     // ============================================
     // KERJAKAN — form selesai pekerjaan
     // ============================================
-    public function kerjakan(Job $job)
+    public function kerjakan(Job $job, Request $request)
     {
         $this->authorizeBidang($job);
+
+        // 🆕 PROTEKSI: Jika diakses dari halaman laporan, tolak!
+        if ($request->query('from') === 'laporan') {
+            return redirect()->route('laporan.index')
+                ->with('error', '❌ Anda tidak bisa mengerjakan tugas langsung dari halaman Laporan. Silakan buka Dashboard.');
+        }
 
         if ($job->teknisi_id !== null && $job->teknisi_id !== auth()->id()) {
             abort(403, 'Tugas ini sudah diambil teknisi lain.');

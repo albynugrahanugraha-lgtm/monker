@@ -5,6 +5,9 @@
     $rp = $routePrefix ?? 'teknisi';
     $isCctv = ($bidang ?? 'komputer') === 'cctv';
     $primaryColor = $isCctv ? '#0dcaf0' : '#0d6efd';
+    
+    // 🆕 Cek apakah diakses dari halaman laporan
+    $isFromLaporan = request()->query('from') === 'laporan';
 ?>
 
 <?php $__env->startPush('styles'); ?>
@@ -71,13 +74,25 @@
 
     
     <div class="header-back">
-        <a href="<?php echo e(route($rp . '.dashboard')); ?>">
-            <i class="bi bi-arrow-left-circle-fill"></i>
-        </a>
-        <div>
-            <div class="title">Detail Pekerjaan</div>
-            <div class="subtitle">Kode: <?php echo e($job->kode_job); ?></div>
-        </div>
+        <?php if($isFromLaporan): ?>
+            
+            <a href="<?php echo e(route('laporan.index')); ?>">
+                <i class="bi bi-arrow-left-circle-fill"></i>
+            </a>
+            <div>
+                <div class="title">Detail Laporan</div>
+                <div class="subtitle">Kode: <?php echo e($job->kode_job); ?></div>
+            </div>
+        <?php else: ?>
+            
+            <a href="<?php echo e(route($rp . '.dashboard')); ?>">
+                <i class="bi bi-arrow-left-circle-fill"></i>
+            </a>
+            <div>
+                <div class="title">Detail Pekerjaan</div>
+                <div class="subtitle">Kode: <?php echo e($job->kode_job); ?></div>
+            </div>
+        <?php endif; ?>
     </div>
 
     
@@ -94,11 +109,20 @@
     </div>
 
     
-    <?php if($job->bisaDiselesaikan()): ?>
+    
+    <?php if($job->bisaDiselesaikan() && !$isFromLaporan): ?>
         <a href="<?php echo e(route($rp . '.kerjakan', $job)); ?>" class="btn-action" style="background:#198754; color:white;">
             <i class="bi bi-play-circle"></i> Kerjakan Tugas Ini
         </a>
     <?php endif; ?>
+    
+    
+    <?php if($isFromLaporan && $job->status !== 'SELESAI'): ?>
+        <div class="alert alert-warning" style="border-radius: 12px; font-size: 0.85rem; margin-bottom: 16px;">
+            <i class="bi bi-info-circle-fill"></i> Untuk mengerjakan tugas ini, silakan kembali ke <strong>Dashboard</strong>.
+        </div>
+    <?php endif; ?>
+
     <a href="<?php echo e(route($rp . '.cetak', $job)); ?>" target="_blank" class="btn-action" style="background:#e9ecef; color:#333;">
         <i class="bi bi-printer"></i> Cetak Laporan
     </a>
@@ -250,7 +274,6 @@
 
         function tampilkanToast(msg, type) {
             const toast = document.createElement('div');
-            // Menggunakan style PWA untuk toast
             toast.style.cssText = `
                 position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
                 background: ${type === 'success' ? '#198754' : '#dc3545'};

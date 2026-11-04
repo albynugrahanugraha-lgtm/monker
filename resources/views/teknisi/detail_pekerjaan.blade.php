@@ -5,6 +5,9 @@
     $rp = $routePrefix ?? 'teknisi';
     $isCctv = ($bidang ?? 'komputer') === 'cctv';
     $primaryColor = $isCctv ? '#0dcaf0' : '#0d6efd';
+    
+    // 🆕 Cek apakah diakses dari halaman laporan
+    $isFromLaporan = request()->query('from') === 'laporan';
 @endphp
 
 @push('styles')
@@ -69,15 +72,27 @@
 @section('content')
 <div class="app-container">
 
-    {{-- TOMBOL BACK KE DASHBOARD --}}
+    {{-- TOMBOL BACK --}}
     <div class="header-back">
-        <a href="{{ route($rp . '.dashboard') }}">
-            <i class="bi bi-arrow-left-circle-fill"></i>
-        </a>
-        <div>
-            <div class="title">Detail Pekerjaan</div>
-            <div class="subtitle">Kode: {{ $job->kode_job }}</div>
-        </div>
+        @if($isFromLaporan)
+            {{-- Kembali ke halaman laporan --}}
+            <a href="{{ route('laporan.index') }}">
+                <i class="bi bi-arrow-left-circle-fill"></i>
+            </a>
+            <div>
+                <div class="title">Detail Laporan</div>
+                <div class="subtitle">Kode: {{ $job->kode_job }}</div>
+            </div>
+        @else
+            {{-- Kembali ke dashboard --}}
+            <a href="{{ route($rp . '.dashboard') }}">
+                <i class="bi bi-arrow-left-circle-fill"></i>
+            </a>
+            <div>
+                <div class="title">Detail Pekerjaan</div>
+                <div class="subtitle">Kode: {{ $job->kode_job }}</div>
+            </div>
+        @endif
     </div>
 
     {{-- HEADER TUGAS --}}
@@ -93,11 +108,20 @@
     </div>
 
     {{-- TOMBOL AKSI --}}
-    @if($job->bisaDiselesaikan())
+    {{-- 🆕 TOMBOL KERJAKAN HANYA MUNCUL JIKA BUKAN DARI LAPORAN --}}
+    @if($job->bisaDiselesaikan() && !$isFromLaporan)
         <a href="{{ route($rp . '.kerjakan', $job) }}" class="btn-action" style="background:#198754; color:white;">
             <i class="bi bi-play-circle"></i> Kerjakan Tugas Ini
         </a>
     @endif
+    
+    {{-- Jika dari laporan dan tugas belum selesai, tampilkan pesan --}}
+    @if($isFromLaporan && $job->status !== 'SELESAI')
+        <div class="alert alert-warning" style="border-radius: 12px; font-size: 0.85rem; margin-bottom: 16px;">
+            <i class="bi bi-info-circle-fill"></i> Untuk mengerjakan tugas ini, silakan kembali ke <strong>Dashboard</strong>.
+        </div>
+    @endif
+
     <a href="{{ route($rp . '.cetak', $job) }}" target="_blank" class="btn-action" style="background:#e9ecef; color:#333;">
         <i class="bi bi-printer"></i> Cetak Laporan
     </a>
@@ -248,7 +272,6 @@
 
         function tampilkanToast(msg, type) {
             const toast = document.createElement('div');
-            // Menggunakan style PWA untuk toast
             toast.style.cssText = `
                 position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
                 background: ${type === 'success' ? '#198754' : '#dc3545'};

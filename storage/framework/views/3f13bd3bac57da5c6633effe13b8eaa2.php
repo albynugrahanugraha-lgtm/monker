@@ -7,7 +7,7 @@
     $isCctv = auth()->user()->isTeknisiCctv() ?? false;
     $rp = auth()->user()->isTeknisiCctv() ? 'teknisi_cctv' : (auth()->user()->isTeknisi() ? 'teknisi' : 'admin');
     
-    // 🆕 KONSISTENSI WARNA: Cyan hanya untuk CCTV, sisanya Biru
+    // KONSISTENSI WARNA: Cyan hanya untuk CCTV, sisanya Biru
     $primaryColor = $isCctv ? '#0dcaf0' : '#0d6efd';
     $primaryDark  = $isCctv ? '#0aa2c0' : '#0a58ca';
     $rgbColor     = $isCctv ? '13, 202, 240' : '13, 110, 253';
@@ -64,14 +64,31 @@
     .chart-card h2 { font-size: 1rem; font-weight: 800; margin: 0 0 16px 0; color: #1a1a1a; }
     .chart-wrapper { position: relative; height: 250px; width: 100%; }
 
-    /* LIST LAPORAN CARD */
+    /* ============================================
+       LIST LAPORAN CARD (WARNA STATUS)
+       ============================================ */
     .laporan-card {
         background: white; border-radius: 16px; padding: 16px;
         margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        border-left: 4px solid <?php echo e($primaryColor); ?>;
         cursor: pointer; transition: transform 0.15s;
+        
+        /* Default border */
+        border-left: 6px solid #ccc;
     }
     .laporan-card:active { transform: scale(0.98); }
+
+    /* Warna Khusus Selesai (Hijau) */
+    .laporan-card.status-selesai {
+        border-left-color: #198754;
+        background-color: #f8fff9;
+    }
+
+    /* Warna Khusus Belum Selesai (Kuning/Oranye) */
+    .laporan-card.status-pending {
+        border-left-color: #ffc107;
+        background-color: #fffdf5;
+    }
+
     .lap-title { font-size: 0.95rem; font-weight: 800; color: #1a1a1a; margin-bottom: 8px; }
     .lap-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.75rem; color: #666; margin-bottom: 12px; }
     .lap-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #eee; padding-top: 12px; }
@@ -90,15 +107,50 @@
     .bottom-nav-item i { font-size: 1.4rem; }
     .bottom-nav-item.active { color: <?php echo e($primaryColor); ?>; }
 
-    /* LAPTOP (GRID) */
+    /* LAPTOP SETTINGS */
     @media (min-width: 768px) {
         .app-container { max-width: 1000px; padding: 24px; padding-bottom: 24px; }
         .bottom-nav { display: none !important; }
         .desktop-nav { display: flex; }
         .filter-card form { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: end; }
         .btn-filter { grid-column: span 4; width: 200px; justify-self: start; }
-        .grid-laporan { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        
+        /* Grafik berjejer 2 kolom */
         .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        
+        /* DAFTAR LAPORAN JADI 1 KOLOM PENUH (LIST KE BAWAH) */
+        .grid-laporan { 
+            display: flex !important; 
+            flex-direction: column !important; 
+            gap: 12px; 
+        }
+        
+        /* TATA LETAK CARD JADI MENYAMPING */
+        .laporan-card {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            margin-bottom: 0;
+        }
+        .laporan-card > div:first-child {
+            flex: 1;
+        }
+        .laporan-card .lap-meta {
+            margin-bottom: 0;
+        }
+        .laporan-card .lap-footer {
+            border-top: none;
+            padding-top: 0;
+            margin-left: 24px;
+            padding-left: 24px;
+            border-left: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: auto;
+        }
     }
 </style>
 <?php $__env->stopPush(); ?>
@@ -190,18 +242,37 @@
 
     <div class="grid-laporan">
         <?php $__empty_1 = true; $__currentLoopData = $jobs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-            <div class="laporan-card" onclick="window.location='<?php echo e($isTeknisi ? route($rp . '.show', $j) : route('admin.show', $j)); ?>'">
-                <div class="d-flex justify-content-between align-items-start">
-                    <span style="font-family:monospace; font-size:0.7rem; color:#888;"><i class="bi bi-hash"></i><?php echo e($j->kode_job); ?></span>
-                    <span class="badge <?php echo e($j->statusBadgeClass()); ?>"><?php echo e($j->status); ?></span>
+            <?php
+                // Tentukan warna card berdasarkan status
+                $statusClass = $j->status === 'SELESAI' ? 'status-selesai' : 'status-pending';
+                
+                // 🆕 Tentukan URL tujuan (Laporan -> Detail dengan parameter from=laporan)
+                $urlDetail = $isTeknisi 
+                    ? route($rp . '.show', $j) . '?from=laporan' 
+                    : route('admin.show', $j);
+            ?>
+            
+            
+            <div class="laporan-card <?php echo e($statusClass); ?>" onclick="window.location='<?php echo e($urlDetail); ?>'">
+                
+                
+                <div>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span style="font-family:monospace; font-size:0.7rem; color:#888;"><i class="bi bi-hash"></i><?php echo e($j->kode_job); ?></span>
+                        
+                        <span class="badge <?php echo e($j->statusBadgeClass()); ?> d-md-none"><?php echo e($j->status); ?></span>
+                    </div>
+                    <div class="lap-title"><?php echo e($j->judul); ?></div>
+                    <div class="lap-meta">
+                        <span><i class="bi bi-person-circle text-primary"></i> <?php echo e($j->teknisi->display_name ?? '-'); ?></span>
+                        <span><i class="bi bi-calendar-check text-success"></i> <?php echo e($j->tanggal_selesai?->format('d M Y') ?? $j->tanggal_tugas?->format('d M Y')); ?></span>
+                    </div>
                 </div>
-                <div class="lap-title"><?php echo e($j->judul); ?></div>
-                <div class="lap-meta">
-                    <span><i class="bi bi-person-circle text-primary"></i> <?php echo e($j->teknisi->display_name ?? '-'); ?></span>
-                    <span><i class="bi bi-calendar-check text-success"></i> <?php echo e($j->tanggal_selesai?->format('d M Y') ?? $j->tanggal_tugas?->format('d M Y')); ?></span>
-                </div>
+
+                
                 <div class="lap-footer">
-                    <span class="badge <?php echo e($j->bidangBadgeClass()); ?>" style="font-size:0.65rem;"><i class="bi <?php echo e($j->bidangIcon()); ?>"></i> <?php echo e($j->bidangLabel()); ?></span>
+                    <span class="badge <?php echo e($j->bidangBadgeClass()); ?> d-none d-md-inline" style="font-size:0.65rem;"><i class="bi <?php echo e($j->bidangIcon()); ?>"></i> <?php echo e($j->bidangLabel()); ?></span>
+                    <span class="badge <?php echo e($j->statusBadgeClass()); ?> d-none d-md-inline"><?php echo e($j->status); ?></span>
                     <span class="btn-aksi">Detail <i class="bi bi-chevron-right"></i></span>
                 </div>
             </div>
