@@ -763,6 +763,13 @@
 </script>
 <?php endif; ?>
 
+
+<?php if(auth()->guard()->check()): ?>
+    <?php if(auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()): ?>
+        <?php echo $__env->make('layouts.partials.admin_bottom_nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php endif; ?>
+<?php endif; ?>
+
 <!-- 🆕 DAFTARKAN SERVICE WORKER PWA (ADMIN) -->
 <script>
     if ('serviceWorker' in navigator) {

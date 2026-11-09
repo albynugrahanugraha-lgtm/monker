@@ -33,6 +33,13 @@
     <!-- KONTEN -->
     <?php echo $__env->yieldContent('content'); ?>
 
+    
+    <?php if(auth()->guard()->check()): ?>
+        <?php if(auth()->user()->isAnyTeknisi()): ?>
+            <?php echo $__env->make('layouts.partials.bottom_nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        <?php endif; ?>
+    <?php endif; ?>
+
     <!-- SCRIPTS (Hanya JS Bootstrap untuk modal jika diperlukan) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     

@@ -33,6 +33,13 @@
     <!-- KONTEN -->
     @yield('content')
 
+    {{-- 🆕 PANGGIL BOTTOM NAV TEKNISI DI SINI --}}
+    @auth
+        @if(auth()->user()->isAnyTeknisi())
+            @include('layouts.partials.bottom_nav')
+        @endif
+    @endauth
+
     <!-- SCRIPTS (Hanya JS Bootstrap untuk modal jika diperlukan) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     

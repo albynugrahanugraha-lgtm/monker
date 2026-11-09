@@ -761,6 +761,13 @@
 </script>
 @endauth
 
+{{-- 🆕 PANGGIL BOTTOM NAV ADMIN DI SINI --}}
+@auth
+    @if(auth()->user()->isAdmin() || auth()->user()->isSuperAdmin())
+        @include('layouts.partials.admin_bottom_nav')
+    @endif
+@endauth
+
 <!-- 🆕 DAFTARKAN SERVICE WORKER PWA (ADMIN) -->
 <script>
     if ('serviceWorker' in navigator) {

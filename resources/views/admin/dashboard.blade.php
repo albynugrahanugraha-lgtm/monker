@@ -17,12 +17,6 @@
     }
     .app-header h1 { font-size: 1.5rem; font-weight: 800; margin: 0; color: white !important; }
     .app-header p { font-size: 0.85rem; opacity: 0.9; margin: 4px 0 0 0; color: white !important; }
-    .btn-header-action {
-        background: rgba(255, 255, 255, 0.2) !important; border: 1px solid rgba(255, 255, 255, 0.4) !important;
-        color: white !important; border-radius: 12px; padding: 8px 16px;
-        font-size: 0.85rem; font-weight: 700; transition: all 0.2s;
-    }
-    .btn-header-action:hover { background: rgba(255, 255, 255, 0.3) !important; }
 
     .filter-card { background: white !important; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 24px; }
     .filter-group label { font-size: 0.75rem; font-weight: 700; color: #666 !important; margin-bottom: 6px; display: block; }
@@ -59,41 +53,15 @@
         .btn-filter { grid-column: span 3; width: 200px; justify-self: start; }
         .table-modern th, .table-modern td { white-space: normal; }
     }
-
-    .pwa-bottom-nav {
-        display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white;
-        border-top: 1px solid #f0f0f0; justify-content: space-around;
-        padding: 10px 0 max(10px, env(safe-area-inset-bottom)); z-index: 1050;
-        box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
-    }
-    .pwa-bottom-nav .nav-item {
-        flex: 1; text-align: center; padding: 6px 0; color: #adb5bd;
-        text-decoration: none !important; font-size: 0.65rem; font-weight: 700;
-        display: flex; flex-direction: column; align-items: center; gap: 4px;
-    }
-    .pwa-bottom-nav .nav-item i { font-size: 1.4rem; }
-    .pwa-bottom-nav .nav-item.active { color: #0d6efd; }
-
-    @media (max-width: 767.98px) {
-        .pwa-bottom-nav { display: flex; }
-        body { padding-bottom: 85px !important; }
-    }
 </style>
 
 <div class="container-fluid px-0">
-    {{-- HEADER --}}
+    {{-- HEADER (Bersih tanpa tombol) --}}
     <div class="app-header">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative; z-index:1;">
             <div>
                 <h1><i class="bi bi-speedometer2"></i> Monitoring Pekerjaan</h1>
                 <p>Pantau aktivitas teknisi secara real-time</p>
-            </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <a href="{{ route('admin.buat') }}" class="btn-header-action"><i class="bi bi-plus-circle"></i> Buat Tugas</a>
-                <a href="{{ route('admin.import.index') }}" class="btn-header-action"><i class="bi bi-file-earmark-excel"></i> Import</a>
-                <a href="{{ route('admin.belum-dikerjakan') }}" class="btn-header-action"><i class="bi bi-hourglass-split"></i> Belum</a>
-                {{-- 🆕 TOMBOL REKAP ABSENSI (DESKTOP) --}}
-                <a href="{{ route('admin.absensi') }}" class="btn-header-action"><i class="bi bi-person-lines-fill"></i> Rekap Absensi</a>
             </div>
         </div>
     </div>
@@ -272,31 +240,6 @@
             </div>
         </div>
     </div>
-</div>
-
-{{-- BOTTOM NAVIGATION UNTUK HP --}}
-<div class="pwa-bottom-nav">
-    <a href="{{ route('admin.dashboard') }}" class="nav-item active">
-        <i class="bi bi-house-door-fill"></i>
-        <span>Beranda</span>
-    </a>
-    <a href="{{ route('admin.buat') }}" class="nav-item">
-        <i class="bi bi-plus-square"></i>
-        <span>Buat</span>
-    </a>
-    <a href="{{ route('admin.belum-dikerjakan') }}" class="nav-item">
-        <i class="bi bi-hourglass-split"></i>
-        <span>Belum</span>
-    </a>
-    {{-- 🆕 MENU REKAP ABSENSI (HP) --}}
-    <a href="{{ route('admin.absensi') }}" class="nav-item">
-        <i class="bi bi-person-lines-fill"></i>
-        <span>Rekap Absen</span>
-    </a>
-    <a href="{{ route('laporan.index') }}" class="nav-item">
-        <i class="bi bi-bar-chart-fill"></i>
-        <span>Laporan</span>
-    </a>
 </div>
 
 @push('scripts')
