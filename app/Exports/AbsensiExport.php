@@ -19,7 +19,8 @@ class AbsensiExport implements FromCollection, WithHeadings, WithMapping
         $this->tahun = $tahun;
     }
 
-    public function collection()
+    // 🆕 Tambahkan return type : \Illuminate\Support\Enumerable
+    public function collection(): \Illuminate\Support\Enumerable
     {
         $start = now()->setYear($this->tahun)->setMonth($this->bulan)->startOfMonth();
         $end   = $start->copy()->endOfMonth();

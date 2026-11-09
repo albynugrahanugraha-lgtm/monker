@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AbsensiExport;
 
@@ -27,6 +28,27 @@ class AbsensiController extends Controller
                 $r->user = User::find($r->user_id);
                 $r->status = Attendance::hitungStatus($r->jam_masuk);
                 $r->durasi = Attendance::hitungDurasi($r->jam_masuk, $r->jam_pulang);
+                
+                // 🆕 AMBIL FOTO MASUK
+                $fotoMasuk = DB::table('attendances')
+                    ->where('user_id', $r->user_id)
+                    ->where('tanggal', $r->tanggal)
+                    ->where('tipe', 'masuk')
+                    ->whereNotNull('foto')
+                    ->orderBy('jam', 'asc')
+                    ->first();
+                $r->foto_masuk = $fotoMasuk ? $fotoMasuk->foto : null;
+
+                // 🆕 AMBIL FOTO PULANG
+                $fotoPulang = DB::table('attendances')
+                    ->where('user_id', $r->user_id)
+                    ->where('tanggal', $r->tanggal)
+                    ->where('tipe', 'pulang')
+                    ->whereNotNull('foto')
+                    ->orderBy('jam', 'desc')
+                    ->first();
+                $r->foto_pulang = $fotoPulang ? $fotoPulang->foto : null;
+
                 return $r;
             });
 
