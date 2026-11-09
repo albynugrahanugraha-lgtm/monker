@@ -13,6 +13,8 @@ use App\Http\Controllers\SuperAdmin\BelumDikerjakanController;
 use App\Http\Controllers\Teknisi\TugasController;
 use App\Http\Controllers\Teknisi\TugasCctvController;
 use App\Http\Controllers\PublikMonitorController;
+use App\Http\Controllers\Teknisi\AbsensiController;
+use App\Http\Controllers\Teknisi\AbsensiCctvController;
 
 // ============================================================
 // TAMPILAN UTAMA → LOGIN
@@ -114,6 +116,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/job/{job}/selesaikan', [JobController::class, 'selesaikan'])->name('selesaikan');
 
     Route::delete('/photo/{photo}', [JobController::class, 'hapusFoto'])->name('photo.hapus');
+
+    // 🆕 REKAP ABSENSI ADMIN
+    Route::get('/absensi', [\App\Http\Controllers\Admin\AbsensiController::class, 'index'])->name('absensi');
+    Route::get('/absensi/export', [\App\Http\Controllers\Admin\AbsensiController::class, 'export'])->name('absensi.export');
 });
 
 // ===== TEKNISI KOMPUTER =====
@@ -122,14 +128,19 @@ Route::middleware(['auth', 'role:teknisi'])->prefix('teknisi')->name('teknisi.')
     Route::get('/buat-tugas', [TugasController::class, 'create'])->name('buat');
     Route::post('/buat-tugas', [TugasController::class, 'store'])->name('store');
 
-    // 🆕 Detail pekerjaan
+    // 🆕 ABSENSI TEKNISI KOMPUTER
+    Route::get('/absensi', [AbsensiController::class, 'index'])->name('absensi');
+    Route::post('/absensi', [AbsensiController::class, 'store'])->name('absensi.store');
+    Route::get('/absensi/laporan', [AbsensiController::class, 'laporan'])->name('absensi.laporan');
+
+    // Detail pekerjaan
     Route::get('/job/{job}', [TugasController::class, 'show'])->name('show');
 
     Route::get('/job/{job}/kerjakan', [TugasController::class, 'kerjakan'])->name('kerjakan');
     Route::post('/job/{job}/selesai', [TugasController::class, 'selesai'])->name('selesai');
     Route::get('/job/{job}/cetak', [TugasController::class, 'cetak'])->name('cetak');
 
-    // 🆕 Hapus foto
+    // Hapus foto
     Route::delete('/photo/{photo}', [TugasController::class, 'hapusFoto'])->name('photo.hapus');
 });
 
@@ -139,14 +150,19 @@ Route::middleware(['auth', 'role:teknisi_cctv'])->prefix('teknisi-cctv')->name('
     Route::get('/buat-tugas', [TugasCctvController::class, 'create'])->name('buat');
     Route::post('/buat-tugas', [TugasCctvController::class, 'store'])->name('store');
 
-    // 🆕 Detail pekerjaan
+    // 🆕 ABSENSI TEKNISI CCTV
+    Route::get('/absensi', [AbsensiCctvController::class, 'index'])->name('absensi');
+    Route::post('/absensi', [AbsensiCctvController::class, 'store'])->name('absensi.store');
+    Route::get('/absensi/laporan', [AbsensiCctvController::class, 'laporan'])->name('absensi.laporan');
+
+    // Detail pekerjaan
     Route::get('/job/{job}', [TugasCctvController::class, 'show'])->name('show');
 
     Route::get('/job/{job}/kerjakan', [TugasCctvController::class, 'kerjakan'])->name('kerjakan');
     Route::post('/job/{job}/selesai', [TugasCctvController::class, 'selesai'])->name('selesai');
     Route::get('/job/{job}/cetak', [TugasCctvController::class, 'cetak'])->name('cetak');
 
-    // 🆕 Hapus foto
+    // Hapus foto
     Route::delete('/photo/{photo}', [TugasCctvController::class, 'hapusFoto'])->name('photo.hapus');
 });
 

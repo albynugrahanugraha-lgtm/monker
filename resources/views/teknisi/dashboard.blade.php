@@ -160,9 +160,8 @@
         }
         
         .bottom-nav, .fab { display: none !important; }
-        .btn-logout { display: none !important; } /* Sembunyikan logout di pojok, karena pindah ke menu */
+        .btn-logout { display: none !important; }
 
-        /* 🆕 Tampilkan Menu Desktop */
         .desktop-nav { display: flex; }
 
         .app-header { padding: 32px; margin-bottom: 32px; }
@@ -212,8 +211,12 @@
         {{-- 🆕 MENU KHUSUS LAPTOP (Muncul di bawah nama) --}}
         <div class="desktop-nav">
             <a href="{{ route($rp . '.dashboard') }}" class="active"><i class="bi bi-house-door-fill"></i> Beranda</a>
+            <a href="{{ route($rp . '.absensi') }}"><i class="bi bi-fingerprint"></i> Absensi</a>
+            {{-- 🆕 MENU LAPORAN ABSENSI --}}
+            <a href="{{ auth()->user()->isTeknisiCctv() ? route('teknisi_cctv.absensi.laporan') : route('teknisi.absensi.laporan') }}"><i class="bi bi-file-earmark-bar-graph"></i> Lap. Absen</a>
+            
             <a href="{{ route($rp . '.buat') }}"><i class="bi bi-plus-square"></i> Buat Tugas</a>
-            <a href="{{ route('laporan.index') }}"><i class="bi bi-bar-chart-fill"></i> Laporan</a>
+            <a href="{{ route('laporan.index') }}"><i class="bi bi-bar-chart-fill"></i> Laporan Tugas</a>
             <a href="{{ route('profile.edit') }}"><i class="bi bi-person-circle"></i> Profil</a>
             <form action="{{ route('logout') }}" method="POST" style="margin:0;">
                 @csrf
@@ -341,14 +344,22 @@
     <a href="{{ route($rp . '.dashboard') }}" class="bottom-nav-item active">
         <i class="bi bi-house-door-fill"></i><span>Beranda</span>
     </a>
+    
+    {{-- 🆕 TOMBOL ABSENSI --}}
+    <a href="{{ route($rp . '.absensi') }}" class="bottom-nav-item">
+        <i class="bi bi-fingerprint"></i><span>Absen</span>
+    </a>
+
+    {{-- 🆕 TOMBOL LAPORAN ABSENSI (MOBILE) --}}
+    <a href="{{ auth()->user()->isTeknisiCctv() ? route('teknisi_cctv.absensi.laporan') : route('teknisi.absensi.laporan') }}" class="bottom-nav-item">
+        <i class="bi bi-file-earmark-bar-graph"></i><span>Lap. Absen</span>
+    </a>
+
     <a href="{{ route($rp . '.buat') }}" class="bottom-nav-item">
         <i class="bi bi-plus-square"></i><span>Buat</span>
     </a>
     <a href="{{ route('laporan.index') }}" class="bottom-nav-item">
-        <i class="bi bi-bar-chart"></i><span>Laporan</span>
-    </a>
-    <a href="{{ route('profile.edit') }}" class="bottom-nav-item">
-        <i class="bi bi-person-circle"></i><span>Profil</span>
+        <i class="bi bi-bar-chart"></i><span>Lap. Tugas</span>
     </a>
 </div>
 

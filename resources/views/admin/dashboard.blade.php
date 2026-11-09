@@ -92,6 +92,8 @@
                 <a href="{{ route('admin.buat') }}" class="btn-header-action"><i class="bi bi-plus-circle"></i> Buat Tugas</a>
                 <a href="{{ route('admin.import.index') }}" class="btn-header-action"><i class="bi bi-file-earmark-excel"></i> Import</a>
                 <a href="{{ route('admin.belum-dikerjakan') }}" class="btn-header-action"><i class="bi bi-hourglass-split"></i> Belum</a>
+                {{-- 🆕 TOMBOL REKAP ABSENSI (DESKTOP) --}}
+                <a href="{{ route('admin.absensi') }}" class="btn-header-action"><i class="bi bi-person-lines-fill"></i> Rekap Absensi</a>
             </div>
         </div>
     </div>
@@ -285,6 +287,11 @@
     <a href="{{ route('admin.belum-dikerjakan') }}" class="nav-item">
         <i class="bi bi-hourglass-split"></i>
         <span>Belum</span>
+    </a>
+    {{-- 🆕 MENU REKAP ABSENSI (HP) --}}
+    <a href="{{ route('admin.absensi') }}" class="nav-item">
+        <i class="bi bi-person-lines-fill"></i>
+        <span>Rekap Absen</span>
     </a>
     <a href="{{ route('laporan.index') }}" class="nav-item">
         <i class="bi bi-bar-chart-fill"></i>

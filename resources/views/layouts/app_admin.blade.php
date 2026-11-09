@@ -7,6 +7,11 @@
     <meta name="user-id" content="{{ auth()->id() ?? 0 }}">
     <title>@yield('title', 'Monitoring Pekerjaan')</title>
 
+    <!-- 🆕 PWA META TAGS (ADMIN) -->
+    <meta name="theme-color" content="#0d6efd">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
     {{-- ⚡ SCRIPT ANTI-FLASH: set tema SEBELUM body render --}}
     <script>
         (function() {
@@ -755,6 +760,19 @@
     window.unlockAudio = unlockAudio;
 </script>
 @endauth
+
+<!-- 🆕 DAFTARKAN SERVICE WORKER PWA (ADMIN) -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, function(err) {
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+    }
+</script>
 
 @stack('scripts')
 </body>
