@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\File;
 
 class AbsensiController extends Controller
 {
-    // 1. Tampilkan Halaman Absen
     public function index()
     {
         $user = auth()->user();
@@ -20,7 +19,6 @@ class AbsensiController extends Controller
         return view('teknisi.absensi', compact('user', 'absenHariIni'));
     }
 
-    // 2. Proses Simpan Absen (Masuk / Pulang)
     public function store(Request $request)
     {
         try {
@@ -64,26 +62,31 @@ class AbsensiController extends Controller
         }
     }
 
-    // 3. Halaman Laporan Absensi Teknisi
     public function laporan(Request $request)
     {
-        $user  = auth()->user();
-        $bulan = (int) $request->input('bulan', now()->month);
-        $tahun = (int) $request->input('tahun', now()->year);
+        $user        = auth()->user();
+        $bulan       = (int) $request->input('bulan', now()->month);
+        $tahun       = (int) $request->input('tahun', now()->year);
+        $tanggalCari = $request->input('tanggal'); // 🆕 Filter Tanggal Spesifik
 
         $start = now()->setYear($tahun)->setMonth($bulan)->startOfMonth();
         $end   = $start->copy()->endOfMonth();
 
-        $rekap = Attendance::rekapQuery()
-            ->where('user_id', $user->id)
-            ->whereBetween('tanggal', [$start->toDateString(), $end->toDateString()])
-            ->orderBy('tanggal')
+        $query = Attendance::rekapQuery()->where('user_id', $user->id);
+
+        // 🆕 Logika Jika Filter Tanggal Digunakan
+        if ($tanggalCari) {
+            $query->where('tanggal', $tanggalCari);
+        } else {
+            $query->whereBetween('tanggal', [$start->toDateString(), $end->toDateString()]);
+        }
+
+        $rekap = $query->orderBy('tanggal')
             ->get()
             ->map(function($r) use ($user) {
                 $r->status = Attendance::hitungStatus($r->jam_masuk);
                 $r->durasi = Attendance::hitungDurasi($r->jam_masuk, $r->jam_pulang);
                 
-                // 🆕 AMBIL FOTO MASUK
                 $fotoMasuk = DB::table('attendances')
                     ->where('user_id', $user->id)
                     ->where('tanggal', $r->tanggal)
@@ -93,7 +96,6 @@ class AbsensiController extends Controller
                     ->first();
                 $r->foto_masuk = $fotoMasuk ? $fotoMasuk->foto : null;
 
-                // 🆕 AMBIL FOTO PULANG
                 $fotoPulang = DB::table('attendances')
                     ->where('user_id', $user->id)
                     ->where('tanggal', $r->tanggal)
@@ -112,6 +114,6 @@ class AbsensiController extends Controller
             'total_menit' => $rekap->sum('durasi'),
         ];
 
-        return view('teknisi.laporan_absensi', compact('rekap', 'statistik', 'bulan', 'tahun'));
+        return view('teknisi.laporan_absensi', compact('rekap', 'statistik', 'bulan', 'tahun', 'tanggalCari'));
     }
 }

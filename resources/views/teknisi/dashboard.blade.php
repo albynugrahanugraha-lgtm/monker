@@ -41,15 +41,23 @@
         display: inline-flex; align-items: center; justify-content: center; position: relative; z-index: 1;
     }
 
+    /* 🆕 MENU LAPTOP DENGAN DROPDOWN */
     .desktop-nav {
         display: none; gap: 8px; margin-top: 16px; position: relative; z-index: 1;
         border-top: 1px solid rgba(255,255,255,0.2); padding-top: 16px;
+        align-items: center;
     }
-    .desktop-nav a {
+    .desktop-nav a, .desktop-nav .dropdown-toggle {
         color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.85rem;
         font-weight: 600; padding: 6px 12px; border-radius: 8px; transition: all 0.2s;
+        background: none; border: none; cursor: pointer;
     }
-    .desktop-nav a:hover, .desktop-nav a.active { background: rgba(255,255,255,0.2); color: white; }
+    .desktop-nav a:hover, .desktop-nav a.active, .desktop-nav .dropdown-toggle:hover { 
+        background: rgba(255,255,255,0.2); color: white; 
+    }
+    .dropdown-menu { border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 10px; padding: 8px; }
+    .dropdown-item { font-size: 0.85rem; font-weight: 600; border-radius: 6px; padding: 8px 12px; }
+    .dropdown-item:hover { background: #e7f1ff; color: #0d6efd; }
 
     /* 2. STATISTIK */
     .stat-row { display: flex; gap: 10px; margin-bottom: 24px; }
@@ -148,15 +156,33 @@
             </div>
         </div>
 
-        {{-- MENU KHUSUS LAPTOP --}}
+        {{-- 🆕 MENU KHUSUS LAPTOP DENGAN DROPDOWN --}}
         <div class="desktop-nav">
             <a href="{{ route($rp . '.dashboard') }}" class="active"><i class="bi bi-house-door-fill"></i> Beranda</a>
             <a href="{{ route($rp . '.absensi') }}"><i class="bi bi-fingerprint"></i> Absensi</a>
-            <a href="{{ auth()->user()->isTeknisiCctv() ? route('teknisi_cctv.absensi.laporan') : route('teknisi.absensi.laporan') }}"><i class="bi bi-file-earmark-bar-graph"></i> Lap. Absen</a>
             <a href="{{ route($rp . '.buat') }}"><i class="bi bi-plus-square"></i> Buat Tugas</a>
-            <a href="{{ route('laporan.index') }}"><i class="bi bi-bar-chart-fill"></i> Laporan Tugas</a>
             <a href="{{ route('profile.edit') }}"><i class="bi bi-person-circle"></i> Profil</a>
-            <form action="{{ route('logout') }}" method="POST" style="margin:0;">
+            
+            {{-- MENU DROPDOWN LAPORAN --}}
+            <div class="dropdown d-inline-block">
+                <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-file-earmark-bar-graph"></i> Laporan
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="{{ auth()->user()->isTeknisiCctv() ? route('teknisi_cctv.absensi.laporan') : route('teknisi.absensi.laporan') }}">
+                            <i class="bi bi-fingerprint text-primary"></i> Laporan Absensi
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{{ route('laporan.index') }}">
+                            <i class="bi bi-briefcase-fill text-success"></i> Laporan Pekerjaan
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <form action="{{ route('logout') }}" method="POST" style="margin:0; margin-left:auto;">
                 @csrf
                 <button type="submit" style="background:none; border:none; color:rgba(255,255,255,0.8); font-size: 0.85rem; font-weight: 600; padding: 6px 12px; border-radius: 8px;" onmouseover="this.style.background='rgba(255,255,255,0.2)'; this.style.color='white';" onmouseout="this.style.background='none'; this.style.color='rgba(255,255,255,0.8)';"><i class="bi bi-box-arrow-right"></i> Logout</button>
             </form>

@@ -2,13 +2,13 @@
 <?php $__env->startSection('title', 'Import Pekerjaan dari Excel'); ?>
 
 <?php $__env->startSection('content'); ?>
-<div class="row justify-content-center">
+<div class="row justify-content-center pb-5">
 <div class="col-md-8">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0 fw-bold">
             <i class="bi bi-file-earmark-excel text-success"></i>
-            Import Pekerjaan dari Excel
+            Import Pekerjaan
         </h5>
         <a href="<?php echo e(route('admin.dashboard')); ?>" class="btn btn-sm btn-secondary">
             <i class="bi bi-arrow-left"></i> Kembali
@@ -64,12 +64,10 @@
                 Download template Excel, isi sesuai kolomnya, lalu upload di langkah 2.
             </p>
             <div class="d-flex gap-2 flex-wrap">
-                <a href="<?php echo e(route('admin.import.template', ['bidang' => 'cctv'])); ?>"
-                   class="btn btn-success">
+                <a href="<?php echo e(route('admin.import.template', ['bidang' => 'cctv'])); ?>" class="btn btn-success">
                     <i class="bi bi-download"></i> Template CCTV
                 </a>
-                <a href="<?php echo e(route('admin.import.template', ['bidang' => 'komputer'])); ?>"
-                   class="btn btn-primary">
+                <a href="<?php echo e(route('admin.import.template', ['bidang' => 'komputer'])); ?>" class="btn btn-primary">
                     <i class="bi bi-download"></i> Template Komputer
                 </a>
             </div>
@@ -97,28 +95,22 @@
                             🖥️ Komputer
                         </option>
                     </select>
-                    <small class="text-muted">
-                        Pilih bidang sesuai isi file Excel yang akan diimport.
-                    </small>
+                    <small class="text-muted">Pilih bidang sesuai isi file Excel yang akan diimport.</small>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold">
                         File Excel <span class="text-danger">*</span>
                     </label>
-                    <input type="file" name="file"
-                           class="form-control <?php $__errorArgs = ['file'];
+                    <input type="file" name="file" class="form-control <?php $__errorArgs = ['file'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>"
-                           accept=".xlsx,.xls,.csv" required>
-                    <small class="text-muted">
-                        Format: <code>.xlsx</code>, <code>.xls</code>, atau <code>.csv</code> (max 10MB)
-                    </small>
+unset($__errorArgs, $__bag); ?>" accept=".xlsx,.xls,.csv" required>
+                    <small class="text-muted">Format: <code>.xlsx</code>, <code>.xls</code>, atau <code>.csv</code> (max 10MB)</small>
                     <?php $__errorArgs = ['file'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -141,7 +133,7 @@ unset($__errorArgs, $__bag); ?>
                     </ul>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100">
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2">
                     <i class="bi bi-cloud-upload"></i> Import Sekarang
                 </button>
             </form>
@@ -194,4 +186,4 @@ unset($__errorArgs, $__bag); ?>
 </div>
 </div>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\CHATBOT LARAVEL\monitoring-teknisi\resources\views/admin/import_job.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app_admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\CHATBOT LARAVEL\monitoring-teknisi\resources\views/admin/import_job.blade.php ENDPATH**/ ?>

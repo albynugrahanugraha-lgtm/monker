@@ -1,14 +1,14 @@
-@extends('layouts.app')
+@extends('layouts.app_admin')
 @section('title', 'Import Pekerjaan dari Excel')
 
 @section('content')
-<div class="row justify-content-center">
+<div class="row justify-content-center pb-5">
 <div class="col-md-8">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0 fw-bold">
             <i class="bi bi-file-earmark-excel text-success"></i>
-            Import Pekerjaan dari Excel
+            Import Pekerjaan
         </h5>
         <a href="{{ route('admin.dashboard') }}" class="btn btn-sm btn-secondary">
             <i class="bi bi-arrow-left"></i> Kembali
@@ -61,12 +61,10 @@
                 Download template Excel, isi sesuai kolomnya, lalu upload di langkah 2.
             </p>
             <div class="d-flex gap-2 flex-wrap">
-                <a href="{{ route('admin.import.template', ['bidang' => 'cctv']) }}"
-                   class="btn btn-success">
+                <a href="{{ route('admin.import.template', ['bidang' => 'cctv']) }}" class="btn btn-success">
                     <i class="bi bi-download"></i> Template CCTV
                 </a>
-                <a href="{{ route('admin.import.template', ['bidang' => 'komputer']) }}"
-                   class="btn btn-primary">
+                <a href="{{ route('admin.import.template', ['bidang' => 'komputer']) }}" class="btn btn-primary">
                     <i class="bi bi-download"></i> Template Komputer
                 </a>
             </div>
@@ -94,21 +92,15 @@
                             🖥️ Komputer
                         </option>
                     </select>
-                    <small class="text-muted">
-                        Pilih bidang sesuai isi file Excel yang akan diimport.
-                    </small>
+                    <small class="text-muted">Pilih bidang sesuai isi file Excel yang akan diimport.</small>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold">
                         File Excel <span class="text-danger">*</span>
                     </label>
-                    <input type="file" name="file"
-                           class="form-control @error('file') is-invalid @enderror"
-                           accept=".xlsx,.xls,.csv" required>
-                    <small class="text-muted">
-                        Format: <code>.xlsx</code>, <code>.xls</code>, atau <code>.csv</code> (max 10MB)
-                    </small>
+                    <input type="file" name="file" class="form-control @error('file') is-invalid @enderror" accept=".xlsx,.xls,.csv" required>
+                    <small class="text-muted">Format: <code>.xlsx</code>, <code>.xls</code>, atau <code>.csv</code> (max 10MB)</small>
                     @error('file')
                         <div class="text-danger small mt-1">{{ $message }}</div>
                     @enderror
@@ -124,7 +116,7 @@
                     </ul>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100">
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2">
                     <i class="bi bi-cloud-upload"></i> Import Sekarang
                 </button>
             </form>

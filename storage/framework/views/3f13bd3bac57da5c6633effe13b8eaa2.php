@@ -2,12 +2,11 @@
 <?php $__env->startSection('title', 'Laporan Pekerjaan'); ?>
 
 <?php
-    // Deteksi Role User
     $isTeknisi = auth()->user()->isAnyTeknisi();
+    $isAdmin = auth()->user()->isAdmin() || auth()->user()->isSuperAdmin();
     $isCctv = auth()->user()->isTeknisiCctv() ?? false;
     $rp = auth()->user()->isTeknisiCctv() ? 'teknisi_cctv' : (auth()->user()->isTeknisi() ? 'teknisi' : 'admin');
     
-    // KONSISTENSI WARNA: Cyan hanya untuk CCTV, sisanya Biru
     $primaryColor = $isCctv ? '#0dcaf0' : '#0d6efd';
     $primaryDark  = $isCctv ? '#0aa2c0' : '#0a58ca';
     $rgbColor     = $isCctv ? '13, 202, 240' : '13, 110, 253';
@@ -18,7 +17,37 @@
     body { background-color: #f2f4f8 !important; }
     .app-container { max-width: 600px; margin: 0 auto; padding: 16px; padding-bottom: 100px; }
 
-    /* HEADER */
+    /* =========================================
+       🆕 NAVBAR ATAS KHUSUS LAPTOP (DESKTOP)
+       ========================================= */
+    .desktop-top-navbar {
+        display: none; /* Tersembunyi di HP */
+        background: linear-gradient(135deg, <?php echo e($primaryColor); ?>, <?php echo e($primaryDark); ?>);
+        padding: 16px 24px; color: white;
+        box-shadow: 0 4px 15px rgba(<?php echo e($rgbColor); ?>, 0.3);
+        position: sticky; top: 0; z-index: 1020;
+    }
+    .desktop-top-navbar .nav-wrapper {
+        max-width: 1000px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;
+    }
+    .desktop-top-navbar .brand { font-size: 1.2rem; font-weight: 800; text-decoration: none; color: white; }
+    .desktop-top-navbar .nav-links { display: flex; gap: 8px; align-items: center; }
+    .desktop-top-navbar .nav-links a {
+        color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.85rem; font-weight: 600;
+        padding: 6px 12px; border-radius: 8px; transition: all 0.2s;
+    }
+    .desktop-top-navbar .nav-links a:hover, .desktop-top-navbar .nav-links a.active {
+        background: rgba(255,255,255,0.2); color: white;
+    }
+    .desktop-top-navbar .dropdown-menu { border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 10px; padding: 8px; }
+    .desktop-top-navbar .dropdown-item { font-size: 0.85rem; font-weight: 600; border-radius: 6px; padding: 8px 12px; }
+    .desktop-top-navbar .dropdown-item:hover { background: #e7f1ff; color: #0d6efd; }
+
+    @media (min-width: 768px) {
+        .desktop-top-navbar { display: block; }
+    }
+
+    /* HEADER HALAMAN LAPORAN */
     .app-header {
         background: linear-gradient(135deg, <?php echo e($primaryColor); ?>, <?php echo e($primaryDark); ?>);
         border-radius: 24px; padding: 24px 20px; color: white;
@@ -35,135 +64,119 @@
         display: inline-flex; align-items: center; gap: 6px;
     }
 
-    /* Menu Desktop (Hanya Teknisi di Laptop) */
-    .desktop-nav { display: none; gap: 8px; margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 16px; }
-    .desktop-nav a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 6px 12px; border-radius: 8px; }
-    .desktop-nav a:hover, .desktop-nav a.active { background: rgba(255,255,255,0.2); color: white; }
-
     /* FILTER CARD */
-    .filter-card {
-        background: white; border-radius: 16px; padding: 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 24px;
-    }
+    .filter-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 24px; }
     .filter-group { margin-bottom: 12px; }
     .filter-group label { font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 6px; display: block; }
-    .filter-control {
-        width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #e0e0e0;
-        background: #f9f9f9; font-size: 0.85rem; color: #333;
-    }
-    .btn-filter {
-        width: 100%; padding: 12px; border-radius: 12px; background: <?php echo e($primaryColor); ?>;
-        color: white; border: none; font-weight: 700; font-size: 0.9rem; margin-top: 8px;
-    }
+    .filter-control { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #e0e0e0; background: #f9f9f9; font-size: 0.85rem; color: #333; }
+    .btn-filter { width: 100%; padding: 12px; border-radius: 12px; background: <?php echo e($primaryColor); ?>; color: white; border: none; font-weight: 700; font-size: 0.9rem; margin-top: 8px; }
 
     /* GRAFIK CARD */
-    .chart-card {
-        background: white; border-radius: 16px; padding: 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 24px;
-    }
+    .chart-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 24px; }
     .chart-card h2 { font-size: 1rem; font-weight: 800; margin: 0 0 16px 0; color: #1a1a1a; }
     .chart-wrapper { position: relative; height: 250px; width: 100%; }
 
-    /* ============================================
-       LIST LAPORAN CARD (WARNA STATUS)
-       ============================================ */
+    /* LIST LAPORAN CARD */
     .laporan-card {
-        background: white; border-radius: 16px; padding: 16px;
-        margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        cursor: pointer; transition: transform 0.15s;
-        
-        /* Default border */
+        background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.15s;
         border-left: 6px solid #ccc;
     }
     .laporan-card:active { transform: scale(0.98); }
-
-    /* Warna Khusus Selesai (Hijau) */
-    .laporan-card.status-selesai {
-        border-left-color: #198754;
-        background-color: #f8fff9;
-    }
-
-    /* Warna Khusus Belum Selesai (Kuning/Oranye) */
-    .laporan-card.status-pending {
-        border-left-color: #ffc107;
-        background-color: #fffdf5;
-    }
+    .laporan-card.status-selesai { border-left-color: #198754; background-color: #f8fff9; }
+    .laporan-card.status-pending { border-left-color: #ffc107; background-color: #fffdf5; }
 
     .lap-title { font-size: 0.95rem; font-weight: 800; color: #1a1a1a; margin-bottom: 8px; }
     .lap-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.75rem; color: #666; margin-bottom: 12px; }
     .lap-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #eee; padding-top: 12px; }
     .btn-aksi { background: #f1f3f5; color: #333; padding: 5px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; text-decoration: none; }
 
-    /* BOTTOM NAV (Hanya Teknisi) */
-    .bottom-nav {
+    /* NAVBAR BAWAH (KUSTOM UNTUK HALAMAN INI) */
+    .pwa-bottom-nav {
         position: fixed; bottom: 0; left: 0; right: 0; background: white;
-        border-top: 1px solid #f0f0f0; display: flex; justify-content: space-around;
-        padding: 10px 0 max(10px, env(safe-area-inset-bottom)); z-index: 1000;
+        border-top: 1px solid #f0f0f0; justify-content: space-around;
+        padding: 10px 0 max(10px, env(safe-area-inset-bottom)); z-index: 1050;
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.05); display: none;
     }
-    .bottom-nav-item {
+    .pwa-bottom-nav .nav-item {
+        flex: 1; text-align: center; padding: 6px 0; color: #adb5bd;
+        text-decoration: none !important; font-size: 0.65rem; font-weight: 700;
         display: flex; flex-direction: column; align-items: center; gap: 4px;
-        color: #adb5bd; text-decoration: none !important; font-size: 0.65rem; font-weight: 700;
     }
-    .bottom-nav-item i { font-size: 1.4rem; }
-    .bottom-nav-item.active { color: <?php echo e($primaryColor); ?>; }
+    .pwa-bottom-nav .nav-item i { font-size: 1.4rem; }
+    .pwa-bottom-nav .nav-item.active { color: <?php echo e($primaryColor); ?>; }
 
-    /* LAPTOP SETTINGS */
     @media (min-width: 768px) {
         .app-container { max-width: 1000px; padding: 24px; padding-bottom: 24px; }
-        .bottom-nav { display: none !important; }
-        .desktop-nav { display: flex; }
         .filter-card form { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: end; }
         .btn-filter { grid-column: span 4; width: 200px; justify-self: start; }
-        
-        /* Grafik berjejer 2 kolom */
         .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        
-        /* DAFTAR LAPORAN JADI 1 KOLOM PENUH (LIST KE BAWAH) */
-        .grid-laporan { 
-            display: flex !important; 
-            flex-direction: column !important; 
-            gap: 12px; 
-        }
-        
-        /* TATA LETAK CARD JADI MENYAMPING */
-        .laporan-card {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 24px;
-            margin-bottom: 0;
-        }
-        .laporan-card > div:first-child {
-            flex: 1;
-        }
-        .laporan-card .lap-meta {
-            margin-bottom: 0;
-        }
-        .laporan-card .lap-footer {
-            border-top: none;
-            padding-top: 0;
-            margin-left: 24px;
-            padding-left: 24px;
-            border-left: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            width: auto;
-        }
+        .grid-laporan { display: flex !important; flex-direction: column !important; gap: 12px; }
+        .laporan-card { display: flex; flex-direction: row; align-items: center; justify-content: space-between; padding: 16px 24px; margin-bottom: 0; }
+        .laporan-card > div:first-child { flex: 1; }
+        .laporan-card .lap-meta { margin-bottom: 0; }
+        .laporan-card .lap-footer { border-top: none; padding-top: 0; margin-left: 24px; padding-left: 24px; border-left: 1px solid #eee; display: flex; align-items: center; gap: 16px; width: auto; }
+    }
+
+    @media (max-width: 767.98px) {
+        .pwa-bottom-nav { display: flex; }
+        body { padding-bottom: 85px !important; }
     }
 </style>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
+
+
+<div class="desktop-top-navbar">
+    <div class="nav-wrapper">
+        <a href="<?php echo e(route('dashboard')); ?>" class="brand">
+            <i class="bi bi-clipboard-check"></i> Monitoring Pekerjaan
+        </a>
+        
+        <div class="nav-links">
+            <?php if($isTeknisi): ?>
+                <a href="<?php echo e(route($rp . '.dashboard')); ?>"><i class="bi bi-house-door-fill"></i> Beranda</a>
+                <a href="<?php echo e(route($rp . '.absensi')); ?>"><i class="bi bi-fingerprint"></i> Absensi</a>
+                <a href="<?php echo e(route($rp . '.buat')); ?>"><i class="bi bi-plus-square"></i> Buat Tugas</a>
+                <a href="<?php echo e(route('laporan.index')); ?>" class="active"><i class="bi bi-file-earmark-bar-graph"></i> Laporan</a>
+            <?php endif; ?>
+
+            <?php if($isAdmin): ?>
+                <a href="<?php echo e(route('admin.dashboard')); ?>"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a href="<?php echo e(route('admin.buat')); ?>"><i class="bi bi-plus-circle"></i> Buat Tugas</a>
+                <a href="<?php echo e(route('admin.import.index')); ?>"><i class="bi bi-file-earmark-excel"></i> Import</a>
+                <a href="<?php echo e(route('admin.belum-dikerjakan')); ?>"><i class="bi bi-hourglass-split"></i> Belum</a>
+                
+                
+                <div class="dropdown d-inline-block">
+                    <a href="#" class="dropdown-toggle active" data-bs-toggle="dropdown" style="text-decoration: none;">
+                        <i class="bi bi-file-earmark-bar-graph"></i> Laporan
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="<?php echo e(route('admin.absensi')); ?>"><i class="bi bi-person-lines-fill text-primary"></i> Rekap Absensi</a></li>
+                        <li><a class="dropdown-item" href="<?php echo e(route('laporan.index')); ?>"><i class="bi bi-briefcase-fill text-success"></i> Laporan Pekerjaan</a></li>
+                    </ul>
+                </div>
+            <?php endif; ?>
+
+            <a href="<?php echo e(route('profile.edit')); ?>"><i class="bi bi-person-circle"></i> Profil</a>
+            
+            <form action="<?php echo e(route('logout')); ?>" method="POST" style="margin:0;">
+                <?php echo csrf_field(); ?>
+                <button type="submit" style="background:none; border:none; color:rgba(255,255,255,0.8); font-size: 0.85rem; font-weight: 600; padding: 6px 12px; border-radius: 8px;" onmouseover="this.style.background='rgba(255,255,255,0.2)'; this.style.color='white';" onmouseout="this.style.background='none'; this.style.color='rgba(255,255,255,0.8)';"><i class="bi bi-box-arrow-right"></i> Logout</button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="app-container">
 
     <div class="app-header">
         <div class="d-flex justify-content-between align-items-center" style="position:relative; z-index:1;">
             <div class="d-flex align-items-center gap-3">
-                
                 <?php if(!$isTeknisi): ?>
-                    <a href="<?php echo e(route('admin.dashboard')); ?>" style="color: white; font-size: 1.5rem; text-decoration: none;">
+                    <a href="<?php echo e(route('admin.dashboard')); ?>" class="d-md-none" style="color: white; font-size: 1.5rem; text-decoration: none;">
                         <i class="bi bi-arrow-left-circle-fill"></i>
                     </a>
                 <?php endif; ?>
@@ -179,16 +192,6 @@
                 <a href="<?php echo e(route('laporan.cetak', request()->query())); ?>" target="_blank" class="btn-header-action" title="Cetak PDF"><i class="bi bi-printer"></i></a>
             </div>
         </div>
-
-        
-        <?php if($isTeknisi): ?>
-        <div class="desktop-nav">
-            <a href="<?php echo e(route($rp . '.dashboard')); ?>"><i class="bi bi-house-door-fill"></i> Beranda</a>
-            <a href="<?php echo e(route($rp . '.buat')); ?>"><i class="bi bi-plus-square"></i> Buat Tugas</a>
-            <a href="<?php echo e(route('laporan.index')); ?>" class="active"><i class="bi bi-bar-chart-fill"></i> Laporan</a>
-            <a href="<?php echo e(route('profile.edit')); ?>"><i class="bi bi-person-circle"></i> Profil</a>
-        </div>
-        <?php endif; ?>
     </div>
 
     <div class="filter-card">
@@ -243,23 +246,16 @@
     <div class="grid-laporan">
         <?php $__empty_1 = true; $__currentLoopData = $jobs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
             <?php
-                // Tentukan warna card berdasarkan status
                 $statusClass = $j->status === 'SELESAI' ? 'status-selesai' : 'status-pending';
-                
-                // 🆕 Tentukan URL tujuan (Laporan -> Detail dengan parameter from=laporan)
                 $urlDetail = $isTeknisi 
                     ? route($rp . '.show', $j) . '?from=laporan' 
                     : route('admin.show', $j);
             ?>
             
-            
             <div class="laporan-card <?php echo e($statusClass); ?>" onclick="window.location='<?php echo e($urlDetail); ?>'">
-                
-                
                 <div>
                     <div class="d-flex justify-content-between align-items-start">
                         <span style="font-family:monospace; font-size:0.7rem; color:#888;"><i class="bi bi-hash"></i><?php echo e($j->kode_job); ?></span>
-                        
                         <span class="badge <?php echo e($j->statusBadgeClass()); ?> d-md-none"><?php echo e($j->status); ?></span>
                     </div>
                     <div class="lap-title"><?php echo e($j->judul); ?></div>
@@ -269,7 +265,6 @@
                     </div>
                 </div>
 
-                
                 <div class="lap-footer">
                     <span class="badge <?php echo e($j->bidangBadgeClass()); ?> d-none d-md-inline" style="font-size:0.65rem;"><i class="bi <?php echo e($j->bidangIcon()); ?>"></i> <?php echo e($j->bidangLabel()); ?></span>
                     <span class="badge <?php echo e($j->statusBadgeClass()); ?> d-none d-md-inline"><?php echo e($j->status); ?></span>
@@ -287,14 +282,23 @@
 </div>
 
 
-<?php if($isTeknisi): ?>
-<div class="bottom-nav">
-    <a href="<?php echo e(route($rp . '.dashboard')); ?>" class="bottom-nav-item"><i class="bi bi-house-door-fill"></i><span>Beranda</span></a>
-    <a href="<?php echo e(route($rp . '.buat')); ?>" class="bottom-nav-item"><i class="bi bi-plus-square"></i><span>Buat</span></a>
-    <a href="<?php echo e(route('laporan.index')); ?>" class="bottom-nav-item active"><i class="bi bi-bar-chart"></i><span>Laporan</span></a>
-    <a href="<?php echo e(route('profile.edit')); ?>" class="bottom-nav-item"><i class="bi bi-person-circle"></i><span>Profil</span></a>
-</div>
+<?php if(auth()->user()->isAnyTeknisi()): ?>
+    <div class="pwa-bottom-nav">
+        <a href="<?php echo e(route($rp . '.dashboard')); ?>" class="nav-item"><i class="bi bi-house-door-fill"></i><span>Beranda</span></a>
+        <a href="<?php echo e(route($rp . '.absensi')); ?>" class="nav-item"><i class="bi bi-fingerprint"></i><span>Absen</span></a>
+        <a href="<?php echo e(route($rp . '.buat')); ?>" class="nav-item"><i class="bi bi-plus-square"></i><span>Buat</span></a>
+        <a href="<?php echo e(route('laporan.index')); ?>" class="nav-item active"><i class="bi bi-file-earmark-bar-graph"></i><span>Laporan</span></a>
+    </div>
+<?php elseif(auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()): ?>
+    <div class="pwa-bottom-nav">
+        <a href="<?php echo e(route('admin.dashboard')); ?>" class="nav-item"><i class="bi bi-house-door-fill"></i><span>Beranda</span></a>
+        <a href="<?php echo e(route('admin.buat')); ?>" class="nav-item"><i class="bi bi-plus-square"></i><span>Buat</span></a>
+        <a href="<?php echo e(route('admin.import.index')); ?>" class="nav-item"><i class="bi bi-file-earmark-excel"></i><span>Import</span></a>
+        <a href="<?php echo e(route('admin.belum-dikerjakan')); ?>" class="nav-item"><i class="bi bi-hourglass-split"></i><span>Belum</span></a>
+        <a href="<?php echo e(route('laporan.index')); ?>" class="nav-item active"><i class="bi bi-file-earmark-bar-graph"></i><span>Laporan</span></a>
+    </div>
 <?php endif; ?>
+
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>

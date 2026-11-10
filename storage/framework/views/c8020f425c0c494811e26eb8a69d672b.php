@@ -14,7 +14,7 @@
     <div class="card shadow-sm mb-4 border-0">
         <div class="card-body bg-light rounded">
             <form method="GET" class="row g-3 align-items-end">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-bold small">Bulan</label>
                     <select name="bulan" class="form-select">
                         <?php for($i = 1; $i <= 12; $i++): ?>
@@ -25,7 +25,7 @@
                         <?php endfor; ?>
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-bold small">Tahun</label>
                     <select name="tahun" class="form-select">
                         <?php for($i = now()->year; $i >= now()->year - 2; $i--): ?>
@@ -33,9 +33,14 @@
                         <?php endfor; ?>
                     </select>
                 </div>
-                <div class="col-md-4">
+                
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small text-primary">Atau Tanggal Spesifik (Opsional)</label>
+                    <input type="date" name="tanggal" class="form-control" value="<?php echo e($tanggalCari ?? ''); ?>">
+                </div>
+                <div class="col-md-3">
                     <button type="submit" class="btn btn-primary w-100 fw-bold">
-                        <i class="bi bi-search"></i> Tampilkan Data
+                        <i class="bi bi-search"></i> Tampilkan
                     </button>
                 </div>
             </form>
@@ -76,43 +81,36 @@
                                 </span>
                             </td>
 
-                            
                             <td class="text-center">
                                 <?php if(isset($r->foto_masuk) && $r->foto_masuk): ?>
                                     <img src="<?php echo e(asset($r->foto_masuk)); ?>" 
                                          style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #198754;"
-                                         onclick="window.open(this.src, '_blank')" 
-                                         alt="Foto Masuk">
+                                         onclick="window.open(this.src, '_blank')" alt="Foto Masuk">
                                 <?php else: ?>
                                     <span class="badge bg-secondary">-</span>
                                 <?php endif; ?>
                             </td>
 
-                            
                             <td class="text-center fw-bold text-success fs-6">
                                 <?php echo e($r->jam_masuk ? substr($r->jam_masuk, 0, 5) : '-'); ?>
 
                             </td>
 
-                            
                             <td class="text-center">
                                 <?php if(isset($r->foto_pulang) && $r->foto_pulang): ?>
                                     <img src="<?php echo e(asset($r->foto_pulang)); ?>" 
                                          style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #dc3545;"
-                                         onclick="window.open(this.src, '_blank')" 
-                                         alt="Foto Pulang">
+                                         onclick="window.open(this.src, '_blank')" alt="Foto Pulang">
                                 <?php else: ?>
                                     <span class="badge bg-secondary">-</span>
                                 <?php endif; ?>
                             </td>
 
-                            
                             <td class="text-center fw-bold text-danger fs-6">
                                 <?php echo e($r->jam_pulang ? substr($r->jam_pulang, 0, 5) : '-'); ?>
 
                             </td>
 
-                            
                             <td class="text-center">
                                 <span class="badge bg-<?php echo e($status === 'hadir' ? 'success' : 'warning text-dark'); ?>">
                                     <?php echo e(strtoupper($status)); ?>

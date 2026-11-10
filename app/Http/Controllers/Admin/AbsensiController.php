@@ -14,22 +14,29 @@ class AbsensiController extends Controller
 {
     public function index(Request $request)
     {
-        $bulan = (int) $request->input('bulan', now()->month);
-        $tahun = (int) $request->input('tahun', now()->year);
+        $bulan       = (int) $request->input('bulan', now()->month);
+        $tahun       = (int) $request->input('tahun', now()->year);
+        $tanggalCari = $request->input('tanggal'); // 🆕 Filter Tanggal
 
         $start = now()->setYear($tahun)->setMonth($bulan)->startOfMonth();
         $end   = $start->copy()->endOfMonth();
 
-        $rekap = Attendance::rekapQuery()
-            ->whereBetween('tanggal', [$start->toDateString(), $end->toDateString()])
-            ->orderBy('tanggal')
+        $query = Attendance::rekapQuery();
+
+        // 🆕 Logika Jika Filter Tanggal Digunakan
+        if ($tanggalCari) {
+            $query->where('tanggal', $tanggalCari);
+        } else {
+            $query->whereBetween('tanggal', [$start->toDateString(), $end->toDateString()]);
+        }
+
+        $rekap = $query->orderBy('tanggal')
             ->get()
             ->map(function($r) {
                 $r->user = User::find($r->user_id);
                 $r->status = Attendance::hitungStatus($r->jam_masuk);
                 $r->durasi = Attendance::hitungDurasi($r->jam_masuk, $r->jam_pulang);
                 
-                // 🆕 AMBIL FOTO MASUK
                 $fotoMasuk = DB::table('attendances')
                     ->where('user_id', $r->user_id)
                     ->where('tanggal', $r->tanggal)
@@ -39,7 +46,6 @@ class AbsensiController extends Controller
                     ->first();
                 $r->foto_masuk = $fotoMasuk ? $fotoMasuk->foto : null;
 
-                // 🆕 AMBIL FOTO PULANG
                 $fotoPulang = DB::table('attendances')
                     ->where('user_id', $r->user_id)
                     ->where('tanggal', $r->tanggal)
@@ -52,7 +58,7 @@ class AbsensiController extends Controller
                 return $r;
             });
 
-        return view('admin.absensi', compact('rekap', 'bulan', 'tahun'));
+        return view('admin.absensi', compact('rekap', 'bulan', 'tahun', 'tanggalCari'));
     }
 
     public function export(Request $request)
