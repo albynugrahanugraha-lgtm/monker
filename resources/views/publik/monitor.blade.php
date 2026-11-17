@@ -151,6 +151,71 @@
         html[data-bs-theme="dark"] .theme-toggle .icon-sun { display: inline-block; }
 
         /* ==========================================
+           🆕 PANEL ABSENSI HARI INI (GRID)
+           ========================================== */
+        .absensi-panel {
+            background: white;
+            border-bottom: 2px solid #dee2e6;
+            padding: 6px 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            flex-shrink: 0;
+            height: 60px; /* Tinggi dikunci agar tidak mendorong tabel */
+        }
+        .absensi-title {
+            font-size: .65rem;
+            font-weight: 800;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #f1f3f5;
+            padding: 4px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+            height: 100%;
+        }
+        .absensi-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 kolom per baris */
+            gap: 6px;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto; /* Scroll jika teknisi > 8 */
+        }
+        .absensi-card {
+            display: flex;
+            align-items: center;
+            gap: 6px; /* 🆕 Jarak antar elemen dirapatkan */
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            background: #f8f9fa;
+            font-size: .65rem;
+        }
+        .absensi-card .nama { font-weight: 700; color: #212529; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .absensi-card .jam { color: #198754; font-weight: 800; font-size: 0.6rem; white-space: nowrap; }
+        .absensi-card .jam.pulang { color: #dc3545; }
+        .absensi-card .badge-role {
+            font-size: .45rem;
+            padding: 1px 4px;
+            border-radius: 4px;
+            background: #e7f1ff;
+            color: #0d6efd;
+            white-space: nowrap;
+        }
+        .absensi-card .badge-role.cctv { background: #e0f7fa; color: #0aa2c0; }
+        
+        .absensi-list::-webkit-scrollbar { width: 4px; }
+        .absensi-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+
+        html[data-bs-theme="dark"] .absensi-panel { background: #161b22; border-color: #30363d; }
+        html[data-bs-theme="dark"] .absensi-title { background: #21262d; color: #e6edf3; }
+        html[data-bs-theme="dark"] .absensi-card { background: #21262d; border-color: #30363d; }
+        html[data-bs-theme="dark"] .absensi-card .nama { color: #e6edf3; }
+
+        /* ==========================================
            MAIN CONTENT — 2 KOLOM
            ========================================== */
         .monitor-content {
@@ -253,12 +318,12 @@
             transition: border-color 0.3s;
         }
         .sub-section.hari-ini {
-            flex: 1; /* Akan memenuhi sisa ruang saat Kemarin tertutup */
+            flex: 1;
             border-bottom: 1px solid #e9ecef;
         }
         .sub-section.chart-mini {
             flex: none; 
-            height: 130px; /* Tinggi chart fix */
+            height: 130px;
             border-top: 1px solid #e9ecef;
         }
         .sub-header {
@@ -284,36 +349,23 @@
             transition: all 0.3s ease;
             border-bottom: 1px solid #e9ecef;
         }
-        /* Area tabel disembunyikan secara default */
-        .sub-section.kemarin .table-scroll {
-            display: none;
-        }
-        /* Jika class 'is-open' ditambahkan via JS, tabel muncul */
+        .sub-section.kemarin .table-scroll { display: none; }
         .sub-section.kemarin.is-open {
-            flex: 2.5; /* Saat dibuka, ambil 25-30% layar */
+            flex: 2.5;
             min-height: 120px;
             max-height: 30vh;
             border-bottom: 1px solid #e9ecef;
         }
-        .sub-section.kemarin.is-open .table-scroll {
-            display: block;
-        }
-        /* Header Kemarin bisa diklik */
+        .sub-section.kemarin.is-open .table-scroll { display: block; }
         .sub-section.kemarin .sub-header {
             cursor: pointer;
             user-select: none;
-            background: #e2e6ea; /* Warna abu-abu agar terlihat seperti tombol */
+            background: #e2e6ea;
             transition: background 0.2s;
         }
-        .sub-section.kemarin .sub-header:hover {
-            background: #d1d7dd;
-        }
-        .sub-section.kemarin .toggle-icon {
-            transition: transform 0.3s ease;
-        }
-        .sub-section.kemarin.is-open .toggle-icon {
-            transform: rotate(180deg); /* Panah ke atas saat buka */
-        }
+        .sub-section.kemarin .sub-header:hover { background: #d1d7dd; }
+        .sub-section.kemarin .toggle-icon { transition: transform 0.3s ease; }
+        .sub-section.kemarin.is-open .toggle-icon { transform: rotate(180deg); }
 
         /* ==========================================
            TABLE
@@ -351,11 +403,8 @@
             line-height: 1.2;
             border-bottom: 1px solid #f0f0f0;
         }
-        table.monitor-table tbody tr:hover {
-            background: #f0f7ff;
-        }
+        table.monitor-table tbody tr:hover { background: #f0f7ff; }
 
-        /* Kode job */
         table.monitor-table .kode-job {
             font-family: 'Courier New', monospace;
             font-size: .55rem;
@@ -366,7 +415,6 @@
             white-space: nowrap;
         }
 
-        /* Judul */
         table.monitor-table .judul-job {
             font-weight: 600;
             font-size: .62rem;
@@ -379,7 +427,6 @@
             -webkit-box-orient: vertical;
         }
 
-        /* Lokasi */
         table.monitor-table .lokasi-job {
             font-size: .52rem;
             color: #6c757d;
@@ -389,7 +436,6 @@
             white-space: nowrap;
         }
 
-        /* Badge teknisi compact */
         .teknisi-badge {
             font-size: .5rem;
             padding: 1px 4px;
@@ -402,7 +448,6 @@
             white-space: nowrap;
         }
 
-        /* Badge status compact */
         .status-badge {
             font-size: .5rem;
             padding: 1px 4px;
@@ -423,23 +468,11 @@
             animation: blinkRowBg 1s infinite ease-in-out !important;
             font-weight: 600 !important;
         }
-        tr.row-belum { 
-            border-left: 3px solid #dc3545 !important; 
-        }
+        tr.row-belum { border-left: 3px solid #dc3545 !important; }
 
         @keyframes lampuPulse {
-            0%, 100% {
-                transform: scale(1);
-                opacity: 1;
-                background: #dc3545;
-                box-shadow: 0 0 6px #dc3545;
-            }
-            50% {
-                transform: scale(1.3);
-                opacity: 0.6;
-                background: #ffc107;
-                box-shadow: 0 0 12px #ffc107;
-            }
+            0%, 100% { transform: scale(1); opacity: 1; background: #dc3545; box-shadow: 0 0 6px #dc3545; }
+            50% { transform: scale(1.3); opacity: 0.6; background: #ffc107; box-shadow: 0 0 12px #ffc107; }
         }
         .lampu-indicator {
             display: inline-block;
@@ -498,20 +531,10 @@
             transition: all 0.2s;
             white-space: nowrap;
         }
-        .periode-btn:hover {
-            background: rgba(13, 110, 253, 0.1);
-            color: #0d6efd;
-        }
-        .periode-btn.active {
-            background: #0d6efd;
-            color: white;
-        }
-        .periode-btn.active.cctv-active {
-            background: #0dcaf0;
-            color: #000;
-        }
+        .periode-btn:hover { background: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+        .periode-btn.active { background: #0d6efd; color: white; }
+        .periode-btn.active.cctv-active { background: #0dcaf0; color: #000; }
         
-        /* Container Canvas Chart */
         .chart-mini-container {
             position: relative;
             flex: 1;
@@ -538,111 +561,41 @@
         @media (max-width: 900px) {
             html, body { height: auto; overflow: auto; }
             .monitor-wrapper { height: auto; }
-            .monitor-content { 
-                grid-template-columns: 1fr; 
-                overflow: visible;
-            }
-            .sub-section.hari-ini,
-            .sub-section.kemarin.is-open {
-                flex: none;
-            }
+            .monitor-content { grid-template-columns: 1fr; overflow: visible; }
+            .sub-section.hari-ini, .sub-section.kemarin.is-open { flex: none; }
             .table-scroll { max-height: 300px; }
-            .sub-section.chart-mini { 
-                min-height: 150px; 
-                max-height: 170px;
-            }
-            .chart-mini-container {
-                height: 120px;
-            }
+            .sub-section.chart-mini { min-height: 150px; max-height: 170px; }
+            .chart-mini-container { height: 120px; }
+            .absensi-list { grid-template-columns: repeat(2, 1fr); } /* Di HP jadi 2 kolom */
+            .absensi-panel { height: auto; min-height: 60px; }
         }
 
         /* ==========================================
            DARK MODE
            ========================================== */
-        html[data-bs-theme="dark"] body {
-            background: #0d1117 !important;
-            color: #e6edf3;
-        }
-        html[data-bs-theme="dark"] .monitor-header {
-            background: linear-gradient(135deg, #0a58ca 0%, #0d3a8f 100%);
-        }
-        html[data-bs-theme="dark"] .kolom-bidang {
-            background: #161b22;
-            border: 1px solid #30363d;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
-        }
-        html[data-bs-theme="dark"] .mini-stats {
-            background: #21262d;
-            border-color: #30363d;
-        }
-        html[data-bs-theme="dark"] .mini-stat {
-            background: #161b22;
-            border-color: #30363d;
-        }
-        html[data-bs-theme="dark"] .mini-stat small {
-            color: #8b949e;
-        }
-        html[data-bs-theme="dark"] .sub-header {
-            background: #21262d;
-            border-color: #30363d;
-            color: #e6edf3;
-        }
-        html[data-bs-theme="dark"] .sub-section.kemarin .sub-header {
-            background: #1c2128;
-        }
-        html[data-bs-theme="dark"] .sub-section.kemarin .sub-header:hover {
-            background: #2d333b;
-        }
-        html[data-bs-theme="dark"] .sub-header .sub-count {
-            background: #30363d;
-            color: #8b949e;
-        }
-        html[data-bs-theme="dark"] table.monitor-table thead th {
-            background: #21262d !important;
-            color: #e6edf3 !important;
-            border-color: #30363d !important;
-        }
-        html[data-bs-theme="dark"] table.monitor-table tbody td {
-            color: #e6edf3;
-            border-color: #30363d;
-        }
-        html[data-bs-theme="dark"] table.monitor-table tbody tr:hover {
-            background: #1c2128;
-        }
-        html[data-bs-theme="dark"] .kode-job {
-            background: #21262d !important;
-            color: #79c0ff !important;
-        }
-        html[data-bs-theme="dark"] .judul-job {
-            color: #e6edf3 !important;
-        }
-        html[data-bs-theme="dark"] .lokasi-job {
-            color: #8b949e !important;
-        }
-        html[data-bs-theme="dark"] .chart-mini-title {
-            color: #e6edf3;
-        }
-        html[data-bs-theme="dark"] .periode-btn-group {
-            background: #21262d;
-        }
-        html[data-bs-theme="dark"] .periode-btn {
-            color: #8b949e;
-        }
-        html[data-bs-theme="dark"] .periode-btn:hover {
-            background: rgba(13, 110, 253, 0.2);
-            color: #79c0ff;
-        }
-        html[data-bs-theme="dark"] .periode-btn.active {
-            background: #0d6efd;
-            color: white;
-        }
-        html[data-bs-theme="dark"] .periode-btn.active.cctv-active {
-            background: #0dcaf0;
-            color: #000;
-        }
-        html[data-bs-theme="dark"] .monitor-footer {
-            color: #8b949e;
-        }
+        html[data-bs-theme="dark"] body { background: #0d1117 !important; color: #e6edf3; }
+        html[data-bs-theme="dark"] .monitor-header { background: linear-gradient(135deg, #0a58ca 0%, #0d3a8f 100%); }
+        html[data-bs-theme="dark"] .kolom-bidang { background: #161b22; border: 1px solid #30363d; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+        html[data-bs-theme="dark"] .mini-stats { background: #21262d; border-color: #30363d; }
+        html[data-bs-theme="dark"] .mini-stat { background: #161b22; border-color: #30363d; }
+        html[data-bs-theme="dark"] .mini-stat small { color: #8b949e; }
+        html[data-bs-theme="dark"] .sub-header { background: #21262d; border-color: #30363d; color: #e6edf3; }
+        html[data-bs-theme="dark"] .sub-section.kemarin .sub-header { background: #1c2128; }
+        html[data-bs-theme="dark"] .sub-section.kemarin .sub-header:hover { background: #2d333b; }
+        html[data-bs-theme="dark"] .sub-header .sub-count { background: #30363d; color: #8b949e; }
+        html[data-bs-theme="dark"] table.monitor-table thead th { background: #21262d !important; color: #e6edf3 !important; border-color: #30363d !important; }
+        html[data-bs-theme="dark"] table.monitor-table tbody td { color: #e6edf3; border-color: #30363d; }
+        html[data-bs-theme="dark"] table.monitor-table tbody tr:hover { background: #1c2128; }
+        html[data-bs-theme="dark"] .kode-job { background: #21262d !important; color: #79c0ff !important; }
+        html[data-bs-theme="dark"] .judul-job { color: #e6edf3 !important; }
+        html[data-bs-theme="dark"] .lokasi-job { color: #8b949e !important; }
+        html[data-bs-theme="dark"] .chart-mini-title { color: #e6edf3; }
+        html[data-bs-theme="dark"] .periode-btn-group { background: #21262d; }
+        html[data-bs-theme="dark"] .periode-btn { color: #8b949e; }
+        html[data-bs-theme="dark"] .periode-btn:hover { background: rgba(13, 110, 253, 0.2); color: #79c0ff; }
+        html[data-bs-theme="dark"] .periode-btn.active { background: #0d6efd; color: white; }
+        html[data-bs-theme="dark"] .periode-btn.active.cctv-active { background: #0dcaf0; color: #000; }
+        html[data-bs-theme="dark"] .monitor-footer { color: #8b949e; }
 
         @keyframes blinkRowBgDark {
             0%   { background-color: #9e6a00; }
@@ -692,12 +645,20 @@
         </div>
     </div>
 
+    {{-- 🆕 PANEL ABSENSI HARI INI (RAPAT KE KIRI) --}}
+    <div class="absensi-panel" id="absensiWrapper">
+        <div class="absensi-title">
+            <i class="bi bi-fingerprint text-primary"></i> Absen Hari Ini
+        </div>
+        <div class="absensi-list" id="listAbsensi">
+            <span class="text-muted" style="font-size: .6rem;">Memuat...</span>
+        </div>
+    </div>
+
     {{-- CONTENT — 2 KOLOM --}}
     <div class="monitor-content">
 
-        {{-- ==========================================
-             KOLOM 1: KOMPUTER
-             ========================================== --}}
+        {{-- KOLOM 1: KOMPUTER --}}
         <div class="kolom-bidang">
             <div class="kolom-header komputer">
                 <span><i class="bi bi-pc-display"></i> PEKERJAAN KOMPUTER</span>
@@ -796,9 +757,7 @@
             </div>
         </div>
 
-        {{-- ==========================================
-             KOLOM 2: CCTV
-             ========================================== --}}
+        {{-- KOLOM 2: CCTV --}}
         <div class="kolom-bidang">
             <div class="kolom-header cctv">
                 <span><i class="bi bi-camera-video"></i> PEKERJAAN CCTV</span>
@@ -1257,6 +1216,27 @@
             chartKomputer = renderChart('chartKomputer', chartKomputer, lastRekapKomputer, 'komputer');
             chartCctv = renderChart('chartCctv', chartCctv, lastRekapCctv, 'cctv');
 
+            // 🆕 RENDER DATA ABSENSI
+            const listAbsensi = document.getElementById('listAbsensi');
+            if (data.absensiHariIni && data.absensiHariIni.length > 0) {
+                listAbsensi.innerHTML = data.absensiHariIni.map(a => {
+                    const roleClass = a.is_cctv ? 'cctv' : '';
+                    const jamMasuk = a.jam_masuk ? `<span class="jam" title="Jam Masuk"><i class="bi bi-box-arrow-in-right"></i>${a.jam_masuk}</span>` : '';
+                    const jamPulang = a.jam_pulang ? `<span class="jam pulang" title="Jam Pulang"><i class="bi bi-box-arrow-right"></i>${a.jam_pulang}</span>` : '';
+                    
+                    return `
+                        <div class="absensi-card">
+                            <span class="nama" title="${a.nama}">${a.nama}</span>
+                            <span class="badge-role ${roleClass}">${a.bidang}</span>
+                            ${jamMasuk}
+                            ${jamPulang}
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                listAbsensi.innerHTML = '<span class="text-danger fw-bold" style="font-size: .6rem;"><i class="bi bi-exclamation-circle"></i> Belum ada teknisi yang absen hari ini</span>';
+            }
+
             document.getElementById('lastUpdate').textContent = data.timestamp;
         } catch (err) {
             console.error('❌ Error:', err);
@@ -1275,7 +1255,6 @@
             return;
         }
 
-        // Sorting: tugas pending di atas
         const sortedJobs = [...jobs].sort((a, b) => {
             const aIsPending = (a.status === 'DITUGASKAN' || a.status === 'DIKERJAKAN');
             const bIsPending = (b.status === 'DITUGASKAN' || b.status === 'DIKERJAKAN');
