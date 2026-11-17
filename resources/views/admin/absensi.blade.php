@@ -10,7 +10,7 @@
         </a>
     </div>
 
-    {{-- Filter Bulan, Tahun, & Tanggal --}}
+    {{-- Filter --}}
     <div class="card shadow-sm mb-4 border-0">
         <div class="card-body bg-light rounded">
             <form method="GET" class="row g-3 align-items-end">
@@ -32,9 +32,8 @@
                         @endfor
                     </select>
                 </div>
-                {{-- 🆕 INPUT TANGGAL SPESIFIK --}}
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small text-primary">Atau Tanggal Spesifik (Opsional)</label>
+                    <label class="form-label fw-bold small text-primary">Atau Tanggal Spesifik</label>
                     <input type="date" name="tanggal" class="form-control" value="{{ $tanggalCari ?? '' }}">
                 </div>
                 <div class="col-md-3">
@@ -46,7 +45,7 @@
         </div>
     </div>
 
-    {{-- Tabel Rekap Detail --}}
+    {{-- Tabel Rekap --}}
     <div class="card shadow-sm border-0">
         <div class="card-body p-0 table-responsive">
             <table class="table table-hover table-bordered mb-0 align-middle">
@@ -60,6 +59,7 @@
                         <th class="text-center" style="background-color: #f8d7da;">Foto Pulang</th>
                         <th class="text-center" style="background-color: #f8d7da;">Jam Pulang</th>
                         <th class="text-center">Status</th>
+                        <th class="text-center">Keterangan Jam</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,55 +67,49 @@
                         @php
                             $user = \App\Models\User::find($r->user_id);
                             $status = \App\Models\Attendance::hitungStatus($r->jam_masuk);
+                            $ket = \App\Models\Attendance::hitungKeterangan($r->jam_masuk, $r->jam_pulang);
                         @endphp
                         <tr>
                             <td class="text-center">{{ $index + 1 }}</td>
                             <td class="fw-bold">{{ \Carbon\Carbon::parse($r->tanggal)->format('d-m-Y') }}</td>
-                            
                             <td>
                                 <div class="fw-bold">{{ $user->display_name ?? '-' }}</div>
                                 <span class="badge bg-{{ $user && $user->isTeknisiCctv() ? 'info text-dark' : 'primary' }} small">
                                     {{ $user ? $user->bidangLabel() : '-' }}
                                 </span>
                             </td>
-
                             <td class="text-center">
                                 @if(isset($r->foto_masuk) && $r->foto_masuk)
-                                    <img src="{{ asset($r->foto_masuk) }}" 
-                                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #198754;"
-                                         onclick="window.open(this.src, '_blank')" alt="Foto Masuk">
+                                    <img src="{{ asset($r->foto_masuk) }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #198754;" onclick="window.open(this.src, '_blank')" alt="Foto Masuk">
                                 @else
                                     <span class="badge bg-secondary">-</span>
                                 @endif
                             </td>
-
                             <td class="text-center fw-bold text-success fs-6">
                                 {{ $r->jam_masuk ? substr($r->jam_masuk, 0, 5) : '-' }}
                             </td>
-
                             <td class="text-center">
                                 @if(isset($r->foto_pulang) && $r->foto_pulang)
-                                    <img src="{{ asset($r->foto_pulang) }}" 
-                                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #dc3545;"
-                                         onclick="window.open(this.src, '_blank')" alt="Foto Pulang">
+                                    <img src="{{ asset($r->foto_pulang) }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #dc3545;" onclick="window.open(this.src, '_blank')" alt="Foto Pulang">
                                 @else
                                     <span class="badge bg-secondary">-</span>
                                 @endif
                             </td>
-
                             <td class="text-center fw-bold text-danger fs-6">
                                 {{ $r->jam_pulang ? substr($r->jam_pulang, 0, 5) : '-' }}
                             </td>
-
                             <td class="text-center">
                                 <span class="badge bg-{{ $status === 'hadir' ? 'success' : 'warning text-dark' }}">
                                     {{ strtoupper($status) }}
                                 </span>
                             </td>
+                            <td class="text-center fw-bold">
+                                <span class="badge bg-{{ $ket['warna'] }}">{{ $ket['label'] }}</span>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
+                            <td colspan="9" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox" style="font-size: 2rem;"></i><br>
                                 Belum ada data absensi pada periode ini.
                             </td>

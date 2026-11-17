@@ -12,7 +12,6 @@
     .header-back { display: flex; align-items: center; margin-bottom: 20px; }
     .header-back a { color: #333; font-size: 1.5rem; margin-right: 12px; text-decoration: none; }
     
-    /* 🆕 STYLE FILTER */
     .filter-box { background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: 12px; }
     .filter-row { display: flex; gap: 10px; }
     .filter-box select, .filter-box input { padding: 8px; border-radius: 8px; border: 1px solid #ddd; flex: 1; font-weight: bold; font-size: 0.85rem; width: 100%; }
@@ -49,7 +48,6 @@
         <div><div class="title" style="font-size:1.1rem; font-weight:800;">Laporan Absensi</div><div class="subtitle" style="font-size:0.8rem; color:#888;">Rekap Kehadiran Anda</div></div>
     </div>
 
-    {{-- 🆕 FORM FILTER TANGGAL --}}
     <form method="GET" class="filter-box">
         <div class="filter-row">
             <select name="bulan">
@@ -77,6 +75,9 @@
     </div>
 
     @forelse($rekap as $r)
+        @php
+            $ket = \App\Models\Attendance::hitungKeterangan($r->jam_masuk, $r->jam_pulang);
+        @endphp
         <div class="card-absen">
             <div class="card-header-absen">
                 <div class="card-tanggal">{{ \Carbon\Carbon::parse($r->tanggal)->translatedFormat('l, d M Y') }}</div>
@@ -103,6 +104,13 @@
                     @endif
                     <div class="jam-text warna-pulang">{{ $r->jam_pulang ? substr($r->jam_pulang, 0, 5) : '--:--' }}</div>
                 </div>
+            </div>
+
+            {{-- TAMPILKAN KETERANGAN JAM --}}
+            <div class="mt-3 text-center">
+                <span class="badge bg-{{ $ket['warna'] }}" style="font-size: 0.8rem; padding: 6px 12px;">
+                    <i class="bi bi-clock-history"></i> {{ $ket['label'] }}
+                </span>
             </div>
         </div>
     @empty

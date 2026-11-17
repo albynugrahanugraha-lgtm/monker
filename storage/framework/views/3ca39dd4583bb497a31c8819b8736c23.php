@@ -11,16 +11,17 @@
     .app-container { max-width: 600px; margin: 0 auto; padding: 16px; padding-bottom: 100px; }
     .header-back { display: flex; align-items: center; margin-bottom: 20px; }
     .header-back a { color: #333; font-size: 1.5rem; margin-right: 12px; text-decoration: none; }
-    .filter-box { background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; display: flex; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
-    .filter-box select { padding: 8px; border-radius: 8px; border: 1px solid #ddd; flex: 1; font-weight: bold; }
-    .filter-box button { background: <?php echo e($primaryColor); ?>; color: white; border: none; border-radius: 8px; padding: 0 16px; font-weight: bold; }
+    
+    .filter-box { background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: 12px; }
+    .filter-row { display: flex; gap: 10px; }
+    .filter-box select, .filter-box input { padding: 8px; border-radius: 8px; border: 1px solid #ddd; flex: 1; font-weight: bold; font-size: 0.85rem; width: 100%; }
+    .filter-box button { background: <?php echo e($primaryColor); ?>; color: white; border: none; border-radius: 8px; padding: 10px; font-weight: bold; width: 100%; }
     
     .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
     .stat-card { background: white; border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
     .stat-card .val { font-size: 1.2rem; font-weight: 800; color: <?php echo e($primaryColor); ?>; }
     .stat-card .lbl { font-size: 0.7rem; color: #888; font-weight: bold; }
 
-    /* 🆕 TAMPILAN KARTU */
     .card-absen { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
     .card-header-absen { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #eee; padding-bottom: 12px; margin-bottom: 12px; }
     .card-tanggal { font-weight: 800; font-size: 1rem; color: #1a1a1a; }
@@ -29,7 +30,6 @@
     .bg-hadir { background: #d4edda; color: #155724; }
     .bg-terlambat { background: #fff3cd; color: #856404; }
     
-    /* 🆕 AREA FOTO & JAM */
     .foto-wrapper { display: flex; justify-content: space-between; gap: 10px; }
     .foto-box { flex: 1; text-align: center; }
     .foto-img { width: 100%; height: 100px; object-fit: cover; border-radius: 10px; border: 2px solid #eee; cursor: pointer; }
@@ -49,17 +49,23 @@
     </div>
 
     <form method="GET" class="filter-box">
-        <select name="bulan">
-            <?php for($i = 1; $i <= 12; $i++): ?>
-                <option value="<?php echo e($i); ?>" <?php echo e($bulan == $i ? 'selected' : ''); ?>><?php echo e(\Carbon\Carbon::create()->month($i)->translatedFormat('F')); ?></option>
-            <?php endfor; ?>
-        </select>
-        <select name="tahun">
-            <?php for($i = now()->year; $i >= now()->year - 2; $i--): ?>
-                <option value="<?php echo e($i); ?>" <?php echo e($tahun == $i ? 'selected' : ''); ?>><?php echo e($i); ?></option>
-            <?php endfor; ?>
-        </select>
-        <button type="submit">Cari</button>
+        <div class="filter-row">
+            <select name="bulan">
+                <?php for($i = 1; $i <= 12; $i++): ?>
+                    <option value="<?php echo e($i); ?>" <?php echo e($bulan == $i ? 'selected' : ''); ?>><?php echo e(\Carbon\Carbon::create()->month($i)->translatedFormat('F')); ?></option>
+                <?php endfor; ?>
+            </select>
+            <select name="tahun">
+                <?php for($i = now()->year; $i >= now()->year - 2; $i--): ?>
+                    <option value="<?php echo e($i); ?>" <?php echo e($tahun == $i ? 'selected' : ''); ?>><?php echo e($i); ?></option>
+                <?php endfor; ?>
+            </select>
+        </div>
+        <div>
+            <label style="font-size:0.75rem; font-weight:bold; color:#666; margin-bottom:4px; display:block;">Atau Cari Tanggal Spesifik (Opsional):</label>
+            <input type="date" name="tanggal" value="<?php echo e($tanggalCari ?? ''); ?>">
+        </div>
+        <button type="submit"><i class="bi bi-search"></i> Tampilkan Data</button>
     </form>
 
     <div class="stat-grid">
@@ -69,6 +75,9 @@
     </div>
 
     <?php $__empty_1 = true; $__currentLoopData = $rekap; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $r): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+        <?php
+            $ket = \App\Models\Attendance::hitungKeterangan($r->jam_masuk, $r->jam_pulang);
+        ?>
         <div class="card-absen">
             <div class="card-header-absen">
                 <div class="card-tanggal"><?php echo e(\Carbon\Carbon::parse($r->tanggal)->translatedFormat('l, d M Y')); ?></div>
@@ -76,7 +85,6 @@
             </div>
 
             <div class="foto-wrapper">
-                
                 <div class="foto-box">
                     <span class="foto-label warna-masuk"><i class="bi bi-box-arrow-in-right"></i> MASUK</span>
                     <?php if(isset($r->foto_masuk) && $r->foto_masuk): ?>
@@ -87,7 +95,6 @@
                     <div class="jam-text warna-masuk"><?php echo e($r->jam_masuk ? substr($r->jam_masuk, 0, 5) : '--:--'); ?></div>
                 </div>
 
-                
                 <div class="foto-box">
                     <span class="foto-label warna-pulang"><i class="bi bi-box-arrow-right"></i> PULANG</span>
                     <?php if(isset($r->foto_pulang) && $r->foto_pulang): ?>
@@ -98,9 +105,17 @@
                     <div class="jam-text warna-pulang"><?php echo e($r->jam_pulang ? substr($r->jam_pulang, 0, 5) : '--:--'); ?></div>
                 </div>
             </div>
+
+            
+            <div class="mt-3 text-center">
+                <span class="badge bg-<?php echo e($ket['warna']); ?>" style="font-size: 0.8rem; padding: 6px 12px;">
+                    <i class="bi bi-clock-history"></i> <?php echo e($ket['label']); ?>
+
+                </span>
+            </div>
         </div>
     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-        <div style="text-align:center; padding:20px; color:#888; background:white; border-radius:12px;">Tidak ada data absensi bulan ini.</div>
+        <div style="text-align:center; padding:20px; color:#888; background:white; border-radius:12px;">Tidak ada data absensi untuk periode ini.</div>
     <?php endif; ?>
 </div>
 <?php $__env->stopSection(); ?>

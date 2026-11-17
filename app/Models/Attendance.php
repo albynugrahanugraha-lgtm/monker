@@ -15,7 +15,6 @@ class Attendance extends Model
         return $this->belongsTo(User::class);
     }
 
-    // Mengambil jam masuk paling pagi & pulang paling malam
     public static function rekapQuery()
     {
         return DB::table('attendances')
@@ -28,7 +27,6 @@ class Attendance extends Model
             ->groupBy('user_id', 'tanggal');
     }
 
-    // Hitung status: Terlambat jika masuk > 08:00
     public static function hitungStatus(?string $jamMasuk): string
     {
         if (!$jamMasuk) return 'alpha';
@@ -36,7 +34,6 @@ class Attendance extends Model
         return $jamMasuk <= $batas ? 'hadir' : 'terlambat';
     }
 
-    // Hitung durasi kerja (dalam menit)
     public static function hitungDurasi(?string $jamMasuk, ?string $jamPulang): ?int
     {
         if (!$jamMasuk || !$jamPulang) return null;
@@ -44,5 +41,36 @@ class Attendance extends Model
         $pulang = strtotime($jamPulang);
         if ($pulang <= $masuk) return null;
         return (int) round(($pulang - $masuk) / 60);
+    }
+
+    // 🆕 Hitung Keterangan Jam Kerja (Flexi Time)
+    public static function hitungKeterangan(?string $jamMasuk, ?string $jamPulang): array
+    {
+        if (!$jamMasuk && !$jamPulang) {
+            return ['status' => 'alpha', 'label' => 'Tidak Absen', 'warna' => 'danger'];
+        }
+
+        if (!$jamMasuk || !$jamPulang) {
+            return ['status' => 'tidak_lengkap', 'label' => 'Absen Tidak Lengkap', 'warna' => 'warning text-dark'];
+        }
+
+        $masuk  = strtotime($jamMasuk);
+        $pulang = strtotime($jamPulang);
+        $durasiMenit = ($pulang - $masuk) / 60;
+
+        $standarMenit = 9 * 60; // 9 Jam
+
+        if ($durasiMenit < $standarMenit) {
+            $kurang = $standarMenit - $durasiMenit;
+            $jamKurang = floor($kurang / 60);
+            $menitKurang = $kurang % 60;
+            return [
+                'status' => 'kurang', 
+                'label' => "Kurang {$jamKurang}j {$menitKurang}m", 
+                'warna' => 'danger'
+            ];
+        }
+
+        return ['status' => 'cukup', 'label' => 'Jam Cukup', 'warna' => 'success'];
     }
 }

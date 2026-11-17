@@ -33,9 +33,8 @@
                         <?php endfor; ?>
                     </select>
                 </div>
-                
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small text-primary">Atau Tanggal Spesifik (Opsional)</label>
+                    <label class="form-label fw-bold small text-primary">Atau Tanggal Spesifik</label>
                     <input type="date" name="tanggal" class="form-control" value="<?php echo e($tanggalCari ?? ''); ?>">
                 </div>
                 <div class="col-md-3">
@@ -61,6 +60,7 @@
                         <th class="text-center" style="background-color: #f8d7da;">Foto Pulang</th>
                         <th class="text-center" style="background-color: #f8d7da;">Jam Pulang</th>
                         <th class="text-center">Status</th>
+                        <th class="text-center">Keterangan Jam</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -68,11 +68,11 @@
                         <?php
                             $user = \App\Models\User::find($r->user_id);
                             $status = \App\Models\Attendance::hitungStatus($r->jam_masuk);
+                            $ket = \App\Models\Attendance::hitungKeterangan($r->jam_masuk, $r->jam_pulang);
                         ?>
                         <tr>
                             <td class="text-center"><?php echo e($index + 1); ?></td>
                             <td class="fw-bold"><?php echo e(\Carbon\Carbon::parse($r->tanggal)->format('d-m-Y')); ?></td>
-                            
                             <td>
                                 <div class="fw-bold"><?php echo e($user->display_name ?? '-'); ?></div>
                                 <span class="badge bg-<?php echo e($user && $user->isTeknisiCctv() ? 'info text-dark' : 'primary'); ?> small">
@@ -80,47 +80,41 @@
 
                                 </span>
                             </td>
-
                             <td class="text-center">
                                 <?php if(isset($r->foto_masuk) && $r->foto_masuk): ?>
-                                    <img src="<?php echo e(asset($r->foto_masuk)); ?>" 
-                                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #198754;"
-                                         onclick="window.open(this.src, '_blank')" alt="Foto Masuk">
+                                    <img src="<?php echo e(asset($r->foto_masuk)); ?>" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #198754;" onclick="window.open(this.src, '_blank')" alt="Foto Masuk">
                                 <?php else: ?>
                                     <span class="badge bg-secondary">-</span>
                                 <?php endif; ?>
                             </td>
-
                             <td class="text-center fw-bold text-success fs-6">
                                 <?php echo e($r->jam_masuk ? substr($r->jam_masuk, 0, 5) : '-'); ?>
 
                             </td>
-
                             <td class="text-center">
                                 <?php if(isset($r->foto_pulang) && $r->foto_pulang): ?>
-                                    <img src="<?php echo e(asset($r->foto_pulang)); ?>" 
-                                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #dc3545;"
-                                         onclick="window.open(this.src, '_blank')" alt="Foto Pulang">
+                                    <img src="<?php echo e(asset($r->foto_pulang)); ?>" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #dc3545;" onclick="window.open(this.src, '_blank')" alt="Foto Pulang">
                                 <?php else: ?>
                                     <span class="badge bg-secondary">-</span>
                                 <?php endif; ?>
                             </td>
-
                             <td class="text-center fw-bold text-danger fs-6">
                                 <?php echo e($r->jam_pulang ? substr($r->jam_pulang, 0, 5) : '-'); ?>
 
                             </td>
-
                             <td class="text-center">
                                 <span class="badge bg-<?php echo e($status === 'hadir' ? 'success' : 'warning text-dark'); ?>">
                                     <?php echo e(strtoupper($status)); ?>
 
                                 </span>
                             </td>
+                            <td class="text-center fw-bold">
+                                <span class="badge bg-<?php echo e($ket['warna']); ?>"><?php echo e($ket['label']); ?></span>
+                            </td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
+                            <td colspan="9" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox" style="font-size: 2rem;"></i><br>
                                 Belum ada data absensi pada periode ini.
                             </td>

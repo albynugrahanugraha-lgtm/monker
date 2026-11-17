@@ -41,23 +41,67 @@
         display: inline-flex; align-items: center; justify-content: center; position: relative; z-index: 1;
     }
 
-    /* 🆕 MENU LAPTOP DENGAN DROPDOWN */
+    /* 🆕 MENU LAPTOP DENGAN DROPDOWN KUSTOM */
     .desktop-nav {
         display: none; gap: 8px; margin-top: 16px; position: relative; z-index: 1;
         border-top: 1px solid rgba(255,255,255,0.2); padding-top: 16px;
         align-items: center;
     }
-    .desktop-nav a, .desktop-nav .dropdown-toggle {
+    .desktop-nav a {
         color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.85rem;
         font-weight: 600; padding: 6px 12px; border-radius: 8px; transition: all 0.2s;
-        background: none; border: none; cursor: pointer;
     }
-    .desktop-nav a:hover, .desktop-nav a.active, .desktop-nav .dropdown-toggle:hover { 
+    .desktop-nav a:hover, .desktop-nav a.active { 
         background: rgba(255,255,255,0.2); color: white; 
     }
-    .dropdown-menu { border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 10px; padding: 8px; }
-    .dropdown-item { font-size: 0.85rem; font-weight: 600; border-radius: 6px; padding: 8px 12px; }
-    .dropdown-item:hover { background: #e7f1ff; color: #0d6efd; }
+    
+    /* Style Dropdown Kustom */
+    .custom-dropdown-btn {
+        color: white !important; 
+        background: transparent !important; 
+        border: none !important; 
+        font-size: 0.85rem; 
+        font-weight: 600; 
+        padding: 6px 12px; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        display: flex; 
+        align-items: center; 
+        gap: 4px;
+        transition: all 0.2s;
+    }
+    .custom-dropdown-btn:hover { background: rgba(255,255,255,0.2) !important; }
+    
+    .custom-dropdown-menu {
+        display: none; 
+        position: absolute; 
+        bottom: 100%; /* 🆕 Ubah ke bottom: 100% agar muncul ke atas */
+        left: 0; 
+        z-index: 9999; 
+        background: white; 
+        border-radius: 8px; 
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.1); /* 🆕 Shadow disesuaikan ke atas */
+        min-width: 220px; 
+        padding: 8px 0; 
+        margin-bottom: 8px; /* 🆕 Jarak dari tombol */
+        border: 1px solid #eee;
+    }
+    .custom-dropdown-menu a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px; 
+        color: #333; 
+        text-decoration: none; 
+        font-size: 0.85rem; 
+        font-weight: 600;
+        border-radius: 6px;
+        margin: 0 6px;
+    }
+    .custom-dropdown-menu a:hover {
+        background: #f0f7ff;
+        color: #0d6efd;
+    }
 
     /* 2. STATISTIK */
     .stat-row { display: flex; gap: 10px; margin-bottom: 24px; }
@@ -164,22 +208,19 @@
             <a href="<?php echo e(route('profile.edit')); ?>"><i class="bi bi-person-circle"></i> Profil</a>
             
             
-            <div class="dropdown d-inline-block">
-                <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-file-earmark-bar-graph"></i> Laporan
+            <div style="position: relative; display: inline-block;">
+                <button type="button" onclick="toggleLaporanDropdown()" class="custom-dropdown-btn">
+                    <i class="bi bi-file-earmark-bar-graph"></i> Laporan <i class="bi bi-caret-down-fill" style="font-size: 0.6rem;"></i>
                 </button>
-                <ul class="dropdown-menu">
-                    <li>
-                        <a class="dropdown-item" href="<?php echo e(auth()->user()->isTeknisiCctv() ? route('teknisi_cctv.absensi.laporan') : route('teknisi.absensi.laporan')); ?>">
-                            <i class="bi bi-fingerprint text-primary"></i> Laporan Absensi
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="<?php echo e(route('laporan.index')); ?>">
-                            <i class="bi bi-briefcase-fill text-success"></i> Laporan Pekerjaan
-                        </a>
-                    </li>
-                </ul>
+                
+                <div id="customLaporanMenu" class="custom-dropdown-menu">
+                    <a href="<?php echo e(auth()->user()->isTeknisiCctv() ? route('teknisi_cctv.absensi.laporan') : route('teknisi.absensi.laporan')); ?>">
+                        <i class="bi bi-fingerprint text-primary"></i> Laporan Absensi
+                    </a>
+                    <a href="<?php echo e(route('laporan.index')); ?>">
+                        <i class="bi bi-briefcase-fill text-success"></i> Laporan Pekerjaan
+                    </a>
+                </div>
             </div>
 
             <form action="<?php echo e(route('logout')); ?>" method="POST" style="margin:0; margin-left:auto;">
@@ -299,6 +340,25 @@
 <script>
     function openModal(id) { document.getElementById('modalAksi' + id).classList.add('show'); }
     function closeModal(id) { document.getElementById('modalAksi' + id).classList.remove('show'); }
+
+    // 🆕 Script untuk Dropdown Kustom
+    function toggleLaporanDropdown() {
+        var menu = document.getElementById('customLaporanMenu');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+        } else {
+            menu.style.display = 'none';
+        }
+    }
+
+    // Tutup dropdown jika klik di luar area
+    window.addEventListener('click', function(e) {
+        var menu = document.getElementById('customLaporanMenu');
+        var btn = document.querySelector('button[onclick="toggleLaporanDropdown()"]');
+        if (menu && !menu.contains(e.target) && !btn.contains(e.target)) {
+            menu.style.display = 'none';
+        }
+    });
 </script>
 <?php $__env->stopPush(); ?>
 <?php echo $__env->make('layouts.app_pwa', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\CHATBOT LARAVEL\monitoring-teknisi\resources\views/teknisi/dashboard.blade.php ENDPATH**/ ?>
